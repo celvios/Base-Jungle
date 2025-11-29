@@ -1,13 +1,9 @@
 import { Pool } from 'pg';
 import { createClient } from 'redis';
 
-// PostgreSQL connection pool with explicit configuration
+// PostgreSQL connection pool using DATABASE_URL environment variable
 export const pool = new Pool({
-    user: 'basejungle',
-    password: 'basejungle_dev_pass',
-    host: 'localhost',
-    port: 5432,
-    database: 'basejungle',
+    connectionString: process.env.DATABASE_URL,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
