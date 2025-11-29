@@ -23,22 +23,10 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet());
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-    credentials: true,
-}));
-app.use(morgan('dev'));
-app.use(express.json());
-
-// Health check endpoint
-app.get('/health', async (req, res) => {
-    res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        websocket: {
-            connections: getConnectionCount(),
-        },
-    });
+    websocket: {
+        connections: getConnectionCount(),
+    },
+});
 });
 
 // API routes
