@@ -1,0 +1,26 @@
+{
+    "name": "base-jungle-keepers",
+    "version": "1.0.0",
+    "description": "Autonomous keeper bots for Base Jungle protocol",
+    "scripts": {
+        "start": "node dist/keepers/index.js",
+        "dev": "ts-node scripts/keepers/index.ts",
+        "build": "tsc",
+        "harvest": "ts-node scripts/keepers/HarvestKeeper.ts",
+        "rebalance": "ts-node scripts/keepers/RebalanceKeeper.ts",
+        "monitor": "ts-node scripts/keepers/HealthMonitor.ts"
+    },
+    "dependencies": {
+        "ethers": "^6.15.0",
+        "dotenv": "^17.2.3",
+        "node-cron": "^3.0.3",
+        "axios": "^1.7.0",
+        "winston": "^3.11.0"
+    },
+    "devDependencies": {
+        "@types/node": "^20.10.0",
+        "@types/node-cron": "^3.0.11",
+        "typescript": "^5.3.3",
+        "ts-node": "^10.9.2"
+    }
+}

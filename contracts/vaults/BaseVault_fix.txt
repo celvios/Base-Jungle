@@ -1,0 +1,49 @@
+    /**
+     * @notice Internal: Calculate withdrawal fee based on lock period.
+     * @dev Virtual function to be overridden by child contracts.
+     */
+    function _calculateWithdrawalFee(address user, uint256 assets) internal view virtual returns (uint256) {
+        uint256 depositTime = depositTimestamp[user];
+        
+        if (block.timestamp < depositTime + withdrawalLockPeriod) {
+            // Default: 10% early withdrawal penalty
+            return (assets * 1000) / BASIS_POINTS;
+        }
+        
+        return 0; // No fee after maturity
+    }
+
+    /**
+     * @notice Abstract: Check tier requirement (implemented by child contracts).
+     */
+    function _checkTierRequirement(address user) internal view virtual;
+
+    /**
+     * @notice Admin: Update fee collector.
+     */
+    function setFeeCollector(address _feeCollector) external onlyRole(FEE_ADMIN_ROLE) {
+        feeCollector = _feeCollector;
+    }
+
+    /**
+     * @notice Admin: Update deposit fee.
+     */
+    function setDepositFee(uint256 _fee) external onlyRole(FEE_ADMIN_ROLE) {
+        require(_fee <= 100, "Fee too high"); // Max 1%
+        depositFee = _fee;
+    }
+
+    /**
+     * @notice Admin: Pause deposits/withdrawals.
+     */
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    /**
+     * @notice Admin: Unpause deposits/withdrawals.
+     */
+    function unpause() external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+}

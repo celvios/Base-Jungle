@@ -1,0 +1,121 @@
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import dotenv from 'dotenv';
+import { createServer } from 'http';
+import { initializeDatabase, closeDatabase } from './database/connection.js';
+import { initializeWebSocket, getConnectionCount } from './websocket/server.js';
+import { startBotActivityMonitor } from './websocket/channels/bot-activity.js';
+import { startMarketHealthMonitor, scheduleMarketHealthUpdates } from './websocket/channels/market.js';
+import { cleanupInactiveWatchers } from './websocket/channels/user.js';
+import authRoutes from './routes/auth.js';
+import transactionRoutes from './routes/transactions.js';
+import userRoutes from './routes/user.js';
+
+// Load environment variables
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(helmet());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true,
+}));
+app.use(morgan('dev'));
+app.use(express.json());
+
+// Health check endpoint
+app.get('/health', async (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        websocket: {
+            connections: getConnectionCount(),
+        },
+    });
+});
+
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/deposit', transactionRoutes);
+app.use('/api', userRoutes);
+
+app.get('/api/status', (req, res) => {
+    res.json({
+        message: 'Base Jungle Backend API - Complete!',
+        features: {
+            database: true,
+            websocket: true,
+            authentication: true,
+            transactions: true,
+            userManagement: true,
+        },
+        connections: getConnectionCount(),
+    });
+});
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error('❌ Error:', err);
+    res.status(500).json({
+        error: 'Internal server error',
+        message: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    });
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
+// Start server
+async function startServer() {
+    try {
+        // Initialize database connections
+        await initializeDatabase();
+
+        // Create HTTP server
+        const httpServer = createServer(app);
+
+        // Initialize WebSocket
+        initializeWebSocket(httpServer);
+
+        // Start monitoring channels
+        startBotActivityMonitor();
+        startMarketHealthMonitor();
+        scheduleMarketHealthUpdates();
+        cleanupInactiveWatchers();
+
+        // Start HTTP server
+        httpServer.listen(PORT, () => {
+            console.log(`\n🚀 Backend server running on http://localhost:${PORT}`);
+            console.log(`📊 Health check: http://localhost:${PORT}/health`);
+            console.log(`🔌 WebSocket ready for connections`);
+            console.log(`🔍 Environment: ${process.env.NODE_ENV}\n`);
+        });
+    } catch (error) {
+        console.error('❌ Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('\n🛑 Shutting down gracefully...');
+    await closeDatabase();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('\n🛑 Shutting down gracefully...');
+    await closeDatabase();
+    process.exit(0);
+});
+
+// Start the server
+startServer();

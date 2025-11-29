@@ -1,0 +1,50 @@
+# Render Deployment Configuration
+
+web:
+  - type: web
+    name: basejungle-backend
+    env: node
+    region: oregon
+    plan: starter
+    buildCommand: cd backend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: BASE_SEPOLIA_RPC
+        value: https://sepolia.base.org
+      - key: CHAIN_ID
+        value: 84532
+      - key: CONSERVATIVE_VAULT_ADDRESS
+        value: 0x986ca22e9f0A6104AAdea7C2698317A690045D13
+      - key: AGGRESSIVE_VAULT_ADDRESS
+        value: 0x7eD340313599090b25fA1F6F21671FE0210808E8
+      - key: REFERRAL_MANAGER_ADDRESS
+        value: 0xc8A84e0BF9a4C213564e858A89c8f14738aD0f15
+      - key: POINTS_TRACKER_ADDRESS
+        value: 0x3dEDE79F6aD12973e723e67071F17e5C42A93173
+      - key: STRATEGY_CONTROLLER_ADDRESS
+        value: 0x65CD6764A4f574c1F6154518519925277C6CFF81
+      - key: USDC_ADDRESS
+        value: 0x036CbD53842c5426634e7929541eC2318f3dCF7e
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_DURATION
+        value: 7d
+      - key: CORS_ORIGIN
+        value: https://basejungle.vercel.app
+
+databases:
+  - name: basejungle-postgres
+    databaseName: basejungle
+    user: basejungle
+    plan: starter
+
+  - name: basejungle-redis
+    plan: starter

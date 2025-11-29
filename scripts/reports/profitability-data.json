@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Moonwell USDC",
+    "apy": 4.2,
+    "gas": 0.08,
+    "risk": "low",
+    "status": "live",
+    "minDeposit": 92,
+    "returns30Days": 0.3452054794520548,
+    "gasBreakeven": 7
+  },
+  {
+    "name": "Aave USDC",
+    "apy": 3.8,
+    "gas": 0.12,
+    "risk": "low",
+    "status": "not_deployed",
+    "minDeposit": 152,
+    "returns30Days": 0.31232876712328766,
+    "gasBreakeven": 12
+  },
+  {
+    "name": "Aerodrome LP",
+    "apy": 12.5,
+    "gas": 0.15,
+    "risk": "medium",
+    "status": "not_deployed",
+    "minDeposit": 58,
+    "returns30Days": 1.0273972602739725,
+    "gasBreakeven": 5
+  },
+  {
+    "name": "Beefy Vault",
+    "apy": 6.8,
+    "gas": 0.1,
+    "risk": "medium",
+    "status": "not_deployed",
+    "minDeposit": 71,
+    "returns30Days": 0.558904109589041,
+    "gasBreakeven": 6
+  },
+  {
+    "name": "UniswapV3 LP",
+    "apy": 25,
+    "gas": 0.2,
+    "risk": "high",
+    "status": "not_deployed",
+    "minDeposit": 116,
+    "returns30Days": 2.054794520547945,
+    "gasBreakeven": 3
+  }
+]

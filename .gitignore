@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+**/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production.local
+backend/.env
+!backend/.env.example
+!client/.env.example
+
+# Build outputs
+dist/
+build/
+backend/dist/
+client/dist/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Hardhat
+cache/
+artifacts/
+typechain-types/
+deployments/
+!deployments/README.md
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporary
+*.tmp
+.cache/
+.temp/
+
+# Database
+*.db
+*.sqlite
+postgres_data/
+redis_data/
+
+# Ponder
+.ponder/
+ponder.db
+
+# Test outputs
+test_output.txt
+vault_test_output.txt
+
+# Misc
+.artifact-*
+.gemini/

@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: basejungle
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d basejungle"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  ponder:
+    build: 
+      context: .
+      dockerfile: Dockerfile.ponder
+    ports:
+      - "42069:42069"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://admin:${DB_PASSWORD:-password}@postgres:5432/basejungle
+      PONDER_RPC_URL_8453: ${BASE_RPC_URL}
+
+volumes:
+  postgres_data:
+  redis_data:

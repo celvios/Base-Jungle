@@ -1,0 +1,121 @@
+type Query {
+  user(address: String!): User
+  vault(address: String!): Vault
+  deposits(user: String, limit: Int): [Deposit!]!
+  apy(vault: String!): APY!
+  systemHealth: SystemHealth!
+}
+
+type User {
+  address: String!
+  username: String
+  tier: Tier!
+  totalDeposits: String!
+  totalPoints: String!
+  activeReferrals: Int!
+  vaultBalances: [VaultBalance!]!
+  referralTree: ReferralTree!
+  # Settings
+  autoCompound: Boolean
+  riskLevel: RiskLevel
+  leverageMultiplier: Int
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+type Mutation {
+  updateSettings(
+    autoCompound: Boolean
+    riskLevel: RiskLevel
+    leverageMultiplier: Int
+  ): User
+}
+
+type Query {
+  user(address: String!): User
+  vault(address: String!): Vault
+  deposits(user: String, limit: Int): [Deposit!]!
+  apy(vault: String!): APY!
+  systemHealth: SystemHealth!
+  leaderboard(limit: Int, offset: Int): Leaderboard!
+  tokenSale: TokenSaleInfo!
+}
+
+type TokenSaleInfo {
+  totalCap: String!
+  raised: String!
+  softCap: String!
+  hardCap: String!
+  progress: Float!
+  endsAt: String!
+  status: String!
+}
+
+type Leaderboard {
+  rankings: [LeaderboardEntry!]!
+  total: Int!
+}
+
+type LeaderboardEntry {
+  rank: Int!
+  address: String!
+  points: String!
+  tier: Tier!
+  referrals: Int!
+}
+
+enum Tier {
+  NOVICE
+  SCOUT
+  EXPLORER
+  CAPTAIN
+  WHALE
+}
+
+type VaultBalance {
+  vault: Vault!
+  balance: String!
+  shareBalance: String!
+}
+
+type ReferralTree {
+  parent: String
+  children: [String!]!
+  count: Int!
+}
+
+type Vault {
+  address: String!
+  name: String!
+  tvl: String!
+  apy: Float!
+  userCount: Int!
+  strategy: String!
+}
+
+type Deposit {
+  id: String!
+  user: User!
+  vault: Vault!
+  amount: String!
+  timestamp: String!
+  txHash: String!
+}
+
+type APY {
+  current: Float!
+  day7: Float!
+  day30: Float!
+  lastUpdated: String!
+}
+
+type SystemHealth {
+  vaultsActive: Boolean!
+  keepersRunning: Boolean!
+  oracleFeedsHealthy: Boolean!
+  lastHarvest: String!
+}

@@ -1,0 +1,29 @@
+{
+    "network": "base",
+    "rpcUrl": "https://mainnet.base.org",
+    "contracts": {
+        "aerodromeGaugeAdapter": "0x0000000000000000000000000000000000000000",
+        "strategyController": "0x0000000000000000000000000000000000000000",
+        "leverageManager": "0x0000000000000000000000000000000000000000",
+        "referralManager": "0x0000000000000000000000000000000000000000"
+    },
+    "gauges": [
+        {
+            "name": "USDC/WETH Volatile",
+            "address": "0x0000000000000000000000000000000000000000",
+            "pool": "0x0000000000000000000000000000000000000000"
+        }
+    ],
+    "tokens": {
+        "AERO": "0x0000000000000000000000000000000000000000",
+        "USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        "WETH": "0x4200000000000000000000000000000000000006"
+    },
+    "keeper": {
+        "maxGasPriceGwei": 50,
+        "profitabilityThreshold": 1.5,
+        "harvestIntervalHours": 6,
+        "rebalanceIntervalHours": 2,
+        "minHarvestValueUSD": 5
+    }
+}

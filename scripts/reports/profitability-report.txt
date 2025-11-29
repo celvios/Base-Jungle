@@ -1,0 +1,49 @@
+════════════════════════════════════════════════════════════════════════════════
+    BASE JUNGLE STRATEGY PROFITABILITY REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+Generated: 11/28/2025, 10:18:30 AM
+
+CONSERVATIVE (Low Risk)
+--------------------------------------------------------------------------------
+[1] Moonwell USDC
+    APY: 4.2% | Gas: $0.08 | Min: $92
+    30-Day Return: 0.35%
+    Status: ✅ LIVE
+
+[2] Aave USDC
+    APY: 3.8% | Gas: $0.12 | Min: $152
+    30-Day Return: 0.31%
+    Status: 🔨 NOT_DEPLOYED
+
+
+AGGRESSIVE (Higher Yield)
+--------------------------------------------------------------------------------
+[1] Aerodrome LP
+    APY: 12.5% | Risk: MEDIUM | Gas: $0.15
+    Min Deposit: $58
+    Status: 🔨 NOT_DEPLOYED
+
+[2] Beefy Vault
+    APY: 6.8% | Risk: MEDIUM | Gas: $0.1
+    Min Deposit: $71
+    Status: 🔨 NOT_DEPLOYED
+
+[3] UniswapV3 LP
+    APY: 25% | Risk: HIGH | Gas: $0.2
+    Min Deposit: $116
+    Status: 🔨 NOT_DEPLOYED
+
+════════════════════════════════════════════════════════════════════════════════
+SUMMARY
+--------------------------------------------------------------------------------
+Live: 1 | Not Deployed: 4
+
+Best Conservative: Moonwell (4.2% APY)
+Best Aggressive: UniswapV3 (25% APY, high risk)
+
+💡 RECOMMENDATIONS:
+  Safe: Start with Moonwell (4.2% steady)
+  Balanced: Aerodrome LP (12.5%, low IL)
+  Max Yield: UniswapV3 (25%, active mgmt)
+════════════════════════════════════════════════════════════════════════════════
