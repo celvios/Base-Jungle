@@ -110,9 +110,7 @@ if (require.main === module) {
     // 🎯 ADD YOUR WALLET ADDRESS HERE!
     // This should be the address you use to connect to the app
     const addresses = [
-        '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb', // User 1
-        '0x1234567890abcdef1234567890abcdef12345678', // User 2
-        '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', // User 3
+        '0x72377a60870E3d2493F871FA5792a1160518fcc6', // Main user
         // Add more addresses if you want (other users, test accounts, etc.)
     ];
 

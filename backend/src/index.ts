@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import userRoutes from './routes/user.js';
 import migrateRoutes from './routes/migrate.js';
+import adminRoutes from './routes/admin.js';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/deposit', transactionRoutes);
 app.use('/api', userRoutes);
 app.use('/api', migrateRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/status', (req, res) => {
     res.json({

@@ -8,7 +8,8 @@
         "build": "tsc",
         "start": "node dist/index.js",
         "sync": "ts-node src/services/sync-blockchain.ts",
-        "sync-events": "ts-node src/services/sync-events.ts"
+        "sync-events": "ts-node src/services/sync-events.ts",
+        "award-points": "ts-node src/services/award-signup-points.ts"
     },
     "keywords": [
         "defi",
