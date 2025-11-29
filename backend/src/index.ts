@@ -23,12 +23,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
-app.use(cors({
-    websocket: {
-        connections: getConnectionCount(),
-    },
-});
-});
+app.use(cors());
 
 // API routes
 app.use('/api/auth', authRoutes);
