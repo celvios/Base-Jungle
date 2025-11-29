@@ -1,9 +1,0 @@
-{
-  "name": "base-jungle-root",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "cd Base-Jungle-Ui/Base-Jungle && npm install && npm run build",
-    "dev": "cd Base-Jungle-Ui/Base-Jungle && npm run dev"
-  }
-}
