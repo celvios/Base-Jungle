@@ -1,8 +1,0 @@
-{
-    "private": true,
-    "workspaces": [
-        "Base-Jungle-Ui/Base-Jungle",
-        "backend",
-        "server"
-    ]
-}
