@@ -15,22 +15,6 @@
     },
     "keywords": [
         "defi",
-        "vault",
-        "base",
-        "ethereum"
-    ],
-    "author": "",
-    "license": "MIT",
-    "dependencies": {
-        "cors": "^2.8.5",
-        "dotenv": "^16.3.1",
-        "ethers": "^6.9.0",
-        "express": "^4.18.2",
-        "express-rate-limit": "^7.1.5",
-        "helmet": "^7.1.0",
-        "jose": "^5.10.0",
-        "morgan": "^1.10.0",
-        "pg": "^8.11.3",
         "redis": "^4.6.10",
         "siwe": "^2.3.2",
         "socket.io": "^4.6.2",
