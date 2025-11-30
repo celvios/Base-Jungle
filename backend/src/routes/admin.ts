@@ -21,6 +21,18 @@ const RPC_URL = process.env.RPC_URL || process.env.BASE_SEPOLIA_RPC;
 const POINTS_TRACKER_ADDRESS = process.env.POINTS_TRACKER_ADDRESS;
 const PRIVATE_KEY = process.env.PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
 
+// Configuration check endpoint
+router.get('/config', (req, res) => {
+    const config = {
+        rpcUrl: !!RPC_URL,
+        pointsTrackerAddress: !!POINTS_TRACKER_ADDRESS,
+        privateKey: !!PRIVATE_KEY,
+        allConfigured: !!(RPC_URL && POINTS_TRACKER_ADDRESS && PRIVATE_KEY)
+    };
+
+    res.json(config);
+});
+
 // Award points endpoint
 router.post('/award', async (req, res) => {
     try {
@@ -224,6 +236,11 @@ router.get('/award', (req, res) => {
         <h1>🎁 Award Points</h1>
         <p>Award signup bonus points to users</p>
         
+        <div class="result error" id="configWarning" style="display: none; margin-bottom: 20px;">
+            <strong>⚠️ Configuration Issue</strong><br>
+            <span id="configMessage"></span>
+        </div>
+        
         <form id="awardForm">
             <div class="form-group">
                 <label for="address">Wallet Address</label>
@@ -258,37 +275,63 @@ router.get('/award', (req, res) => {
     </div>
 
     <script>
-        document.getElementById('awardForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const submitBtn = document.getElementById('submitBtn');
-            const loading = document.getElementById('loading');
-            const result = document.getElementById('result');
-            const address = document.getElementById('address').value;
-            const points = document.getElementById('points').value;
-            
-            // Show loading
-            submitBtn.disabled = true;
-            loading.classList.add('show');
-            result.classList.remove('show');
-            
+        // Check configuration on page load
+        async function checkConfig() {
             try {
-                const response = await fetch('/api/admin/award', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ address, points: parseInt(points) }),
-                });
+                const response = await fetch('/api/admin/config');
+                const config = await response.json();
                 
-                const data = await response.json();
-                
-                loading.classList.remove('show');
-                result.classList.add('show');
-                
-                if (data.success) {
-                    result.className = 'result success show';
-                    result.innerHTML = \`
+                if (!config.allConfigured) {
+                    const missing = [];
+                    if (!config.rpcUrl) missing.push('RPC_URL');
+                    if (!config.pointsTrackerAddress) missing.push('POINTS_TRACKER_ADDRESS');
+                    if (!config.privateKey) missing.push('PRIVATE_KEY');
+                    
+                    document.getElementById('configWarning').style.display = 'block';
+                    document.getElementById('configMessage').innerHTML = 
+                        `Missing environment variables: <strong>${ missing.join(', ') } </strong><br>` +
+        `Please add these to your Render dashboard under Environment → Environment Variables.`;
+    document.getElementById('submitBtn').disabled = true;
+}
+            } catch (error) {
+    console.error('Failed to check config:', error);
+}
+        }
+
+// Check config when page loads
+checkConfig();
+
+document.getElementById('awardForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitBtn = document.getElementById('submitBtn');
+    const loading = document.getElementById('loading');
+    const result = document.getElementById('result');
+    const address = document.getElementById('address').value;
+    const points = document.getElementById('points').value;
+
+    // Show loading
+    submitBtn.disabled = true;
+    loading.classList.add('show');
+    result.classList.remove('show');
+
+    try {
+        const response = await fetch('/api/admin/award', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ address, points: parseInt(points) }),
+        });
+
+        const data = await response.json();
+
+        loading.classList.remove('show');
+        result.classList.add('show');
+
+        if (data.success) {
+            result.className = 'result success show';
+            result.innerHTML = \`
                         <strong>✅ Success!</strong><br>
                         Awarded \${points.toLocaleString()} points to \${address}<br>
                         <small>Transaction: \${data.transactionHash}</small>
