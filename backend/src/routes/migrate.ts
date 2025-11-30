@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const router = Router();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__dirname);
+const __dirname = path.dirname(__filename);
 
 // GET /api/migrate - Run database migrations
 router.get('/migrate', async (req, res) => {
