@@ -32,7 +32,7 @@ export function useSIWE() {
 
         try {
             // 1. Get nonce from backend
-            const nonceRes = await fetch(`${API_URL}/api/auth/nonce`, {
+            const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`, {
                 credentials: 'include',
             });
             const nonce = await nonceRes.text();
@@ -57,7 +57,7 @@ export function useSIWE() {
             const verifyRes = await fetch(`${API_URL}/api/auth/verify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: preparedMessage, signature }),
+                body: JSON.stringify({ message: preparedMessage, signature, address }),
                 credentials: 'include',
             });
 
