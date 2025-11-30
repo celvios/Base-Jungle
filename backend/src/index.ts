@@ -31,6 +31,7 @@ app.use(helmet({
     }
 }));
 app.use(cors());
+app.use(express.json()); // Parse JSON request bodies
 
 // API routes
 app.use('/api/auth', authRoutes);
