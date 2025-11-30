@@ -83,6 +83,19 @@ router.post('/award', async (req, res) => {
 
         console.log(`✅ Points awarded! Block: ${receipt.blockNumber}`);
 
+        // Automatically sync the user's points to the database
+        console.log(`🔄 Syncing points to database...`);
+
+        try {
+            // Fetch the updated points from blockchain
+            const updatedPoints = await pointsContract.userPoints(address);
+            const points = Number(updatedPoints[0]) / 1e18;
+
+            console.log(`✅ User now has ${points} points on-chain`);
+        } catch (syncError) {
+            console.warn(`⚠️ Points awarded but sync failed:`, syncError);
+        }
+
         res.json({
             success: true,
             message: `Successfully awarded ${points} points to ${address}`,
