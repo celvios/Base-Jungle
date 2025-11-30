@@ -1,0 +1,350 @@
+// server/index-prod.ts
+import fs from "node:fs";
+import path from "node:path";
+import express2 from "express";
+
+// server/app.ts
+import express from "express";
+
+// server/routes.ts
+import { createServer } from "http";
+
+// server/storage.ts
+import { randomUUID } from "crypto";
+var MemStorage = class {
+  users;
+  vaultStats;
+  referralTiers;
+  strategies;
+  tokenSaleData;
+  stakingMultipliers;
+  constructor() {
+    this.users = /* @__PURE__ */ new Map();
+    this.vaultStats = [
+      {
+        id: "tvl",
+        label: "Total Value Locked",
+        value: "$45.2M",
+        change: "+12.5%",
+        icon: "dollar-sign"
+      },
+      {
+        id: "apy",
+        label: "Average APY",
+        value: "18.4%",
+        change: "+2.1%",
+        icon: "trending-up"
+      },
+      {
+        id: "users",
+        label: "Active Users",
+        value: "12,847",
+        change: "+8.3%",
+        icon: "users"
+      },
+      {
+        id: "volume",
+        label: "24h Volume",
+        value: "$2.8M",
+        change: "+15.7%",
+        icon: "zap"
+      }
+    ];
+    this.referralTiers = [
+      {
+        id: "novice",
+        name: "Novice",
+        requirement: "0 Referrals",
+        pointMultiplier: "1.0x",
+        maxLeverage: "1.5x",
+        benefits: [
+          "Conservative strategies",
+          "Stablecoin LP only",
+          "Basic lending"
+        ],
+        minReferrals: 0
+      },
+      {
+        id: "scout",
+        name: "Scout",
+        requirement: "5 Active Refs",
+        pointMultiplier: "1.1x",
+        maxLeverage: "2.0x",
+        benefits: [
+          "Moderate strategies",
+          "Volatile LP access",
+          "10% referral bonus"
+        ],
+        minReferrals: 5
+      },
+      {
+        id: "captain",
+        name: "Captain",
+        requirement: "20 Active Refs",
+        pointMultiplier: "1.25x",
+        maxLeverage: "3.0x",
+        benefits: [
+          "Aggressive strategies",
+          "Leveraged LP",
+          "Second-tier rewards"
+        ],
+        minReferrals: 20
+      },
+      {
+        id: "whale",
+        name: "Whale",
+        requirement: "50+ Active Refs",
+        pointMultiplier: "1.5x",
+        maxLeverage: "5.0x",
+        benefits: [
+          "All strategies unlocked",
+          "Delta-neutral farming",
+          "Maximum leverage"
+        ],
+        minReferrals: 50
+      }
+    ];
+    this.strategies = [
+      {
+        id: "lending",
+        name: "Lending & Borrowing",
+        description: "Automated recursive lending on Aave and Moonwell for amplified yields with continuous health monitoring.",
+        apyRange: "5-12%",
+        features: [
+          "Supply & borrow loops",
+          "Auto health factor management",
+          "Protocol reward farming"
+        ],
+        icon: "dollar-sign",
+        riskLevel: "low"
+      },
+      {
+        id: "liquidity",
+        name: "Liquidity Provision",
+        description: "Provide liquidity on Aerodrome and Uniswap V3, earning trading fees plus token emissions.",
+        apyRange: "8-25%",
+        features: [
+          "Concentrated liquidity",
+          "AERO emissions",
+          "Auto fee collection"
+        ],
+        icon: "layers",
+        riskLevel: "medium"
+      },
+      {
+        id: "farming",
+        name: "Yield Farming",
+        description: "Stake LP tokens in farms like Beefy Finance with automated reward harvesting and compounding.",
+        apyRange: "10-35%",
+        features: [
+          "Auto-compound rewards",
+          "Multi-protocol access",
+          "Optimized rebalancing"
+        ],
+        icon: "sprout",
+        riskLevel: "medium"
+      },
+      {
+        id: "arbitrage",
+        name: "Automated Trading",
+        description: "Execute arbitrage opportunities across DEXs using flash loans to capture price inefficiencies.",
+        apyRange: "15-50%",
+        features: [
+          "Flash loan integration",
+          "Cross-DEX arbitrage",
+          "Real-time execution"
+        ],
+        icon: "arrow-right-left",
+        riskLevel: "high"
+      }
+    ];
+    const now = /* @__PURE__ */ new Date();
+    const endsAt = new Date(now.getTime() + (17 * 24 + 2 * 1 + 45 * 60 + 56) * 60 * 1e3);
+    this.tokenSaleData = {
+      totalCap: "100M USDC",
+      raised: "42.6M USDC",
+      softCap: "10M USDC",
+      hardCap: "65.7M USDC",
+      progress: 42.6,
+      endsAt
+    };
+    this.stakingMultipliers = [
+      {
+        duration: "Flexible",
+        multiplier: "1.0x",
+        withdrawalPolicy: "Anytime"
+      },
+      {
+        duration: "30 Days",
+        multiplier: "1.25x",
+        withdrawalPolicy: "Locked"
+      },
+      {
+        duration: "90 Days",
+        multiplier: "1.50x",
+        withdrawalPolicy: "Locked"
+      },
+      {
+        duration: "180 Days",
+        multiplier: "2.00x",
+        withdrawalPolicy: "Locked"
+      }
+    ];
+  }
+  async getUser(id) {
+    return this.users.get(id);
+  }
+  async getUserByUsername(username) {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
+  }
+  async createUser(insertUser) {
+    const id = randomUUID();
+    const user = { ...insertUser, id };
+    this.users.set(id, user);
+    return user;
+  }
+  async getVaultStats() {
+    return this.vaultStats;
+  }
+  async getReferralTiers() {
+    return this.referralTiers;
+  }
+  async getStrategies() {
+    return this.strategies;
+  }
+  async getTokenSaleData() {
+    return this.tokenSaleData;
+  }
+  async getStakingMultipliers() {
+    return this.stakingMultipliers;
+  }
+};
+var storage = new MemStorage();
+
+// server/routes.ts
+async function registerRoutes(app2) {
+  app2.get("/api/stats", async (_req, res) => {
+    try {
+      const stats = await storage.getVaultStats();
+      res.json(stats);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch vault statistics" });
+    }
+  });
+  app2.get("/api/referral-tiers", async (_req, res) => {
+    try {
+      const tiers = await storage.getReferralTiers();
+      res.json(tiers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch referral tiers" });
+    }
+  });
+  app2.get("/api/strategies", async (_req, res) => {
+    try {
+      const strategies = await storage.getStrategies();
+      res.json(strategies);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch strategies" });
+    }
+  });
+  app2.get("/api/token-sale", async (_req, res) => {
+    try {
+      const saleData = await storage.getTokenSaleData();
+      res.json(saleData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch token sale data" });
+    }
+  });
+  app2.get("/api/staking-multipliers", async (_req, res) => {
+    try {
+      const multipliers = await storage.getStakingMultipliers();
+      res.json(multipliers);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch staking multipliers" });
+    }
+  });
+  const httpServer = createServer(app2);
+  return httpServer;
+}
+
+// server/app.ts
+function log(message, source = "express") {
+  const formattedTime = (/* @__PURE__ */ new Date()).toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
+var app = express();
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
+app.use(express.urlencoded({ extended: false }));
+app.use((req, res, next) => {
+  const start = Date.now();
+  const path2 = req.path;
+  let capturedJsonResponse = void 0;
+  const originalResJson = res.json;
+  res.json = function(bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    if (path2.startsWith("/api")) {
+      let logLine = `${req.method} ${path2} ${res.statusCode} in ${duration}ms`;
+      if (capturedJsonResponse) {
+        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      }
+      if (logLine.length > 80) {
+        logLine = logLine.slice(0, 79) + "\u2026";
+      }
+      log(logLine);
+    }
+  });
+  next();
+});
+async function runApp(setup) {
+  const server = await registerRoutes(app);
+  app.use((err, _req, res, _next) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    res.status(status).json({ message });
+    throw err;
+  });
+  await setup(app, server);
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen({
+    port,
+    host: "0.0.0.0",
+    reusePort: true
+  }, () => {
+    log(`serving on port ${port}`);
+  });
+}
+
+// server/index-prod.ts
+async function serveStatic(app2, _server) {
+  const distPath = path.resolve(import.meta.dirname, "public");
+  if (!fs.existsSync(distPath)) {
+    throw new Error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
+  }
+  app2.use(express2.static(distPath));
+  app2.use("*", (_req, res) => {
+    res.sendFile(path.resolve(distPath, "index.html"));
+  });
+}
+(async () => {
+  await runApp(serveStatic);
+})();
+export {
+  serveStatic
+};
