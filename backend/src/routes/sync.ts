@@ -37,7 +37,9 @@ router.post('/trigger', async (req, res) => {
                 error: 'Server configuration error',
                 message: 'POINTS_TRACKER_ADDRESS not configured'
             });
-        } \n\n        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        }
+
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
         const pointsContract = new ethers.Contract(
             POINTS_TRACKER_ADDRESS,
             POINTS_TRACKER_ABI,
