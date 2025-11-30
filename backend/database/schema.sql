@@ -37,7 +37,7 @@ CREATE INDEX idx_users_tier ON users(tier);
 -- ============================================================================
 CREATE TABLE vault_positions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_address VARCHAR(42) NOT NULL,
+    wallet_address VARCHAR(42) NOT NULL,
     vault_address VARCHAR(42) NOT NULL,
     vault_type VARCHAR(20) NOT NULL CHECK (vault_type IN ('conservative', 'aggressive')),
     
@@ -59,10 +59,10 @@ CREATE TABLE vault_positions (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     
-    FOREIGN KEY (user_address) REFERENCES users(wallet_address) ON DELETE CASCADE
+    FOREIGN KEY (wallet_address) REFERENCES users(wallet_address) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_vault_positions_user ON vault_positions(user_address);
+CREATE INDEX idx_vault_positions_user ON vault_positions(wallet_address);
 CREATE INDEX idx_vault_positions_vault ON vault_positions(vault_address);
 CREATE INDEX idx_vault_positions_active ON vault_positions(is_active);
 CREATE INDEX idx_vault_positions_deposited_at ON vault_positions(deposited_at);
@@ -148,7 +148,7 @@ CREATE TABLE bot_activity (
     action TEXT NOT NULL,
     
     -- Optional user context
-    user_address VARCHAR(42),
+    wallet_address VARCHAR(42),
     vault_id VARCHAR(42),
     
     -- Amounts
@@ -164,11 +164,11 @@ CREATE TABLE bot_activity (
     
     created_at TIMESTAMP DEFAULT NOW(),
     
-    FOREIGN KEY (user_address) REFERENCES users(wallet_address) ON DELETE SET NULL
+    FOREIGN KEY (wallet_address) REFERENCES users(wallet_address) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_bot_activity_type ON bot_activity(bot_type);
-CREATE INDEX idx_bot_activity_user ON bot_activity(user_address);
+CREATE INDEX idx_bot_activity_user ON bot_activity(wallet_address);
 CREATE INDEX idx_bot_activity_created_at ON bot_activity(created_at DESC);
 CREATE INDEX idx_bot_activity_tx_hash ON bot_activity(tx_hash);
 
@@ -210,7 +210,7 @@ LIMIT 1;
 -- ============================================================================
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_address VARCHAR(42) NOT NULL,
+    wallet_address VARCHAR(42) NOT NULL,
     tx_type VARCHAR(20) NOT NULL CHECK (tx_type IN ('deposit', 'withdraw', 'harvest', 'compound', 'settings')),
     
     -- Transaction details
@@ -227,10 +227,10 @@ CREATE TABLE transactions (
     created_at TIMESTAMP DEFAULT NOW(),
     confirmed_at TIMESTAMP,
     
-    FOREIGN KEY (user_address) REFERENCES users(wallet_address) ON DELETE CASCADE
+    FOREIGN KEY (wallet_address) REFERENCES users(wallet_address) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_transactions_user ON transactions(user_address);
+CREATE INDEX idx_transactions_user ON transactions(wallet_address);
 CREATE INDEX idx_transactions_status ON transactions(status);
 CREATE INDEX idx_transactions_tx_hash ON transactions(tx_hash);
 CREATE INDEX idx_transactions_created_at ON transactions(created_at DESC);
