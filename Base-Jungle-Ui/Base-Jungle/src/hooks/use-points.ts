@@ -34,7 +34,7 @@ const POINTS_TRACKER_ABI = [
     },
 ] as const;
 
-const POINTS_TRACKER_ADDRESS = import.meta.env.VITE_POINTS_TRACKER_ADDRESS as Address;
+const POINTS_TRACKER_ADDRESS = '0x0De850d04BC2B9c5315C82b26CB51D43c51A4e4b' as Address; // Hardcoded for testing
 
 // Hook: Get user points from contract
 export function useUserPointsContract(userAddress: Address | undefined) {
