@@ -49,7 +49,7 @@ const POINTS_TRACKER_ABI = [
 // Contract Addresses (from environment or hardcoded for now)
 const CONTRACTS = {
     BASE_VAULT: (import.meta.env.VITE_BASE_VAULT_ADDRESS as Address) || '0x0',
-    POINTS_TRACKER: '0x0De850d04BC2B9c5315C82b26CB51D43c51A4e4b' as Address, // Hardcoded for testing
+    POINTS_TRACKER: (import.meta.env.VITE_POINTS_TRACKER_ADDRESS as Address) || '0x3dEDE79F6aD12973e723e67071F17e5C42A93173',
 };
 
 // Hook: Get vault balance

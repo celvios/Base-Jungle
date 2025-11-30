@@ -13,7 +13,7 @@ if (!projectId) {
 
 // 2. Set up Wagmi adapter
 export const wagmiAdapter = new WagmiAdapter({
-    networks: [base, baseSepolia],
+    networks: [baseSepolia],
     projectId,
     ssr: false,
 });
@@ -21,7 +21,7 @@ export const wagmiAdapter = new WagmiAdapter({
 // 3. Create modal
 export const modal = createAppKit({
     adapters: [wagmiAdapter],
-    networks: [base, baseSepolia],
+    networks: [baseSepolia],
     projectId,
     metadata: {
         name: 'Base Jungle',
