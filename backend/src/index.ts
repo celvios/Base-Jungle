@@ -31,13 +31,26 @@ app.use(helmet({
         }
     }
 }));
-app.use(cors());
+import activitiesRoutes from './routes/activities.js';
+
+// ... imports
+
+app.use(cors({
+    origin: [
+        'https://base-jungle.vercel.app',
+        'https://base-jungle.onrender.com',
+        'http://localhost:5173',
+        'http://localhost:3000'
+    ],
+    credentials: true
+}));
 app.use(express.json()); // Parse JSON request bodies
 
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/deposit', transactionRoutes);
 app.use('/api', userRoutes);
+app.use('/api/activities', activitiesRoutes);
 app.use('/api', migrateRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/sync', syncRoutes);
