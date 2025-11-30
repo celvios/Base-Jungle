@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 const router = Router();
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = path.dirname(__dirname);
 
 // GET /api/migrate - Run database migrations
 router.get('/migrate', async (req, res) => {
@@ -41,38 +41,72 @@ router.get('/migrate', async (req, res) => {
                 'bot_activity',
                 'market_health',
                 'transactions',
-        // Check if tables exist
-        const result = await pool.query(`
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE table_schema = 'public'
-            ORDER BY table_name;
-        `);
+                'sessions'
+            ]
+        });
 
-            const tables = result.rows.map(r => r.table_name);
+    } catch (err: any) {
+        console.error('❌ Migration failed:', err);
+        res.status(500).json({ success: false, error: err.message, hint: 'Check if DATABASE_URL is set correctly' });
+    }
+});
+
+// Fix trigger endpoint - updates existing triggers without recreating tables
+router.get('/fix-trigger', async (req, res) => {
+    try {
+        const client = await pool.connect();
+
+        try {
+            console.log('🔧 Fixing database triggers...');
+
+            // Drop old triggers and function
+            await client.query('DROP TRIGGER IF EXISTS update_user_active_on_points ON points');
+            await client.query('DROP TRIGGER IF EXISTS update_user_active_on_position ON vault_positions');
+            await client.query('DROP FUNCTION IF EXISTS update_user_last_active()');
+
+            // Recreate function with correct field name
+            await client.query(`
+                CREATE OR REPLACE FUNCTION update_user_last_active()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                    UPDATE users 
+                    SET last_active_at = NOW() 
+                    WHERE wallet_address = NEW.wallet_address;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+            `);
+
+            // Recreate triggers
+            await client.query(`
+                CREATE TRIGGER update_user_active_on_position
+                AFTER INSERT ON vault_positions
+                FOR EACH ROW
+                EXECUTE FUNCTION update_user_last_active();
+            `);
+
+            await client.query(`
+                CREATE TRIGGER update_user_active_on_points
+                AFTER INSERT ON points
+                FOR EACH ROW
+                EXECUTE FUNCTION update_user_last_active();
+            `);
+
+            console.log('✅ Triggers fixed successfully');
 
             res.json({
                 success: true,
-                tablesExist: tables.length > 0,
-                tables: tables,
-                expectedTables: [
-                    'users',
-                    'vault_positions',
-                    'points',
-                    'referrals',
-                    'bot_activity',
-                    'market_health',
-                    'transactions',
-                    'sessions'
-                ]
+                message: 'Database triggers updated successfully'
             });
 
-        } catch (error: any) {
-            res.status(500).json({
-                success: false,
-                error: error.message
-            });
+        } finally {
+            client.release();
         }
-    });
+
+    } catch (err: any) {
+        console.error('❌ Trigger fix failed:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
 
 export default router;
