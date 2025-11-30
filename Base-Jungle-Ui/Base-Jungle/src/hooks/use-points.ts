@@ -11,9 +11,8 @@ const POINTS_TRACKER_ABI = [
         inputs: [{ name: 'user', type: 'address' }],
         name: 'userPoints',
         outputs: [
-            { name: 'totalPoints', type: 'uint256' },
-            { name: 'lastClaimTimestamp', type: 'uint256' },
-            { name: 'pendingDailyPoints', type: 'uint256' },
+            { name: 'points', type: 'uint256' },
+            { name: 'lastUpdated', type: 'uint256' }
         ],
         stateMutability: 'view',
         type: 'function',
@@ -178,15 +177,14 @@ export function formatPoints(points: bigint): string {
     return formatUnits(points, 18);
 }
 
-// Hook: Simplified points balance interface
 export function usePointsBalance(userAddress: Address | undefined) {
     const { data: contractData, isLoading } = useUserPointsContract(userAddress);
 
     return {
         data: contractData ? {
-            balance: Number(formatPoints(contractData[0])),
+            balance: Number(formatPoints(contractData[0])), // points
             dailyRate: 150, // TODO: Calculate from contract or API
-            pending: Number(formatPoints(contractData[2])),
+            pending: 0, // No longer returned by contract
         } : null,
         isLoading,
     };

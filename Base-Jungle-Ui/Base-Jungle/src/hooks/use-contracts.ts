@@ -31,9 +31,8 @@ const POINTS_TRACKER_ABI = [
         inputs: [{ name: 'user', type: 'address' }],
         name: 'userPoints',
         outputs: [
-            { name: 'totalPoints', type: 'uint256' },
-            { name: 'lastClaimTimestamp', type: 'uint256' },
-            { name: 'pendingDailyPoints', type: 'uint256' },
+            { name: 'points', type: 'uint256' },
+            { name: 'lastUpdated', type: 'uint256' }
         ],
         stateMutability: 'view',
         type: 'function',
