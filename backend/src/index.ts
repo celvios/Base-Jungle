@@ -22,7 +22,14 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for admin interface
+        }
+    }
+}));
 app.use(cors());
 
 // API routes
