@@ -68,7 +68,7 @@ router.post('/trigger', async (req, res) => {
 
             // Ensure user exists
             const normalizedAddress = address.toLowerCase();
-            const referralCode = generateReferralCode(address);
+            const referralCode = generateReferralCode(normalizedAddress);
             await client.query(`
             INSERT INTO users (wallet_address, referral_code, tier)
             VALUES ($1, $2, 0)
