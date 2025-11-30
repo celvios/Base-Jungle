@@ -22,7 +22,7 @@ export function useRecentActivities(limit: number = 50) {
     return useQuery<{ activities: Activity[]; count: number }>({
         queryKey: ['activities', limit],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/activities?limit=${limit}`);
+            const res = await fetch(`${API_URL}/api/activities?limit=${limit}`);
             if (!res.ok) throw new Error('Failed to fetch activities');
             const data = await res.json();
             return data;
@@ -41,7 +41,7 @@ export function useUserActivities(address: string | undefined, limit: number = 2
         queryFn: async () => {
             if (!address) return { activities: [], count: 0 };
 
-            const res = await fetch(`${API_URL}/activities/user/${address}?limit=${limit}`);
+            const res = await fetch(`${API_URL}/api/activities/user/${address}?limit=${limit}`);
             if (!res.ok) throw new Error('Failed to fetch user activities');
             const data = await res.json();
             return data;
@@ -64,7 +64,7 @@ export function useActivityStats() {
     }>({
         queryKey: ['activity-stats'],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/activities/stats`);
+            const res = await fetch(`${API_URL}/api/activities/stats`);
             if (!res.ok) throw new Error('Failed to fetch activity stats');
             const data = await res.json();
             return data;

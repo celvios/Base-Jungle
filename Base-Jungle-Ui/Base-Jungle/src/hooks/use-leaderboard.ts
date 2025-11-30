@@ -47,12 +47,20 @@ export function useUserRank(address: string | undefined) {
         queryFn: async () => {
             if (!address) return null;
 
-            const res = await fetch(`${API_CONFIG.baseURL}/api/user/${address}/rank`);
+            const res = await fetch(`${API_CONFIG.baseURL}/api/user/${address}/points`);
             if (res.status === 404) return null; // User not in system yet
             if (!res.ok) throw new Error('Failed to fetch user rank');
 
             const data = await res.json();
-            return data;
+            return {
+                address,
+                points: data.totalPoints,
+                tier: ['Novice', 'Scout', 'Captain', 'Whale'].indexOf(data.rank),
+                rank: data.rank, // Using rank name as rank for now, or fetch actual numeric rank if available
+                total_users: 0, // Placeholder
+                direct_referrals: 0,
+                indirect_referrals: 0
+            };
         },
         enabled: !!address,
         staleTime: 30000,
