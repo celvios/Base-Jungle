@@ -72,8 +72,8 @@ router.post('/trigger', async (req, res) => {
             await client.query(`
             INSERT INTO users (wallet_address, referral_code, tier)
             VALUES ($1, $2, 0)
-            ON CONFLICT (wallet_address) 
-            DO UPDATE SET last_active_at = NOW()
+            ON CONFLICT (referral_code) 
+            DO UPDATE SET wallet_address = EXCLUDED.wallet_address, last_active_at = NOW()
         `, [normalizedAddress, referralCode]);
 
             // Clear existing points for this user to avoid duplicates
