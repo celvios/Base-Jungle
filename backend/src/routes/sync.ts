@@ -55,25 +55,64 @@ router.post('/trigger', async (req, res) => {
         console.log(`🔄 Fetching points for ${address}...`);
 
         const pointsData = await pointsContract.userPoints(address);
-    } finally {
-        client.release();
+        const points = Number(pointsData[0]) / 1e18; // Convert from wei
+
+        console.log(`✅ Fetched ${points} points for ${address}`);
+
+        // Save to database
+        console.log(`💾 Saving to database...`);
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Ensure user exists
+            const normalizedAddress = address.toLowerCase();
+            const referralCode = generateReferralCode(address);
+            await client.query(`
+            INSERT INTO users (wallet_address, referral_code, tier)
+            VALUES ($1, $2, 0)
+            ON CONFLICT (wallet_address) 
+            DO UPDATE SET last_active_at = NOW()
+        `, [normalizedAddress, referralCode]);
+
+            // Clear existing points for this user to avoid duplicates
+            await client.query('DELETE FROM points WHERE wallet_address = $1', [normalizedAddress]);
+
+            // Insert new points record
+            if (points > 0) {
+                await client.query(`
+                    INSERT INTO points (wallet_address, amount, source, metadata)
+                    VALUES ($1, $2, 'bonus', $3)
+                `, [normalizedAddress, Math.floor(points), JSON.stringify({ synced_at: new Date().toISOString() })]);
+            }
+
+            await client.query('COMMIT');
+            console.log(`✅ Saved ${Math.floor(points)} points to database for ${address}`);
+
+        } catch (dbError) {
+            await client.query('ROLLBACK');
+            console.error('❌ Database error:', dbError);
+            throw dbError;
+        } finally {
+            client.release();
+        }
+
+        res.json({
+            success: true,
+            address,
+            points: Math.floor(points),
+            message: `Successfully synced ${Math.floor(points)} points`
+        });
+
+    } catch (error: any) {
+        console.error('❌ Error fetching points:', error);
+
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to fetch points',
+        });
     }
-
-    res.json({
-        success: true,
-        address,
-        points: Math.floor(points),
-        message: `Successfully synced ${Math.floor(points)} points`
-    });
-
-} catch (error: any) {
-    console.error('❌ Error fetching points:', error);
-
-    res.status(500).json({
-        success: false,
-        error: error.message || 'Failed to fetch points',
-    });
-}
 });
 
 // Simple web interface
