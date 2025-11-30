@@ -53,7 +53,7 @@ router.get('/user/:address/portfolio', optionalAuthenticate, async (req, res) =>
         const positionsQuery = await pool.query(
             `SELECT vault_address, vault_type, principal, shares, deposited_at, is_active
              FROM vault_positions 
-             WHERE user_address = $1`,
+             WHERE wallet_address = $1`,
             [address.toLowerCase()]
         );
 
@@ -61,7 +61,7 @@ router.get('/user/:address/portfolio', optionalAuthenticate, async (req, res) =>
         const totalQuery = await pool.query(
             `SELECT COALESCE(SUM(principal), 0) as total_deposited
              FROM vault_positions 
-             WHERE user_address = $1 AND is_active = true`,
+             WHERE wallet_address = $1 AND is_active = true`,
             [address.toLowerCase()]
         );
 
