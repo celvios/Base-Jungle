@@ -289,13 +289,13 @@ router.get('/award', (req, res) => {
                     
                     document.getElementById('configWarning').style.display = 'block';
                     document.getElementById('configMessage').innerHTML = 
-                        `Missing environment variables: <strong>${ missing.join(', ') } </strong><br>` +
-        `Please add these to your Render dashboard under Environment → Environment Variables.`;
-    document.getElementById('submitBtn').disabled = true;
-}
+                        'Missing environment variables: <strong>' + missing.join(', ') + '</strong><br>' +
+                        'Please add these to your Render dashboard under Environment → Environment Variables.';
+                    document.getElementById('submitBtn').disabled = true;
+                }
             } catch (error) {
-    console.error('Failed to check config:', error);
-}
+                console.error('Failed to check config:', error);
+            }
         }
 
 // Check config when page loads
