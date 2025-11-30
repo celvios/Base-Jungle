@@ -294,7 +294,7 @@ RETURNS TRIGGER AS $$
 BEGIN
     UPDATE users 
     SET last_active_at = NOW() 
-    WHERE wallet_address = NEW.user_address;
+    WHERE wallet_address = NEW.wallet_address;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -308,3 +308,4 @@ CREATE TRIGGER update_user_active_on_points
 AFTER INSERT ON points
 FOR EACH ROW
 EXECUTE FUNCTION update_user_last_active();
+
