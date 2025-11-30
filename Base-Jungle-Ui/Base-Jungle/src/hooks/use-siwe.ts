@@ -35,7 +35,8 @@ export function useSIWE() {
             const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`, {
                 credentials: 'include',
             });
-            const nonce = await nonceRes.text();
+            const nonceData = await nonceRes.json();
+            const nonce = nonceData.nonce;
 
             // 2. Create SIWE message
             const message = new SiweMessage({
