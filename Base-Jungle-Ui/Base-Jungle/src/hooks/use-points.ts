@@ -178,7 +178,15 @@ export function formatPoints(points: bigint): string {
 }
 
 export function usePointsBalance(userAddress: Address | undefined) {
-    const { data: contractData, isLoading } = useUserPointsContract(userAddress);
+    const { data: contractData, isLoading, error } = useUserPointsContract(userAddress);
+
+    console.log('🔍 Points Debug:', {
+        userAddress,
+        contractData,
+        isLoading,
+        error,
+        formattedPoints: contractData ? Number(formatPoints(contractData[0])) : null
+    });
 
     return {
         data: contractData ? {
