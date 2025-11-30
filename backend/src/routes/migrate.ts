@@ -41,23 +41,6 @@ router.get('/migrate', async (req, res) => {
                 'bot_activity',
                 'market_health',
                 'transactions',
-                'sessions'
-            ]
-        });
-
-    } catch (error: any) {
-        console.error('❌ Migration failed:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            hint: 'Check if DATABASE_URL is set correctly'
-        });
-    }
-});
-
-// GET /api/migrate/status - Check migration status
-router.get('/migrate/status', async (req, res) => {
-    try {
         // Check if tables exist
         const result = await pool.query(`
             SELECT table_name 
@@ -66,30 +49,30 @@ router.get('/migrate/status', async (req, res) => {
             ORDER BY table_name;
         `);
 
-        const tables = result.rows.map(r => r.table_name);
+            const tables = result.rows.map(r => r.table_name);
 
-        res.json({
-            success: true,
-            tablesExist: tables.length > 0,
-            tables: tables,
-            expectedTables: [
-                'users',
-                'vault_positions',
-                'points',
-                'referrals',
-                'bot_activity',
-                'market_health',
-                'transactions',
-                'sessions'
-            ]
-        });
+            res.json({
+                success: true,
+                tablesExist: tables.length > 0,
+                tables: tables,
+                expectedTables: [
+                    'users',
+                    'vault_positions',
+                    'points',
+                    'referrals',
+                    'bot_activity',
+                    'market_health',
+                    'transactions',
+                    'sessions'
+                ]
+            });
 
-    } catch (error: any) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
+        } catch (error: any) {
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
+    });
 
 export default router;
