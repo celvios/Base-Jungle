@@ -265,11 +265,12 @@ router.get('/leaderboard', async (req, res) => {
         // If syncAddress provided, ensure user exists in database
         if (syncAddress && typeof syncAddress === 'string') {
             const normalized = syncAddress.toLowerCase();
+            // Only update last_active_at if user exists, don't try to create
             await pool.query(`
                 INSERT INTO users (wallet_address, referral_code, tier, last_active_at)
                 VALUES ($1, $2, 0, NOW())
                 ON CONFLICT (wallet_address) DO UPDATE SET last_active_at = NOW()
-            `, [normalized, syncAddress.slice(2, 8).toUpperCase()]);
+            `, [normalized, `REF_${normalized.slice(2, 10)}`]);
         }
 
         // Get all known user addresses
