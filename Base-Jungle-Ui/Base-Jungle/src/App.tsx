@@ -76,22 +76,7 @@ function MobileBottomNav() {
       </div>
     </nav>
   );
-}
-
-function AppContent() {
-  const [location] = useLocation();
-  const { theme, toggleTheme } = useTheme();
-  const isDashboardRoute = location === "/dashboard" || location === "/referrals" || location === "/leaderboard";
-
-  if (!isDashboardRoute) {
-    // Marketing pages - no sidebar
-    return <Router />;
-  }
-
-  // Dashboard pages - with sidebar on desktop, bottom nav on mobile
-  return (
-    <div className="flex h-screen w-full">
-      {/* Desktop sidebar - hidden on mobile */}
+  {/* Desktop sidebar - hidden on mobile */ }
       <div className="hidden md:block">
         <AppSidebar />
       </div>
@@ -108,9 +93,9 @@ function AppContent() {
           <Router />
         </main>
       </div>
-      {/* Mobile bottom navigation */}
-      <MobileBottomNav />
-    </div>
+  {/* Mobile bottom navigation */ }
+  <MobileBottomNav />
+    </div >
   );
 }
 
