@@ -28,7 +28,7 @@ const WhitepaperPage: React.FC = () => {
                     </div>
 
                     {/* Content */}
-                    <article className="max-w-[80ch] mx-auto space-y-16">
+                    <article className="w-full max-w-none space-y-16">
 
                         {/* Executive Summary */}
                         <section id="executive-summary" className="scroll-mt-8">
