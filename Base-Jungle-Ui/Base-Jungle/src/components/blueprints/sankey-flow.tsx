@@ -41,7 +41,7 @@ export function SankeyFlow({ strategy }: SankeyFlowProps) {
     const protocols = protocolData[strategy];
 
     return (
-        <div className="relative max-w-7xl mx-auto">
+        <div className="relative w-full">
             {/* Main SVG Flow */}
             <svg
                 viewBox="0 0 1200 600"
