@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import ReferralsPage from "@/pages/referrals";
+import Blueprints from "@/pages/blueprints";
 import LeaderboardPage from "@/pages/leaderboard";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -33,6 +34,7 @@ function Router() {
           <ReferralsPage />
         </ProtectedRoute>
       </Route>
+      <Route path="/blueprints" component={Blueprints} />
       <Route path="/leaderboard">
         <ProtectedRoute>
           <LeaderboardPage />

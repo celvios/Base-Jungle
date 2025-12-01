@@ -83,18 +83,96 @@ export function Sonar({ isBooting }: SonarProps) {
     );
   }
 
-  // Show empty state if no activities
+  // Show empty state with animated radar if no activities
   if (activities.length === 0) {
     return (
       <GlassPanel className="h-[280px]">
         <div className="flex flex-col h-full">
           <h3 className="text-sm font-medium text-primary/70 tracking-wider mb-4">
-            SONAR
+            SONAR • NO ACTIVITY YET
           </h3>
+
+          {/* Radar Circle - Same as main view */}
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-xs text-gray-500 text-center">
-              No activity detected<br />
-              <span className="text-xs text-gray-600">Waiting for vault transactions...</span>
+            <div className="relative w-40 h-40">
+              {/* Radar background */}
+              <svg className="absolute inset-0" viewBox="0 0 100 100">
+                {/* Concentric circles */}
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="45"
+                  fill="none"
+                  stroke="hsl(var(--primary) / 0.2)"
+                  strokeWidth="0.5"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="30"
+                  fill="none"
+                  stroke="hsl(var(--primary) / 0.2)"
+                  strokeWidth="0.5"
+                />
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="15"
+                  fill="none"
+                  stroke="hsl(var(--primary) / 0.2)"
+                  strokeWidth="0.5"
+                />
+
+                {/* Cross hairs */}
+                <line
+                  x1="50"
+                  y1="5"
+                  x2="50"
+                  y2="95"
+                  stroke="hsl(var(--primary) / 0.2)"
+                  strokeWidth="0.5"
+                />
+                <line
+                  x1="5"
+                  y1="50"
+                  x2="95"
+                  y2="50"
+                  stroke="hsl(var(--primary) / 0.2)"
+                  strokeWidth="0.5"
+                />
+
+                {/* Sweep line */}
+                <line
+                  x1="50"
+                  y1="50"
+                  x2="50"
+                  y2="5"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2"
+                  transform={`rotate(${rotation} 50 50)`}
+                  style={{ transformOrigin: "50% 50%" }}
+                />
+
+                {/* Sweep gradient */}
+                <defs>
+                  <radialGradient id="sweep-gradient-empty">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+                <path
+                  d={`M 50 50 L 50 5 A 45 45 0 0 1 ${50 + 45 * Math.sin((rotation * Math.PI) / 180)} ${50 - 45 * Math.cos((rotation * Math.PI) / 180)} Z`}
+                  fill="url(#sweep-gradient-empty)"
+                  opacity="0.5"
+                />
+              </svg>
+            </div>
+          </div>
+
+          {/* Empty state message */}
+          <div className="mt-4 h-12 overflow-hidden">
+            <div className="font-mono text-xs text-gray-500">
+              {'>'}  Waiting for vault transactions...
             </div>
           </div>
         </div>
