@@ -1,4 +1,3 @@
-```
 import React, { useState } from 'react';
 import ControlDeck from '@/components/blueprints/ControlDeck';
 import LogicBlockDiagram from '@/components/blueprints/LogicBlockDiagram';
@@ -13,17 +12,17 @@ const BlueprintsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans pt-20 pb-16">
       <div className="flex">
-        
+
         {/* Main Content Area */}
         <div className="flex-1 px-6 md:px-12 xl:pr-72 max-w-7xl mx-auto w-full">
-          
+
           {/* Page Header */}
           <div className="mb-10 border-b border-gray-800 pb-6">
             <h1 className="text-4xl font-bold font-mono tracking-tight mb-2 text-white">
               The Architecture Lab
             </h1>
             <p className="text-gray-400 font-mono text-sm max-w-2xl">
-              <span className="text-cyan-500">>></span> ACCESSING SECURE BLUEPRINTS...<br/>
+              <span className="text-cyan-500">>></span> ACCESSING SECURE BLUEPRINTS...<br />
               <span className="text-cyan-500">>></span> DECRYPTING PROTOCOL LOGIC...
             </p>
           </div>
@@ -64,4 +63,3 @@ const BlueprintsPage: React.FC = () => {
 };
 
 export default BlueprintsPage;
-```
