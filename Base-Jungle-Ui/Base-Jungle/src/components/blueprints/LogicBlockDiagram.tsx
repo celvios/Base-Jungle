@@ -64,7 +64,7 @@ const LogicBlockDiagram: React.FC<LogicBlockDiagramProps> = ({ selectedTier }) =
                     >
                         <Cpu className="w-5 h-5 text-cyan-400 mb-1" />
                         <span className="text-xs font-mono text-cyan-300 font-bold">STRATEGY CONTROLLER</span>
-                        <span className="text-[10px] font-mono text-gray-400 mt-1">Scan(Sources) -> Max(APY)</span>
+                        <span className="text-[10px] font-mono text-gray-400 mt-1">Scan(Sources) -{">"} Max(APY)</span>
 
                         {/* Pulsing Dot */}
                         <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-cyan-400 rounded-full animate-pulse" />
