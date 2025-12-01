@@ -5,6 +5,7 @@ import TierMatrix from '@/components/whitepaper/TierMatrix';
 import TokenomicsPie from '@/components/whitepaper/TokenomicsPie';
 import GlossaryTooltip from '@/components/whitepaper/GlossaryTooltip';
 import MobileNavFab from '@/components/whitepaper/MobileNavFab';
+import RoadmapTimeline from '@/components/whitepaper/RoadmapTimeline';
 
 const WhitepaperPage: React.FC = () => {
     return (
@@ -216,52 +217,7 @@ const WhitepaperPage: React.FC = () => {
                         <section id="roadmap" className="scroll-mt-8">
                             <h2 className="text-3xl font-bold mb-6 font-mono">Roadmap</h2>
                             <div className="space-y-8">
-                                <div className="relative pl-8 border-l-2 border-gray-800">
-                                    {/* Phase 1 - Launch */}
-                                    <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-green-500 border-2 border-[#050505]" />
-                                    <div className="mb-8">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <h3 className="text-xl font-bold text-green-400">Phase 1: Protocol Launch</h3>
-                                            <span className="text-xs text-green-500 bg-green-900/20 px-2 py-1 rounded">COMPLETED</span>
-                                        </div>
-                                        <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>✓ Smart contract deployment</li>
-                                            <li>✓ Security audit (CertiK)</li>
-                                            <li>✓ Delta Neutral Farming Strategy</li>
-                                            <li>✓ Frontend v1 Launch</li>
-                                        </ul>
-                                    </div>
-
-                                    {/* Phase 2 - Current */}
-                                    <div className="absolute -left-[9px] top-40 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#050505] animate-pulse shadow-[0_0_10px_#0052FF]" />
-                                    <div className="mb-8">
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <h3 className="text-xl font-bold text-blue-400">Phase 2: Growth & Optimization</h3>
-                                            <span className="text-xs text-blue-500 bg-blue-900/20 px-2 py-1 rounded">CURRENT</span>
-                                        </div>
-                                        <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>⏳ Liquidity Bootstrapping Event</li>
-                                            <li>⏳ Advanced Keeper Automation</li>
-                                            <li>⏳ Points Program & Referrals</li>
-                                            <li>⏳ Strategic Partnerships</li>
-                                        </ul>
-                                    </div>
-
-                                    {/* Phase 3 - Future */}
-                                    <div className="absolute -left-[9px] top-80 w-4 h-4 rounded-full bg-gray-700 border-2 border-gray-600" />
-                                    <div>
-                                        <div className="flex items-center space-x-2 mb-2">
-                                            <h3 className="text-xl font-bold text-gray-400">Phase 3: Expansion</h3>
-                                            <span className="text-xs text-gray-500 bg-gray-900/20 px-2 py-1 rounded">Q2 2025</span>
-                                        </div>
-                                        <ul className="text-sm text-gray-500 space-y-1">
-                                            <li>○ Cross-chain expansion (Arbitrum, Optimism)</li>
-                                            <li>○ DAO Governance Launch</li>
-                                            <li>○ Mobile App Release</li>
-                                            <li>○ Institutional Vaults</li>
-                                        </ul>
-                                    </div>
-                                </div>
+                                <RoadmapTimeline />
                             </div>
                         </section>
 
