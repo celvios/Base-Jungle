@@ -39,6 +39,10 @@ const RPC_URL = process.env.RPC_URL!;
 const POINTS_TRACKER_ADDRESS = process.env.POINTS_TRACKER_ADDRESS!;
 const REFERRAL_REGISTRY_ADDRESS = process.env.REFERRAL_REGISTRY_ADDRESS!;
 
+console.log('🔍 Loaded addresses:');
+console.log('   POINTS_TRACKER:', POINTS_TRACKER_ADDRESS);
+console.log('   REFERRAL_REGISTRY:', REFERRAL_REGISTRY_ADDRESS);
+
 export async function syncUserData(address: string) {
     try {
         const provider = new ethers.JsonRpcProvider(RPC_URL);
@@ -55,17 +59,26 @@ export async function syncUserData(address: string) {
             provider
         );
 
-        // Fetch data from contracts
-        const [pointsData, referralCounts, tier] = await Promise.all([
-            pointsContract.userPoints(address),
-            referralContract.getReferralCount(address),
-            referralContract.getUserTier(address),
-        ]);
-
+        // Fetch points data (required)
+        const pointsData = await pointsContract.userPoints(address);
         const points = Number(pointsData[0]) / 1e18; // Convert from wei
-        const directReferrals = Number(referralCounts[0]);
-        const indirectReferrals = Number(referralCounts[1]);
-        const userTier = Number(tier);
+
+        // Fetch referral data (optional - default to 0 if not registered)
+        let directReferrals = 0;
+        let indirectReferrals = 0;
+        let userTier = 0;
+
+        try {
+            const [referralCounts, tier] = await Promise.all([
+                referralContract.getReferralCount(address),
+                referralContract.getUserTier(address),
+            ]);
+            directReferrals = Number(referralCounts[0]);
+            indirectReferrals = Number(referralCounts[1]);
+            userTier = Number(tier);
+        } catch (referralError) {
+            console.log(`   ⚠️  No referral data for ${address.slice(0, 6)}...${address.slice(-4)} (not registered in referral system)`);
+        }
 
         // Update database
         await updateUserData(
