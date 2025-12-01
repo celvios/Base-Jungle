@@ -270,7 +270,7 @@ router.get('/leaderboard', async (req, res) => {
                 INSERT INTO users (wallet_address, referral_code, tier, last_active_at)
                 VALUES ($1, $2, 0, NOW())
                 ON CONFLICT (wallet_address) DO UPDATE SET last_active_at = NOW()
-            `, [normalized, `REF_${normalized.slice(2, 10)}`]);
+            `, [normalized, normalized.slice(2, 12).toUpperCase()]); // 10 chars max
         }
 
         // Get all known user addresses
