@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface GlossaryTooltipProps {
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface GlossaryTooltipProps {
     term: string;
     definition: string;
     children: React.ReactNode;
@@ -10,12 +14,21 @@ interface GlossaryTooltipProps {
 const GlossaryTooltip: React.FC<GlossaryTooltipProps> = ({ term, definition, children }) => {
     const [isHovered, setIsHovered] = useState(false);
 
+    // Handle tap on mobile to toggle tooltip
+    const handleInteraction = (e: React.MouseEvent | React.TouchEvent) => {
+        // Prevent default behavior if it's a touch event to avoid double firing
+        if (e.type === 'touchstart') {
+            setIsHovered(!isHovered);
+        }
+    };
+
     return (
         <span className="relative inline-block">
             <span
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
-                className="border-b border-dashed border-blue-500/50 cursor-help text-blue-400"
+                onClick={() => setIsHovered(!isHovered)}
+                className="border-b border-dashed border-blue-500/50 cursor-help text-blue-400 active:text-blue-300 transition-colors"
             >
                 {children}
             </span>
@@ -27,6 +40,10 @@ const GlossaryTooltip: React.FC<GlossaryTooltipProps> = ({ term, definition, chi
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 5 }}
                         className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-[#0a0a0a] border border-blue-500/50 rounded-lg shadow-[0_0_20px_rgba(0,82,255,0.2)] z-50"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsHovered(false);
+                        }}
                     >
                         <div className="text-xs font-bold text-blue-400 mb-1">{term}</div>
                         <div className="text-xs text-gray-300 leading-relaxed">{definition}</div>

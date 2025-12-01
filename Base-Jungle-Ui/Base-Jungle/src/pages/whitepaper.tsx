@@ -4,10 +4,12 @@ import SearchBar from '@/components/whitepaper/SearchBar';
 import TierMatrix from '@/components/whitepaper/TierMatrix';
 import TokenomicsPie from '@/components/whitepaper/TokenomicsPie';
 import GlossaryTooltip from '@/components/whitepaper/GlossaryTooltip';
+import MobileNavFab from '@/components/whitepaper/MobileNavFab';
 
 const WhitepaperPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans">
+            <MobileNavFab />
             <div className="flex w-full">
                 {/* Left Sidebar - Navigation */}
                 <aside className="hidden lg:block w-64 p-8 border-r border-gray-900">
