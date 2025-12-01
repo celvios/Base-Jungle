@@ -22,8 +22,8 @@ const BlueprintsPage: React.FC = () => {
               The Architecture Lab
             </h1>
             <p className="text-gray-400 font-mono text-sm max-w-2xl">
-              <span className="text-cyan-500">>></span> ACCESSING SECURE BLUEPRINTS...<br />
-              <span className="text-cyan-500">>></span> DECRYPTING PROTOCOL LOGIC...
+              <span className="text-cyan-500">{">>"}</span> ACCESSING SECURE BLUEPRINTS...<br />
+              <span className="text-cyan-500">{">>"}</span> DECRYPTING PROTOCOL LOGIC...
             </p>
           </div>
 
