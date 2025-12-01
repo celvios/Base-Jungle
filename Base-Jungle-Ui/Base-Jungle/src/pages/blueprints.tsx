@@ -19,11 +19,12 @@ export default function Blueprints() {
         onStrategyChange={setSelectedStrategy}
       />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-12 space-y-20">
-        {/* Sankey Flow Section */}
-        <section>
+      {/* Main Content - No max-width for fullscreen */}
+      <div className="w-full space-y-20">
+        {/* Sankey Flow Section - Fullscreen */}
+        <section className="min-h-screen flex items-center justify-center px-4 md:px-8">
           <motion.div
+            className="w-full max-w-7xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -38,10 +39,11 @@ export default function Blueprints() {
           </motion.div>
         </section>
 
-        {/* Leverage Simulator (Aggressive only) */}
+        {/* Leverage Simulator (Aggressive only) - Fullscreen */}
         {selectedStrategy === "aggressive" && (
-          <section className="py-12 bg-gradient-to-b from-transparent via-[#0052FF]/5 to-transparent">
+          <section className="min-h-screen flex items-center justify-center px-4 md:px-8 bg-gradient-to-b from-transparent via-[#0052FF]/5 to-transparent">
             <motion.div
+              className="w-full max-w-6xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -57,9 +59,10 @@ export default function Blueprints() {
           </section>
         )}
 
-        {/* Bot Logic Board */}
-        <section>
+        {/* Bot Logic Board - Fullscreen */}
+        <section className="min-h-screen flex items-center justify-center px-4 md:px-8">
           <motion.div
+            className="w-full max-w-4xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -75,9 +78,10 @@ export default function Blueprints() {
           </motion.div>
         </section>
 
-        {/* Safety Grid */}
-        <section>
+        {/* Safety Grid - Fullscreen */}
+        <section className="min-h-screen flex items-center justify-center px-4 md:px-8 pb-20">
           <motion.div
+            className="w-full max-w-6xl"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
