@@ -2,10 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface GlossaryTooltipProps {
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-interface GlossaryTooltipProps {
     term: string;
     definition: string;
     children: React.ReactNode;
