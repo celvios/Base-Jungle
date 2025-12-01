@@ -6,6 +6,8 @@ import TokenomicsPie from '@/components/whitepaper/TokenomicsPie';
 import GlossaryTooltip from '@/components/whitepaper/GlossaryTooltip';
 import MobileNavFab from '@/components/whitepaper/MobileNavFab';
 import RoadmapTimeline from '@/components/whitepaper/RoadmapTimeline';
+import ArchitectureStack from '@/components/whitepaper/ArchitectureStack';
+import CodeBlockViewer from '@/components/whitepaper/CodeBlockViewer';
 
 const WhitepaperPage: React.FC = () => {
     return (
@@ -153,78 +155,29 @@ const WhitepaperPage: React.FC = () => {
 
                                 <TokenomicsPie />
 
-                                <div className="grid md:grid-cols-2 gap-4 mt-8">
-                                    <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
-                                        <h4 className="text-sm font-bold text-blue-400 mb-2">Vesting Schedule</h4>
-                                        <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>• Team: 2-year linear vest, 6-month cliff</li>
-                                            <li>• Community: Distributed over 4 years</li>
-                                            <li>• Liquidity: Locked for 1 year minimum</li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
-                                        <h4 className="text-sm font-bold text-blue-400 mb-2">Token Utility</h4>
-                                        <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>• Governance voting rights</li>
-                                            <li>• Fee discounts (up to 50%)</li>
-                                            <li>• Revenue share from protocol fees</li>
-                                        </ul>
-                                    </div>
+                                <div className="p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+                                    <h4 className="text-sm font-bold text-blue-400 mb-2">📊 Health Factor Monitoring</h4>
+                                    <p className="text-sm text-gray-400">
+                                        For leveraged positions, the <GlossaryTooltip term="Health Factor" definition="A safety metric calculated as (collateral value × liquidation threshold) / borrowed value. Below 1.0 triggers liquidation.">Health Factor</GlossaryTooltip> is
+                                        monitored every block. Automatic rebalancing occurs at HF &lt; 1.4 to prevent liquidations.
+                                    </p>
                                 </div>
                             </div>
-                        </section>
+                        </div>
+                    </section>
 
-                        {/* Security & Risk */}
-                        <section id="security" className="scroll-mt-8">
-                            <h2 className="text-3xl font-bold mb-6 font-mono">Security & Risk Management</h2>
-                            <div className="space-y-6">
-                                <p className="text-gray-300">
-                                    Security is paramount. Base Jungle implements multiple layers of protection:
-                                </p>
+                    {/* Roadmap */}
+                    <section id="roadmap" className="scroll-mt-8">
+                        <h2 className="text-3xl font-bold mb-6 font-mono">Roadmap</h2>
+                        <div className="space-y-8">
+                            <RoadmapTimeline />
+                        </div>
+                    </section>
 
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-red-900/10 border border-red-900/30 rounded-lg">
-                                        <h4 className="text-sm font-bold text-red-400 mb-2">🛡️ Smart Contract Security</h4>
-                                        <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>• OpenZeppelin battle-tested libraries</li>
-                                            <li>• Multi-sig treasury (3-of-5 Gnosis Safe)</li>
-                                            <li>• Emergency pause functionality</li>
-                                            <li>• Time-locked upgrades (48-hour delay)</li>
-                                        </ul>
-                                    </div>
-
-                                    <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 rounded-lg">
-                                        <h4 className="text-sm font-bold text-yellow-400 mb-2">⚠️ Oracle Risk Mitigation</h4>
-                                        <p className="text-sm text-gray-400">
-                                            We use dual oracle feeds (Chainlink + Pyth) with a 1% deviation threshold.
-                                            If price feeds diverge beyond this limit, deposits and withdrawals are automatically paused.
-                                        </p>
-                                    </div>
-
-                                    <div className="p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
-                                        <h4 className="text-sm font-bold text-blue-400 mb-2">📊 Health Factor Monitoring</h4>
-                                        <p className="text-sm text-gray-400">
-                                            For leveraged positions, the <GlossaryTooltip term="Health Factor" definition="A safety metric calculated as (collateral value × liquidation threshold) / borrowed value. Below 1.0 triggers liquidation.">Health Factor</GlossaryTooltip> is
-                                            monitored every block. Automatic rebalancing occurs at HF &lt; 1.4 to prevent liquidations.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Roadmap */}
-                        <section id="roadmap" className="scroll-mt-8">
-                            <h2 className="text-3xl font-bold mb-6 font-mono">Roadmap</h2>
-                            <div className="space-y-8">
-                                <RoadmapTimeline />
-                            </div>
-                        </section>
-
-                    </article>
-                </main>
-            </div>
+                </article>
+            </main>
         </div>
+        </div >
     );
 };
 
