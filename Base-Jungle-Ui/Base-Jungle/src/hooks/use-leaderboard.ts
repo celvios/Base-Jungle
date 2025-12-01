@@ -31,7 +31,10 @@ export function useLeaderboard(limit: number = 100, offset: number = 0) {
     return useQuery<{ leaderboard: LeaderboardEntry[]; count: number }>({
         queryKey: ['leaderboard', limit, offset],
         queryFn: async () => {
-            const res = await fetch(`${API_CONFIG.baseURL}/api/leaderboard?limit=${limit}&offset=${offset}`);
+            // Get current user address from wallet context if available
+            const address = (window as any).ethereum?.selectedAddress;
+            const syncParam = address ? `&syncAddress=${address}` : '';
+            const res = await fetch(`${API_CONFIG.baseURL}/api/leaderboard?limit=${limit}&offset=${offset}${syncParam}`);
             if (!res.ok) throw new Error('Failed to fetch leaderboard');
             const data = await res.json();
             return data;
