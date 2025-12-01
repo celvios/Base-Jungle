@@ -43,7 +43,7 @@ export default function Blueprints() {
         {selectedStrategy === "aggressive" && (
           <section className="min-h-screen flex items-center justify-center w-full bg-gradient-to-b from-transparent via-[#0052FF]/5 to-transparent">
             <motion.div
-              className="w-full px-8 max-w-6xl mx-auto"
+              className="w-full px-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -62,7 +62,7 @@ export default function Blueprints() {
         {/* Bot Logic Board - Fullscreen */}
         <section className="min-h-screen flex items-center justify-center w-full">
           <motion.div
-            className="w-full px-8 max-w-5xl mx-auto"
+            className="w-full px-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -81,7 +81,7 @@ export default function Blueprints() {
         {/* Safety Grid - Fullscreen */}
         <section className="min-h-screen flex items-center justify-center w-full pb-20">
           <motion.div
-            className="w-full px-8 max-w-6xl mx-auto"
+            className="w-full px-8"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
