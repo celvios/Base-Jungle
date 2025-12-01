@@ -42,7 +42,7 @@ export function FrequencyTuner({ selectedStrategy, onStrategyChange }: Frequency
 
     return (
         <div className="sticky top-0 z-50 bg-[#050505]/95 backdrop-blur-sm border-b border-[#0052FF]/30">
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="w-full px-8 py-6">
                 {/* Strategy Selector */}
                 <div className="flex justify-center gap-4 mb-6">
                     {strategies.map((strategy) => {
@@ -54,8 +54,8 @@ export function FrequencyTuner({ selectedStrategy, onStrategyChange }: Frequency
                                 key={strategy}
                                 onClick={() => onStrategyChange(strategy)}
                                 className={`relative px-8 py-4 rounded-lg border-2 transition-all ${isActive
-                                        ? "border-[#0052FF] bg-[#0052FF]/10"
-                                        : "border-white/10 bg-white/5 hover:border-[#0052FF]/50"
+                                    ? "border-[#0052FF] bg-[#0052FF]/10"
+                                    : "border-white/10 bg-white/5 hover:border-[#0052FF]/50"
                                     }`}
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
@@ -100,7 +100,7 @@ export function FrequencyTuner({ selectedStrategy, onStrategyChange }: Frequency
 
                 {/* Heads-Up Data Strip */}
                 <motion.div
-                    className="grid grid-cols-3 gap-6 p-4 bg-white/5 rounded-lg border border-[#0052FF]/20"
+                    className="grid grid-cols-3 gap-6 p-4 bg-white/5 rounded-lg border border-[#0052FF]/20 max-w-4xl mx-auto"
                     key={selectedStrategy}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -120,10 +120,10 @@ export function FrequencyTuner({ selectedStrategy, onStrategyChange }: Frequency
                             <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
                                 <motion.div
                                     className={`h-full ${selectedStrategy === "conservative"
-                                            ? "bg-green-500"
-                                            : selectedStrategy === "balanced"
-                                                ? "bg-blue-500"
-                                                : "bg-red-500"
+                                        ? "bg-green-500"
+                                        : selectedStrategy === "balanced"
+                                            ? "bg-blue-500"
+                                            : "bg-red-500"
                                         }`}
                                     initial={{ width: 0 }}
                                     animate={{ width: `${currentData.riskScore * 100}%` }}
