@@ -16,10 +16,10 @@ const data = [
 ];
 
 const CustomContent = (props: any) => {
-    const { root, depth, x, y, width, height, index, payload, colors, rank, name } = props;
+    const { x, y, width, height, name, color, apy } = props;
 
-    // Safety check: if payload is undefined, don't render or render a fallback
-    if (!payload) return null;
+    // If we don't have a valid size, don't render
+    if (width <= 0 || height <= 0) return null;
 
     return (
         <g>
@@ -29,7 +29,7 @@ const CustomContent = (props: any) => {
                 width={width}
                 height={height}
                 style={{
-                    fill: payload.color || '#1e3a8a', // Fallback color
+                    fill: color || '#1e3a8a', // Use direct prop or fallback
                     stroke: '#050505',
                     strokeWidth: 2,
                     strokeOpacity: 1,
@@ -41,7 +41,7 @@ const CustomContent = (props: any) => {
                         <span className="text-white font-bold text-xs truncate">{name}</span>
                         <div className="flex items-center gap-1">
                             <ArrowUpRight className="w-3 h-3 text-emerald-400" />
-                            <span className="text-emerald-400 font-mono text-xs">{payload.apy || 0}%</span>
+                            <span className="text-emerald-400 font-mono text-xs">{apy || 0}%</span>
                         </div>
                     </div>
                 </foreignObject>
