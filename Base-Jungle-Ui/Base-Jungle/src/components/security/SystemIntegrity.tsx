@@ -74,7 +74,7 @@ const SystemIntegrity: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="mt-8 text-center">
+                <div className="mt-24 text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-cyan-950/30 border border-cyan-500/30 rounded-full">
                         <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" />
                         <span className="text-cyan-400 font-mono text-sm font-bold tracking-wider group-hover:animate-pulse">
