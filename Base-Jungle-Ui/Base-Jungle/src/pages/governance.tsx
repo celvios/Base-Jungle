@@ -8,7 +8,7 @@ import ForumFeed from '@/components/governance/ForumFeed';
 const GovernancePage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans pb-24 md:pb-12">
-            <div className="max-w-7xl mx-auto px-4 md:px-8 pt-24 md:pt-12">
+            <div className="w-full px-4 md:px-8 pt-24 md:pt-12">
 
                 {/* 1. Hero Section: The Constitution */}
                 <ConstitutionTimeline />
