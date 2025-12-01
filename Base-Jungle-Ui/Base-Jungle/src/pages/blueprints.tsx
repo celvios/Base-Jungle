@@ -13,9 +13,9 @@ export default function Blueprints() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white overflow-hidden">
-      {/* Hero Section: Wireframe Globe */}
-      <section className="relative h-screen flex items-center justify-center">
+    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
+      {/* Hero Section: Wireframe Globe - Full Screen */}
+      <section className="relative w-screen h-screen flex items-center justify-center overflow-hidden">
         <WireframeGlobe
           selectedLayer={selectedLayer}
           isExpanded={isExpanded}
@@ -24,7 +24,7 @@ export default function Blueprints() {
         />
 
         {/* Layer Navigation */}
-        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex gap-4 z-10">
+        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex flex-wrap gap-4 z-10 px-4">
           {[
             { id: "conservative", label: "Understory", subtitle: "Conservative" },
             { id: "balanced", label: "Canopy", subtitle: "Balanced" },
@@ -33,11 +33,11 @@ export default function Blueprints() {
             <motion.button
               key={layer.id}
               onClick={() => setSelectedLayer(layer.id as StrategyLayer)}
-              className={`px-6 py-3 rounded-lg border transition-all ${selectedLayer === layer.id
-                  ? "border-cyan-400 bg-cyan-400/10 text-cyan-400"
-                  : "border-white/20 bg-white/5 text-white/60 hover:border-white/40"
+              className={`px-6 py-3 rounded-lg border-2 transition-all backdrop-blur-sm ${selectedLayer === layer.id
+                ? "border-cyan-400 bg-cyan-400/20 text-cyan-400 shadow-lg shadow-cyan-400/50"
+                : "border-white/20 bg-black/40 text-white/60 hover:border-cyan-400/50 hover:bg-cyan-400/10"
                 }`}
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
               <div className="text-sm font-bold">{layer.label}</div>
