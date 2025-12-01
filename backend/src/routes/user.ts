@@ -252,41 +252,79 @@ router.get('/user/:address/referrals', async (req, res) => {
             totalBonusPoints: directReferrals * 100 + indirectReferrals * 50,
         });
     } catch (error) {
-        VALUES($1, $2, 'leaderboard_sync', $3)
-                    `, [normalizedAddress, Math.floor(points), JSON.stringify({ synced_at: new Date().toISOString() })]);
-                }
+        console.error('Referrals error:', error);
+        res.status(500).json({ error: 'Failed to fetch referrals' });
+    }
+});
 
-                console.log(`✅ Synced ${ Math.floor(points) } points for leaderboard`);
-            } catch (syncError) {
-                console.error('Leaderboard auto-sync error:', syncError);
-                // Continue even if sync fails
-            }
+// GET /api/leaderboard - Top users by points (blockchain-based)
+router.get('/leaderboard', async (req, res) => {
+    try {
+        const { limit = 100, syncAddress } = req.query;
+
+        // If syncAddress provided, ensure user exists in database
+        if (syncAddress && typeof syncAddress === 'string') {
+            const normalized = syncAddress.toLowerCase();
+            await pool.query(`
+                INSERT INTO users (wallet_address, referral_code, tier, last_active_at)
+                VALUES ($1, $2, 0, NOW())
+                ON CONFLICT (wallet_address) DO UPDATE SET last_active_at = NOW()
+            `, [normalized, syncAddress.slice(2, 8).toUpperCase()]);
         }
 
-        const query = await pool.query(
-            `SELECT 
-                u.wallet_address as address,
-            COALESCE(SUM(p.amount), 0) as points,
-            u.tier,
-            (SELECT COUNT(*) FROM referrals WHERE referrer = u.wallet_address) as referrals
-             FROM users u
-             LEFT JOIN points p ON u.wallet_address = p.wallet_address
-             GROUP BY u.wallet_address, u.tier
-             ORDER BY points DESC
-             LIMIT $1`,
+        // Get all known user addresses
+        const usersQuery = await pool.query(
+            `SELECT wallet_address FROM users ORDER BY last_active_at DESC LIMIT $1`,
             [limit]
         );
 
+        if (usersQuery.rows.length === 0) {
+            return res.json([]);
+        }
+
+        // Fetch points from blockchain for each user
+        const POINTS_TRACKER_ABI = [{
+            inputs: [{ name: 'user', type: 'address' }],
+            name: 'userPoints',
+            outputs: [{ name: 'points', type: 'uint256' }, { name: 'lastUpdated', type: 'uint256' }],
+            stateMutability: 'view',
+            type: 'function',
+        }];
+
+        const pointsContract = new ethers.Contract(
+            process.env.POINTS_TRACKER_ADDRESS!,
+            POINTS_TRACKER_ABI,
+            provider
+        );
+
+        // Fetch points in parallel
+        const leaderboardData = await Promise.all(
+            usersQuery.rows.map(async (row) => {
+                try {
+                    const pointsData = await pointsContract.userPoints(row.wallet_address);
+                    return {
+                        address: row.wallet_address,
+                        points: Math.floor(Number(pointsData[0]) / 1e18),
+                    };
+                } catch (error) {
+                    return { address: row.wallet_address, points: 0 };
+                }
+            })
+        );
+
+        // Sort by points and add ranks
+        leaderboardData.sort((a, b) => b.points - a.points);
         const tierNames = ['Novice', 'Scout', 'Captain', 'Whale'];
 
-        const leaderboard = query.rows.map((row, index) => ({
+        const leaderboard = leaderboardData.map((entry, index) => ({
             rank: index + 1,
-            address: row.address,
-            points: parseInt(row.points),
-            tier: tierNames[parseInt(row.tier || '0')],
-            referrals: parseInt(row.referrals || '0'),
+            address: entry.address,
+            points: entry.points,
+            tier: tierNames[0],
+            referrals: 0,
         }));
 
+        console.log(`✅ Leaderboard: ${leaderboard.length} users, fetched from blockchain`);
         res.json(leaderboard);
     } catch (error) {
         console.error('Leaderboard error:', error);
