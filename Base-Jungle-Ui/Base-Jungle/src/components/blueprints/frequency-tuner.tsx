@@ -100,7 +100,7 @@ export function FrequencyTuner({ selectedStrategy, onStrategyChange }: Frequency
 
                 {/* Heads-Up Data Strip */}
                 <motion.div
-                    className="grid grid-cols-3 gap-6 p-4 bg-white/5 rounded-lg border border-[#0052FF]/20 max-w-4xl mx-auto"
+                    className="grid grid-cols-3 gap-6 p-4 bg-white/5 rounded-lg border border-[#0052FF]/20 w-full"
                     key={selectedStrategy}
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}

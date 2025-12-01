@@ -36,7 +36,7 @@ export function BotLogic() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="w-full space-y-6">
             {/* Scanner Row */}
             <div className="p-6 bg-white/5 border border-[#0052FF]/30 rounded-lg font-mono">
                 <div className="flex items-center justify-between mb-4">
@@ -82,8 +82,8 @@ export function BotLogic() {
                     <button
                         onClick={simulateMarketShift}
                         className={`px-6 py-2 border rounded transition-all ${isSimulating
-                                ? "bg-green-500/20 border-green-500 text-green-400"
-                                : "bg-[#0052FF]/20 border-[#0052FF] text-[#0052FF] hover:bg-[#0052FF]/30"
+                            ? "bg-green-500/20 border-green-500 text-green-400"
+                            : "bg-[#0052FF]/20 border-[#0052FF] text-[#0052FF] hover:bg-[#0052FF]/30"
                             }`}
                     >
                         {isSimulating ? "Simulating..." : "Simulate Market Shift"}

@@ -12,7 +12,7 @@ export default function Blueprints() {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy>("conservative");
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden w-full">
       {/* Frequency Tuner - Sticky Header */}
       <FrequencyTuner
         selectedStrategy={selectedStrategy}
