@@ -1,102 +1,67 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { FrequencyTuner } from "@/components/blueprints/frequency-tuner";
-import { SankeyFlow } from "@/components/blueprints/sankey-flow";
-import { LeverageSimulator } from "@/components/blueprints/leverage-simulator";
-import { BotLogic } from "@/components/blueprints/bot-logic";
-import { SafetyGrid } from "@/components/blueprints/safety-grid";
+```
+import React, { useState } from 'react';
+import ControlDeck from '@/components/blueprints/ControlDeck';
+import LogicBlockDiagram from '@/components/blueprints/LogicBlockDiagram';
+import AllocationMatrix from '@/components/blueprints/AllocationMatrix';
+import LeverageEngine from '@/components/blueprints/LeverageEngine';
+import SimulationBench from '@/components/blueprints/SimulationBench';
+import GlossarySidebar from '@/components/blueprints/GlossarySidebar';
 
-type Strategy = "conservative" | "balanced" | "aggressive";
-
-export default function Blueprints() {
-  const [selectedStrategy, setSelectedStrategy] = useState<Strategy>("conservative");
+const BlueprintsPage: React.FC = () => {
+  const [selectedTier, setSelectedTier] = useState('tree');
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden w-full">
-      {/* Frequency Tuner - Sticky Header */}
-      <FrequencyTuner
-        selectedStrategy={selectedStrategy}
-        onStrategyChange={setSelectedStrategy}
-      />
-
-      {/* Main Content - Fullscreen edge-to-edge */}
-      <div className="w-full">
-        {/* Sankey Flow Section - Fullscreen */}
-        <section className="min-h-screen flex items-center justify-center w-full">
-          <motion.div
-            className="w-full px-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-4xl font-bold text-center mb-4 text-[#0052FF]">
-              Fund Flow Schematic
-            </h2>
-            <p className="text-center text-white/60 mb-12 max-w-2xl mx-auto">
-              Interactive visualization showing exactly where your funds go. Hover to highlight, click to deep-dive.
+    <div className="min-h-screen bg-[#050505] text-white font-sans pt-20 pb-16">
+      <div className="flex">
+        
+        {/* Main Content Area */}
+        <div className="flex-1 px-6 md:px-12 xl:pr-72 max-w-7xl mx-auto w-full">
+          
+          {/* Page Header */}
+          <div className="mb-10 border-b border-gray-800 pb-6">
+            <h1 className="text-4xl font-bold font-mono tracking-tight mb-2 text-white">
+              The Architecture Lab
+            </h1>
+            <p className="text-gray-400 font-mono text-sm max-w-2xl">
+              <span className="text-cyan-500">>></span> ACCESSING SECURE BLUEPRINTS...<br/>
+              <span className="text-cyan-500">>></span> DECRYPTING PROTOCOL LOGIC...
             </p>
-            <SankeyFlow strategy={selectedStrategy} />
-          </motion.div>
-        </section>
+          </div>
 
-        {/* Leverage Simulator (Aggressive only) - Fullscreen */}
-        {selectedStrategy === "aggressive" && (
-          <section className="min-h-screen flex items-center justify-center w-full bg-gradient-to-b from-transparent via-[#0052FF]/5 to-transparent">
-            <motion.div
-              className="w-full px-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-4xl font-bold text-center mb-4 text-[#0052FF]">
-                Leverage Simulator
-              </h2>
-              <p className="text-center text-white/60 mb-12 max-w-2xl mx-auto">
-                See how leverage multiplies your exposure and potential returns
-              </p>
-              <LeverageSimulator />
-            </motion.div>
-          </section>
-        )}
+          {/* 1. Control Deck */}
+          <ControlDeck selectedTier={selectedTier} onSelectTier={setSelectedTier} />
 
-        {/* Bot Logic Board - Fullscreen */}
-        <section className="min-h-screen flex items-center justify-center w-full">
-          <motion.div
-            className="w-full px-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-4xl font-bold text-center mb-4 text-[#0052FF]">
-              Bot Trigger Logic
-            </h2>
-            <p className="text-center text-white/60 mb-12 max-w-2xl mx-auto">
-              Automated decision-making explained through IF/THEN statements
-            </p>
-            <BotLogic />
-          </motion.div>
-        </section>
+          {/* 2. Logic Block Diagram */}
+          <div className="mb-12">
+            <LogicBlockDiagram selectedTier={selectedTier} />
+          </div>
 
-        {/* Safety Grid - Fullscreen */}
-        <section className="min-h-screen flex items-center justify-center w-full pb-20">
-          <motion.div
-            className="w-full px-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-4xl font-bold text-center mb-4 text-[#0052FF]">
-              Safety Parameters
-            </h2>
-            <p className="text-center text-white/60 mb-12 max-w-2xl mx-auto">
-              Hardcoded risk controls protecting your capital
-            </p>
-            <SafetyGrid />
-          </motion.div>
-        </section>
+          {/* 3. Allocation Matrix */}
+          <div className="mb-12">
+            <AllocationMatrix selectedTier={selectedTier} />
+          </div>
+
+          {/* 4. Leverage Engine (Conditional) */}
+          {(selectedTier === 'tree' || selectedTier === 'forest') && (
+            <div className="mb-12">
+              <LeverageEngine selectedTier={selectedTier} />
+            </div>
+          )}
+
+          {/* 5. Simulation Bench */}
+          <div className="mb-12">
+            <SimulationBench selectedTier={selectedTier} />
+          </div>
+
+        </div>
+
+        {/* 6. Glossary Sidebar */}
+        <GlossarySidebar />
+
       </div>
     </div>
   );
-}
+};
+
+export default BlueprintsPage;
+```
