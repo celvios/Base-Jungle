@@ -20,6 +20,7 @@ export function Navigation() {
     { label: "Dashboard", href: "/dashboard", type: "link" as const },
     { label: "Whitepaper", href: "/whitepaper", type: "link" as const },
     { label: "Governance", href: "/governance", type: "link" as const },
+    { label: "Security", href: "/security", type: "link" as const },
   ];
 
   return (

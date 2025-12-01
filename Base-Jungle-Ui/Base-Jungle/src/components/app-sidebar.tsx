@@ -1,4 +1,4 @@
-import { Home, LayoutDashboard, Users, Trophy, Landmark } from "lucide-react";
+import { Home, LayoutDashboard, Users, Trophy, Landmark, Shield } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -30,6 +30,11 @@ const menuItems = [
     title: "Governance",
     url: "/governance",
     icon: Landmark,
+  },
+  {
+    title: "Security",
+    url: "/security",
+    icon: Shield,
   },
 ];
 

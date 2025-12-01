@@ -12,6 +12,7 @@ import EcosystemPage from "@/pages/ecosystem";
 import WhitepaperPage from "@/pages/whitepaper";
 import AnalyticsPage from "@/pages/analytics";
 import GovernancePage from "@/pages/governance";
+import SecurityPage from "@/pages/security";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ModalProvider } from "@/contexts/modal-context";
@@ -21,7 +22,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/contexts/theme-context";
-import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark } from "lucide-react";
+import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark, Shield } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/whitepaper" component={WhitepaperPage} />
       <Route path="/analytics" component={AnalyticsPage} />
       <Route path="/governance" component={GovernancePage} />
+      <Route path="/security" component={SecurityPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -59,6 +61,7 @@ const mobileMenuItems = [
   { title: "Referrals", url: "/referrals", icon: Users },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
   { title: "Governance", url: "/governance", icon: Landmark },
+  { title: "Security", url: "/security", icon: Shield },
 ];
 
 function MobileBottomNav() {
