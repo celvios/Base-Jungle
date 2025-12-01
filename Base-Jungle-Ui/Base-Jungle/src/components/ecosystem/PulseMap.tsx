@@ -28,7 +28,7 @@ const PulseMap: React.FC = () => {
     ];
 
     return (
-        <div className="relative w-full h-80 bg-[#080808] border border-blue-900/30 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(0,82,255,0.05)]">
+        <div className="relative w-full h-96 bg-[#080808] border border-blue-900/30 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(0,82,255,0.05)]">
             {/* Overlay Data */}
             <div className="absolute top-4 left-4 z-10 flex flex-col space-y-1">
                 <div className="flex items-center space-x-2">
