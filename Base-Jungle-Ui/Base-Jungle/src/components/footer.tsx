@@ -94,24 +94,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-3">
-            <h3 className="font-semibold mb-4" data-testid="text-footer-resources2-title">
-              Resources
-            </h3>
-            <ul className="space-y-3">
-              {footerLinks.resources2.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    className="text-sm text-muted-foreground"
-                    data-testid={`link-footer-${link.label.toLowerCase().replace(/ /g, '-')}`}
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
+
         </div>
 
         {/* Bottom Bar */}
