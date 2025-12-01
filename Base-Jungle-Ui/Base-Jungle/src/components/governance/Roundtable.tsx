@@ -55,7 +55,7 @@ const Roundtable: React.FC = () => {
             </div>
 
             {/* The Table Layout */}
-            <div className="relative max-w-2xl mx-auto aspect-square md:aspect-video flex items-center justify-center">
+            <div className="relative w-full aspect-square md:aspect-video flex items-center justify-center">
 
                 {/* Center Obelisk (The Contract) */}
                 <div className="absolute z-20 w-24 h-24 bg-black border-2 border-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.4)] flex flex-col items-center justify-center rounded-lg">
@@ -78,7 +78,7 @@ const Roundtable: React.FC = () => {
                 </svg>
 
                 {/* Seats Grid (Mobile: 3x3, Desktop: Circular-ish via Grid) */}
-                <div className="grid grid-cols-3 gap-4 md:gap-12 relative z-10">
+                <div className="grid grid-cols-3 gap-8 md:gap-24 relative z-10">
                     {signers.map((signer) => (
                         <motion.div
                             key={signer.id}
@@ -89,8 +89,8 @@ const Roundtable: React.FC = () => {
                         >
                             {/* Avatar */}
                             <div className={`w-16 h-16 md:w-20 md:h-20 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${signer.active
-                                    ? 'border-blue-500 bg-blue-950/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] text-blue-400'
-                                    : 'border-gray-800 bg-gray-900/50 text-gray-700 opacity-50'
+                                ? 'border-blue-500 bg-blue-950/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] text-blue-400'
+                                : 'border-gray-800 bg-gray-900/50 text-gray-700 opacity-50'
                                 }`}>
                                 <User className="w-8 h-8 md:w-10 md:h-10" />
                             </div>
