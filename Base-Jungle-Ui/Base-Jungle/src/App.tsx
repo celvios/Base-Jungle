@@ -6,8 +6,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import ReferralsPage from "@/pages/referrals";
-import Blueprints from "@/pages/blueprints";
+import BlueprintsPage from "@/pages/blueprints";
 import LeaderboardPage from "@/pages/leaderboard";
+import EcosystemPage from "@/pages/ecosystem";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ModalProvider } from "@/contexts/modal-context";
@@ -34,12 +35,13 @@ function Router() {
           <ReferralsPage />
         </ProtectedRoute>
       </Route>
-      <Route path="/blueprints" component={Blueprints} />
+      <Route path="/blueprints" component={BlueprintsPage} />
       <Route path="/leaderboard">
         <ProtectedRoute>
           <LeaderboardPage />
         </ProtectedRoute>
       </Route>
+      <Route path="/ecosystem" component={EcosystemPage} />
       <Route component={NotFound} />
     </Switch>
   );
