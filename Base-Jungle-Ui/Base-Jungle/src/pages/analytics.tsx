@@ -7,7 +7,7 @@ import RainCycle from '@/components/analytics/RainCycle';
 
 const AnalyticsPage: React.FC = () => {
     return (
-        <div className="min-h-screen bg-[#050505] text-white font-sans pt-24 pb-16">
+        <div className="min-h-screen w-full bg-[#050505] text-white font-sans pt-24 pb-16">
             <div className="w-full space-y-8 px-6 md:px-8">
 
                 {/* Header */}
