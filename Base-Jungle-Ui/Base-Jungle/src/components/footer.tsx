@@ -3,23 +3,14 @@ import { Button } from "@/components/ui/button";
 
 const footerLinks = {
   protocol: [
-    { label: "About", href: "#about" },
-    { label: "Vaults", href: "#vaults" },
-    { label: "Protocol", href: "#protocol" },
-    { label: "Governance", href: "#governance" },
+    { label: "Blueprints", href: "/blueprints" },
+    { label: "Whitepaper", href: "/whitepaper" },
   ],
   resources: [
-    { label: "Docs & Security", href: "#" },
-    { label: "Brand", href: "#" },
-    { label: "Roadmap", href: "#" },
-    { label: "Analytics", href: "#" },
-    { label: "Explorer", href: "#" },
+    { label: "Analytics", href: "#analytics" },
+    { label: "Security", href: "#security" },
   ],
-  resources2: [
-    { label: "Resources", href: "#" },
-    { label: "Terms of use", href: "#" },
-    { label: "Privacy policy", href: "#" },
-  ],
+  resources2: [],
 };
 
 export function Footer() {

@@ -16,12 +16,9 @@ export function Navigation() {
   const [location] = useLocation();
 
   const navLinks = [
-    { label: "Home", href: "#home", type: "anchor" as const },
+    { label: "Home", href: "/", type: "link" as const },
     { label: "Dashboard", href: "/dashboard", type: "link" as const },
-    { label: "Features", href: "#features", type: "anchor" as const },
-    { label: "Vaults", href: "#vaults", type: "anchor" as const },
-    { label: "Referrals", href: "#referrals", type: "anchor" as const },
-    { label: "Token Sale", href: "#token-sale", type: "anchor" as const },
+    { label: "Whitepaper", href: "/whitepaper", type: "link" as const },
   ];
 
   return (
