@@ -9,6 +9,7 @@ import ReferralsPage from "@/pages/referrals";
 import BlueprintsPage from "@/pages/blueprints";
 import LeaderboardPage from "@/pages/leaderboard";
 import EcosystemPage from "@/pages/ecosystem";
+import WhitepaperPage from "@/pages/whitepaper";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ModalProvider } from "@/contexts/modal-context";
@@ -42,6 +43,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/ecosystem" component={EcosystemPage} />
+      <Route path="/whitepaper" component={WhitepaperPage} />
       <Route component={NotFound} />
     </Switch>
   );

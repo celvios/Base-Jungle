@@ -1,0 +1,273 @@
+import React from 'react';
+import ScrollSpyNav from '@/components/whitepaper/ScrollSpyNav';
+import SearchBar from '@/components/whitepaper/SearchBar';
+import TierMatrix from '@/components/whitepaper/TierMatrix';
+import TokenomicsPie from '@/components/whitepaper/TokenomicsPie';
+import GlossaryTooltip from '@/components/whitepaper/GlossaryTooltip';
+
+const WhitepaperPage: React.FC = () => {
+    return (
+        <div className="min-h-screen bg-[#050505] text-white font-sans">
+            <div className="flex max-w-[1400px] mx-auto">
+                {/* Left Sidebar - Navigation */}
+                <aside className="hidden lg:block w-64 p-8 border-r border-gray-900">
+                    <div className="mb-8">
+                        <h2 className="text-xl font-bold mb-2">The Archives</h2>
+                        <p className="text-xs text-gray-500 font-mono">WHITEPAPER v1.0</p>
+                    </div>
+                    <ScrollSpyNav />
+                </aside>
+
+                {/* Right Content Area */}
+                <main className="flex-1 p-8 lg:p-12">
+                    {/* Search Bar */}
+                    <div className="mb-12">
+                        <SearchBar />
+                    </div>
+
+                    {/* Content */}
+                    <article className="max-w-[80ch] mx-auto space-y-16">
+
+                        {/* Executive Summary */}
+                        <section id="executive-summary" className="scroll-mt-8">
+                            <h1 className="text-4xl font-bold mb-6 font-mono">Executive Summary</h1>
+                            <div className="space-y-4 text-gray-300 leading-relaxed">
+                                <p>
+                                    Base Jungle is an automated DeFi yield optimization protocol built on Base L2. It combines
+                                    institutional-grade risk management with retail accessibility, enabling users to earn sustainable
+                                    yields through diversified strategies across multiple protocols.
+                                </p>
+                                <p>
+                                    Our protocol employs <GlossaryTooltip term="Keeper Bots" definition="Automated scripts that execute time-sensitive operations like harvesting rewards and rebalancing positions.">keeper-based automation</GlossaryTooltip> to
+                                    maximize capital efficiency while minimizing gas costs. Users deposit stablecoins (USDC) and
+                                    receive vault tokens representing their share of the pool's <GlossaryTooltip term="TVL" definition="Total Value Locked - the total amount of assets deposited in the protocol.">TVL</GlossaryTooltip>.
+                                </p>
+                                <p className="text-blue-400 font-bold">
+                                    Key Metrics: $10M+ TVL Target • 8-15% APY Range • 99.9% Uptime
+                                </p>
+                            </div>
+                        </section>
+
+                        {/* Position Tiers */}
+                        <section id="position-tiers" className="scroll-mt-8">
+                            <h2 className="text-3xl font-bold mb-6 font-mono">Position Tiers</h2>
+                            <div className="space-y-6">
+                                <p className="text-gray-300">
+                                    Base Jungle operates on a tiered system that rewards larger deposits with enhanced benefits.
+                                    Each tier unlocks progressively better fee structures, strategy access, and points multipliers.
+                                </p>
+                                <TierMatrix />
+                                <div className="mt-8 p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+                                    <h4 className="text-sm font-bold text-blue-400 mb-2">Tier Progression</h4>
+                                    <p className="text-sm text-gray-400">
+                                        Users automatically upgrade to higher tiers as their deposit grows. Tier benefits apply
+                                        immediately upon reaching the minimum threshold. Withdrawal fees decrease with tier level,
+                                        incentivizing long-term capital commitment.
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Technical Architecture */}
+                        <section id="technical-architecture" className="scroll-mt-8">
+                            <h2 className="text-3xl font-bold mb-6 font-mono">Technical Architecture</h2>
+                            <div className="space-y-6">
+                                <p className="text-gray-300">
+                                    The protocol is built on a modular architecture with clear separation of concerns:
+                                </p>
+
+                                {/* Architecture Layers */}
+                                <div className="space-y-3">
+                                    <div className="p-4 bg-gray-900/50 border-l-4 border-blue-600 rounded">
+                                        <h4 className="font-bold text-blue-400 mb-2">Layer 1: Vaults</h4>
+                                        <p className="text-sm text-gray-400">
+                                            <code className="text-blue-300">BaseVault.sol</code>, <code className="text-blue-300">ConservativeVault.sol</code>, <code className="text-blue-300">AggressiveVault.sol</code> -
+                                            User-facing contracts that accept deposits and issue vault tokens.
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-900/50 border-l-4 border-blue-500 rounded">
+                                        <h4 className="font-bold text-blue-400 mb-2">Layer 2: Strategy Controller</h4>
+                                        <p className="text-sm text-gray-400">
+                                            <code className="text-blue-300">StrategyController.sol</code> - Orchestrates capital allocation across multiple strategies
+                                            based on risk parameters and yield opportunities.
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-900/50 border-l-4 border-blue-400 rounded">
+                                        <h4 className="font-bold text-blue-400 mb-2">Layer 3: Protocol Adapters</h4>
+                                        <p className="text-sm text-gray-400">
+                                            <code className="text-blue-300">AaveAdapter.sol</code>, <code className="text-blue-300">AerodromeGaugeAdapter.sol</code>, <code className="text-blue-300">BeefyVaultAdapter.sol</code> -
+                                            Standardized interfaces for interacting with external DeFi protocols.
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-900/50 border-l-4 border-blue-300 rounded">
+                                        <h4 className="font-bold text-blue-400 mb-2">Layer 4: Automation</h4>
+                                        <p className="text-sm text-gray-400">
+                                            <code className="text-blue-300">HarvestKeeper.ts</code>, <code className="text-blue-300">RebalanceKeeper.ts</code>, <code className="text-blue-300">HealthMonitor.ts</code> -
+                                            Off-chain bots that execute time-sensitive operations.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Code Example */}
+                                <div className="mt-6 p-4 bg-[#0a0a0a] border border-gray-800 rounded-lg font-mono text-sm overflow-x-auto">
+                                    <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-800">
+                                        <span className="text-xs text-gray-500">BaseVault.sol</span>
+                                        <button className="text-xs text-blue-500 hover:text-blue-400">Copy</button>
+                                    </div>
+                                    <pre className="text-gray-300">
+                                        {`function deposit(uint256 amount) external {
+    require(amount >= minDeposit, "Below minimum");
+    
+    // Transfer USDC from user
+    IERC20(usdc).transferFrom(msg.sender, address(this), amount);
+    
+    // Calculate shares
+    uint256 shares = (totalSupply() == 0) 
+        ? amount 
+        : (amount * totalSupply()) / totalAssets();
+    
+    // Mint vault tokens
+    _mint(msg.sender, shares);
+    
+    emit Deposited(msg.sender, amount, shares);
+}`}
+                                    </pre>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Tokenomics */}
+                        <section id="tokenomics" className="scroll-mt-8">
+                            <h2 className="text-3xl font-bold mb-6 font-mono">Tokenomics & TGE</h2>
+                            <div className="space-y-6">
+                                <p className="text-gray-300">
+                                    The <span className="text-blue-400 font-bold">$BAOBAB</span> governance token has a fixed supply of 10,000,000 tokens.
+                                    Distribution is designed to align incentives between users, team, and long-term protocol health.
+                                </p>
+
+                                <TokenomicsPie />
+
+                                <div className="grid md:grid-cols-2 gap-4 mt-8">
+                                    <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
+                                        <h4 className="text-sm font-bold text-blue-400 mb-2">Vesting Schedule</h4>
+                                        <ul className="text-sm text-gray-400 space-y-1">
+                                            <li>• Team: 2-year linear vest, 6-month cliff</li>
+                                            <li>• Community: Distributed over 4 years</li>
+                                            <li>• Liquidity: Locked for 1 year minimum</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="p-4 bg-gray-900/50 border border-gray-800 rounded-lg">
+                                        <h4 className="text-sm font-bold text-blue-400 mb-2">Token Utility</h4>
+                                        <ul className="text-sm text-gray-400 space-y-1">
+                                            <li>• Governance voting rights</li>
+                                            <li>• Fee discounts (up to 50%)</li>
+                                            <li>• Revenue share from protocol fees</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Security & Risk */}
+                        <section id="security" className="scroll-mt-8">
+                            <h2 className="text-3xl font-bold mb-6 font-mono">Security & Risk Management</h2>
+                            <div className="space-y-6">
+                                <p className="text-gray-300">
+                                    Security is paramount. Base Jungle implements multiple layers of protection:
+                                </p>
+
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-red-900/10 border border-red-900/30 rounded-lg">
+                                        <h4 className="text-sm font-bold text-red-400 mb-2">🛡️ Smart Contract Security</h4>
+                                        <ul className="text-sm text-gray-400 space-y-1">
+                                            <li>• OpenZeppelin battle-tested libraries</li>
+                                            <li>• Multi-sig treasury (3-of-5 Gnosis Safe)</li>
+                                            <li>• Emergency pause functionality</li>
+                                            <li>• Time-locked upgrades (48-hour delay)</li>
+                                        </ul>
+                                    </div>
+
+                                    <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 rounded-lg">
+                                        <h4 className="text-sm font-bold text-yellow-400 mb-2">⚠️ Oracle Risk Mitigation</h4>
+                                        <p className="text-sm text-gray-400">
+                                            We use dual oracle feeds (Chainlink + Pyth) with a 1% deviation threshold.
+                                            If price feeds diverge beyond this limit, deposits and withdrawals are automatically paused.
+                                        </p>
+                                    </div>
+
+                                    <div className="p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
+                                        <h4 className="text-sm font-bold text-blue-400 mb-2">📊 Health Factor Monitoring</h4>
+                                        <p className="text-sm text-gray-400">
+                                            For leveraged positions, the <GlossaryTooltip term="Health Factor" definition="A safety metric calculated as (collateral value × liquidation threshold) / borrowed value. Below 1.0 triggers liquidation.">Health Factor</GlossaryTooltip> is
+                                            monitored every block. Automatic rebalancing occurs at HF &lt; 1.4 to prevent liquidations.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Roadmap */}
+                        <section id="roadmap" className="scroll-mt-8">
+                            <h2 className="text-3xl font-bold mb-6 font-mono">Roadmap</h2>
+                            <div className="space-y-8">
+                                <div className="relative pl-8 border-l-2 border-gray-800">
+                                    {/* Phase 1 - Completed */}
+                                    <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-green-500 border-2 border-[#050505]" />
+                                    <div className="mb-8">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                            <h3 className="text-xl font-bold text-green-400">Phase 1: Foundation</h3>
+                                            <span className="text-xs text-green-500 bg-green-900/20 px-2 py-1 rounded">COMPLETED</span>
+                                        </div>
+                                        <ul className="text-sm text-gray-400 space-y-1">
+                                            <li>✓ Smart contract development</li>
+                                            <li>✓ Testnet deployment</li>
+                                            <li>✓ Security audit (CertiK)</li>
+                                            <li>✓ Frontend v1</li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Phase 2 - Current */}
+                                    <div className="absolute -left-[9px] top-40 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#050505] animate-pulse shadow-[0_0_10px_#0052FF]" />
+                                    <div className="mb-8">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                            <h3 className="text-xl font-bold text-blue-400">Phase 2: Mainnet Launch</h3>
+                                            <span className="text-xs text-blue-500 bg-blue-900/20 px-2 py-1 rounded">CURRENT</span>
+                                        </div>
+                                        <ul className="text-sm text-gray-400 space-y-1">
+                                            <li>⏳ Base mainnet deployment</li>
+                                            <li>⏳ Liquidity bootstrapping</li>
+                                            <li>⏳ Points program launch</li>
+                                            <li>⏳ Keeper automation setup</li>
+                                        </ul>
+                                    </div>
+
+                                    {/* Phase 3 - Future */}
+                                    <div className="absolute -left-[9px] top-80 w-4 h-4 rounded-full bg-gray-700 border-2 border-gray-600" />
+                                    <div>
+                                        <div className="flex items-center space-x-2 mb-2">
+                                            <h3 className="text-xl font-bold text-gray-400">Phase 3: Expansion</h3>
+                                            <span className="text-xs text-gray-500 bg-gray-900/20 px-2 py-1 rounded">Q2 2025</span>
+                                        </div>
+                                        <ul className="text-sm text-gray-500 space-y-1">
+                                            <li>○ Cross-chain expansion (Arbitrum, Optimism)</li>
+                                            <li>○ Advanced strategies (delta-neutral, options)</li>
+                                            <li>○ DAO governance launch</li>
+                                            <li>○ Mobile app</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                    </article>
+                </main>
+            </div>
+        </div>
+    );
+};
+
+export default WhitepaperPage;
