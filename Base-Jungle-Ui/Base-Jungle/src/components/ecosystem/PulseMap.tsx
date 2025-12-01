@@ -41,7 +41,7 @@ const PulseMap: React.FC = () => {
             </div>
 
             {/* Map SVG */}
-            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                 <defs>
                     <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
                         <stop offset="0%" stopColor="#0052FF" stopOpacity="0.4" />
