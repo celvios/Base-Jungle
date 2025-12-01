@@ -26,11 +26,7 @@ const menuItems = [
     url: "/referrals",
     icon: Users,
   },
-  {
-    title: "Leaderboard",
-    url: "/leaderboard",
-    icon: Trophy,
-  },
+
 ];
 
 export function AppSidebar() {
