@@ -8,11 +8,11 @@ import SimulationWidget from '@/components/ecosystem/SimulationWidget';
 
 const EcosystemPage: React.FC = () => {
     return (
-        <div className="min-h-screen bg-[#050505] text-white p-4 md:p-8 font-sans overflow-hidden relative">
+        <div className="min-h-screen bg-[#050505] text-white font-sans overflow-x-hidden relative">
             {/* Background Grid Effect */}
             <div className="absolute inset-0 bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
 
-            <div className="relative z-10 max-w-7xl mx-auto space-y-8">
+            <div className="relative z-10 w-full px-4 md:px-8 space-y-8">
                 {/* Header */}
                 <header className="flex items-center space-x-4 mb-8">
                     <h1 className="text-3xl font-bold tracking-wider text-white uppercase">Ecosystem</h1>
