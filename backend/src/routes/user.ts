@@ -258,9 +258,63 @@ router.get('/user/:address/referrals', async (req, res) => {
 });
 
 // GET /api/leaderboard - Top users by points
-router.get('/leaderboard', async (req, res) => {
+router.get('/leaderboard', optionalAuthenticate, async (req, res) => {
     try {
         const { limit = 100 } = req.query;
+        const currentUserAddress = req.user?.address;
+
+        // Auto-sync current user's data if they're authenticated
+        if (currentUserAddress) {
+            try {
+                console.log(`🔄 Auto-syncing leaderboard data for ${currentUserAddress.slice(0, 6)}...${currentUserAddress.slice(-4)}`);
+
+                const POINTS_TRACKER_ABI = [
+                    {
+                        inputs: [{ name: 'user', type: 'address' }],
+                        name: 'userPoints',
+                        outputs: [
+                            { name: 'points', type: 'uint256' },
+                            { name: 'lastUpdated', type: 'uint256' }
+                        ],
+                        stateMutability: 'view',
+                        type: 'function',
+                    }
+                ];
+
+                const pointsContract = new ethers.Contract(
+                    process.env.POINTS_TRACKER_ADDRESS!,
+                    POINTS_TRACKER_ABI,
+                    provider
+                );
+
+                const pointsData = await pointsContract.userPoints(currentUserAddress);
+                const points = Number(pointsData[0]) / 1e18;
+
+                const normalizedAddress = currentUserAddress.toLowerCase();
+
+                // Ensure user exists
+                await pool.query(`
+                    INSERT INTO users (wallet_address, referral_code, tier, last_active_at)
+                    VALUES ($1, $2, 0, NOW())
+                    ON CONFLICT (wallet_address) 
+                    DO UPDATE SET last_active_at = NOW()
+                `, [normalizedAddress, currentUserAddress.slice(2, 8).toUpperCase()]);
+
+                // Clear old points and insert new
+                await pool.query('DELETE FROM points WHERE wallet_address = $1', [normalizedAddress]);
+                if (points > 0) {
+                    await pool.query(`
+                        INSERT INTO points (wallet_address, amount, source, metadata)
+                        VALUES ($1, $2, 'leaderboard_sync', $3)
+                    `, [normalizedAddress, Math.floor(points), JSON.stringify({ synced_at: new Date().toISOString() })]);
+                }
+
+                console.log(`✅ Synced ${Math.floor(points)} points for leaderboard`);
+            } catch (syncError) {
+                console.error('Leaderboard auto-sync error:', syncError);
+                // Continue even if sync fails
+            }
+        }
 
         const query = await pool.query(
             `SELECT 
