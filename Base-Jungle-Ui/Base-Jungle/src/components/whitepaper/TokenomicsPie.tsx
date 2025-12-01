@@ -79,7 +79,7 @@ const TokenomicsPie: React.FC = () => {
                         ) : (
                             <div className="space-y-1">
                                 <div className="text-2xl font-bold text-white font-mono">10M</div>
-                                <div className="text-xs text-gray-500">TOTAL SUPPLY</div>
+                                <div className="text-xs text-gray-500">TOTAL JUNGLE</div>
                             </div>
                         )}
                     </div>

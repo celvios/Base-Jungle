@@ -35,7 +35,7 @@ const features = [
 export function Features() {
   return (
     <section id="protocol" className="py-16 md:py-24 lg:py-32">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <div className="w-full mx-auto px-6 md:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold" data-testid="text-features-title">
@@ -50,7 +50,7 @@ export function Features() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {features.map((feature) => {
             const Icon = feature.icon;
-            
+
             return (
               <Card
                 key={feature.id}

@@ -90,7 +90,7 @@ export function Hero() {
       })}
 
       {/* Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 py-16 md:py-24">
+      <div className="relative z-10 w-full mx-auto px-6 md:px-8 py-16 md:py-24">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text Content */}
           <div className="space-y-8">

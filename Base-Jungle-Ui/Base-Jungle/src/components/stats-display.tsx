@@ -36,11 +36,11 @@ export function StatsDisplay() {
 
   return (
     <section className="py-16 md:py-24">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <div className="w-full mx-auto px-6 md:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {stats?.map((stat) => {
             const Icon = iconMap[stat.icon as keyof typeof iconMap] || DollarSign;
-            
+
             return (
               <Card
                 key={stat.id}
@@ -57,7 +57,7 @@ export function StatsDisplay() {
                     </span>
                   )}
                 </div>
-                
+
                 <div className="space-y-1">
                   <p className="text-3xl md:text-4xl font-bold font-mono" data-testid={`text-value-${stat.id}`}>
                     {stat.value}

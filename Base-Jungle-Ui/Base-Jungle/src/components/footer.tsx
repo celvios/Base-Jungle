@@ -25,7 +25,7 @@ const footerLinks = {
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card/30 backdrop-blur-sm">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-16">
+      <div className="w-full mx-auto px-6 md:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-12">
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-4">
@@ -36,7 +36,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm" data-testid="text-footer-description">
-              Base Jungle - The first fully automated passive DeFi aggregation protocol on Base blockchain. 
+              Base Jungle - The first fully automated passive DeFi aggregation protocol on Base blockchain.
               Deposit once, earn continuously through intelligent yield strategies.
             </p>
             <div className="flex gap-2">

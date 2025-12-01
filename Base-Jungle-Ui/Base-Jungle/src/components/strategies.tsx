@@ -49,7 +49,7 @@ export function Strategies() {
 
   return (
     <section className="py-16 md:py-24 lg:py-32">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <div className="w-full mx-auto px-6 md:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold" data-testid="text-strategies-title">
@@ -64,7 +64,7 @@ export function Strategies() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {strategies?.map((strategy) => {
             const Icon = iconMap[strategy.icon as keyof typeof iconMap] || DollarSign;
-            
+
             return (
               <Card
                 key={strategy.id}
@@ -84,16 +84,16 @@ export function Strategies() {
                       {strategy.riskLevel}
                     </Badge>
                   </div>
-                  
+
                   <CardTitle className="text-xl" data-testid={`text-strategy-title-${strategy.id}`}>
                     {strategy.name}
                   </CardTitle>
-                  
+
                   <CardDescription className="text-sm leading-relaxed" data-testid={`text-strategy-description-${strategy.id}`}>
                     {strategy.description}
                   </CardDescription>
                 </CardHeader>
-                
+
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-baseline gap-2">
@@ -104,7 +104,7 @@ export function Strategies() {
                         APY
                       </span>
                     </div>
-                    
+
                     <div className="space-y-2">
                       {strategy.features.map((feature, idx) => (
                         <div

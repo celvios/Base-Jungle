@@ -8,7 +8,7 @@ import GlossaryTooltip from '@/components/whitepaper/GlossaryTooltip';
 const WhitepaperPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans">
-            <div className="flex max-w-[1400px] mx-auto">
+            <div className="flex w-full">
                 {/* Left Sidebar - Navigation */}
                 <aside className="hidden lg:block w-64 p-8 border-r border-gray-900">
                     <div className="mb-8">
@@ -90,7 +90,7 @@ const WhitepaperPage: React.FC = () => {
                                         <h4 className="font-bold text-blue-400 mb-2">Layer 2: Strategy Controller</h4>
                                         <p className="text-sm text-gray-400">
                                             <code className="text-blue-300">StrategyController.sol</code> - Orchestrates capital allocation across multiple strategies
-                                            based on risk parameters and yield opportunities.
+                                            including <span className="text-blue-400">Delta Neutral Farming</span>, based on risk parameters and yield opportunities.
                                         </p>
                                     </div>
 
@@ -144,7 +144,7 @@ const WhitepaperPage: React.FC = () => {
                             <h2 className="text-3xl font-bold mb-6 font-mono">Tokenomics & TGE</h2>
                             <div className="space-y-6">
                                 <p className="text-gray-300">
-                                    The <span className="text-blue-400 font-bold">$BAOBAB</span> governance token has a fixed supply of 10,000,000 tokens.
+                                    The <span className="text-blue-400 font-bold">$JUNGLE</span> governance token has a fixed supply of 10,000,000 tokens.
                                     Distribution is designed to align incentives between users, team, and long-term protocol health.
                                 </p>
 
@@ -215,18 +215,18 @@ const WhitepaperPage: React.FC = () => {
                             <h2 className="text-3xl font-bold mb-6 font-mono">Roadmap</h2>
                             <div className="space-y-8">
                                 <div className="relative pl-8 border-l-2 border-gray-800">
-                                    {/* Phase 1 - Completed */}
+                                    {/* Phase 1 - Launch */}
                                     <div className="absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-green-500 border-2 border-[#050505]" />
                                     <div className="mb-8">
                                         <div className="flex items-center space-x-2 mb-2">
-                                            <h3 className="text-xl font-bold text-green-400">Phase 1: Foundation</h3>
+                                            <h3 className="text-xl font-bold text-green-400">Phase 1: Protocol Launch</h3>
                                             <span className="text-xs text-green-500 bg-green-900/20 px-2 py-1 rounded">COMPLETED</span>
                                         </div>
                                         <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>✓ Smart contract development</li>
-                                            <li>✓ Testnet deployment</li>
+                                            <li>✓ Smart contract deployment</li>
                                             <li>✓ Security audit (CertiK)</li>
-                                            <li>✓ Frontend v1</li>
+                                            <li>✓ Delta Neutral Farming Strategy</li>
+                                            <li>✓ Frontend v1 Launch</li>
                                         </ul>
                                     </div>
 
@@ -234,14 +234,14 @@ const WhitepaperPage: React.FC = () => {
                                     <div className="absolute -left-[9px] top-40 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#050505] animate-pulse shadow-[0_0_10px_#0052FF]" />
                                     <div className="mb-8">
                                         <div className="flex items-center space-x-2 mb-2">
-                                            <h3 className="text-xl font-bold text-blue-400">Phase 2: Mainnet Launch</h3>
+                                            <h3 className="text-xl font-bold text-blue-400">Phase 2: Growth & Optimization</h3>
                                             <span className="text-xs text-blue-500 bg-blue-900/20 px-2 py-1 rounded">CURRENT</span>
                                         </div>
                                         <ul className="text-sm text-gray-400 space-y-1">
-                                            <li>⏳ Base mainnet deployment</li>
-                                            <li>⏳ Liquidity bootstrapping</li>
-                                            <li>⏳ Points program launch</li>
-                                            <li>⏳ Keeper automation setup</li>
+                                            <li>⏳ Liquidity Bootstrapping Event</li>
+                                            <li>⏳ Advanced Keeper Automation</li>
+                                            <li>⏳ Points Program & Referrals</li>
+                                            <li>⏳ Strategic Partnerships</li>
                                         </ul>
                                     </div>
 
@@ -254,9 +254,9 @@ const WhitepaperPage: React.FC = () => {
                                         </div>
                                         <ul className="text-sm text-gray-500 space-y-1">
                                             <li>○ Cross-chain expansion (Arbitrum, Optimism)</li>
-                                            <li>○ Advanced strategies (delta-neutral, options)</li>
-                                            <li>○ DAO governance launch</li>
-                                            <li>○ Mobile app</li>
+                                            <li>○ DAO Governance Launch</li>
+                                            <li>○ Mobile App Release</li>
+                                            <li>○ Institutional Vaults</li>
                                         </ul>
                                     </div>
                                 </div>

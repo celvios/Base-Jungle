@@ -36,7 +36,7 @@ export function ReferralTiers() {
 
   return (
     <section className="py-16 md:py-24 lg:py-32 bg-card/50">
-      <div className="max-w-7xl mx-auto px-6 md:px-8">
+      <div className="w-full mx-auto px-6 md:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 space-y-4">
           <h2 className="text-4xl md:text-5xl font-bold" data-testid="text-tiers-title">

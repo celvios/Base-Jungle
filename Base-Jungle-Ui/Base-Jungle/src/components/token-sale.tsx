@@ -85,7 +85,7 @@ export function TokenSale() {
 
   return (
     <section className="py-16 md:py-24 lg:py-32 bg-card/50">
-      <div className="max-w-4xl mx-auto px-6 md:px-8">
+      <div className="w-full mx-auto px-6 md:px-8">
         <Card className="overflow-hidden border-primary/20 bg-card/50 backdrop-blur-md hover-elevate transition-all duration-300">
           <CardHeader className="text-center space-y-4 pb-8">
             <CardTitle className="text-3xl md:text-4xl" data-testid="text-token-sale-title">
