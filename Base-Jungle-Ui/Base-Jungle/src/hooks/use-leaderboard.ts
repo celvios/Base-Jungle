@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { API_CONFIG } from '@/config/api';
+import { useAccount } from 'wagmi';
 
 interface LeaderboardEntry {
     address: string;
@@ -28,11 +29,11 @@ interface LeaderboardStats {
 }
 
 export function useLeaderboard(limit: number = 100, offset: number = 0) {
+    const { address } = useAccount();
+
     return useQuery<{ leaderboard: LeaderboardEntry[]; count: number }>({
-        queryKey: ['leaderboard', limit, offset],
+        queryKey: ['leaderboard', limit, offset, address],
         queryFn: async () => {
-            // Get current user address from wallet context if available
-            const address = (window as any).ethereum?.selectedAddress;
             const syncParam = address ? `&syncAddress=${address}` : '';
             const res = await fetch(`${API_CONFIG.baseURL}/api/leaderboard?limit=${limit}&offset=${offset}${syncParam}`);
             if (!res.ok) throw new Error('Failed to fetch leaderboard');
