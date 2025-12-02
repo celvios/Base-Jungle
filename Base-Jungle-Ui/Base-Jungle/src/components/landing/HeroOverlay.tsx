@@ -1,8 +1,18 @@
 import React from 'react';
-import { ArrowRight, Layers } from 'lucide-react';
+import { ArrowRight, FileText } from 'lucide-react';
 import { Link } from 'wouter';
+import { useWallet } from '@/contexts/wallet-context';
 
 const HeroOverlay: React.FC = () => {
+    const { isConnected, connect } = useWallet();
+
+    const handleLaunchApp = () => {
+        if (isConnected) {
+            window.location.href = '/dashboard';
+        } else {
+            connect();
+        }
+    };
     return (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
             <div className="text-center space-y-6 pointer-events-auto px-4">
@@ -17,20 +27,21 @@ const HeroOverlay: React.FC = () => {
                 </p>
 
                 <div className="flex flex-col md:flex-row items-center justify-center gap-4 pt-8">
-                    <Link href="/dashboard">
-                        <button className="group relative px-8 py-4 bg-[#0052FF] text-white font-bold tracking-wider uppercase rounded-none overflow-hidden transition-all hover:shadow-[0_0_30px_rgba(0,82,255,0.6)]">
-                            <span className="relative z-10 flex items-center gap-2">
-                                Launch App <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </span>
-                            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                        </button>
-                    </Link>
+                    <button
+                        onClick={handleLaunchApp}
+                        className="group relative px-8 py-4 bg-[#0052FF] text-white font-bold tracking-wider uppercase rounded-none overflow-hidden transition-all hover:shadow-[0_0_30px_rgba(0,82,255,0.6)]"
+                    >
+                        <span className="relative z-10 flex items-center gap-2">
+                            Launch App <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </span>
+                        <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                    </button>
 
-                    <Link href="/blueprints">
+                    <Link href="/whitepaper">
                         <button className="group px-8 py-4 bg-white/5 backdrop-blur-md border border-white/10 text-white font-mono text-sm tracking-wider uppercase transition-all hover:bg-white/10 hover:border-white/20">
                             <span className="flex items-center gap-2">
-                                <Layers className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
-                                View Blueprints
+                                <FileText className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+                                Whitepaper
                             </span>
                         </button>
                     </Link>

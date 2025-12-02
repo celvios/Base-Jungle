@@ -52,6 +52,7 @@ const LandingPage: React.FC = () => {
                     {/* Links */}
                     <div className="flex flex-col space-y-2 font-mono text-sm text-gray-400">
                         <a href="/blueprints" className="hover:text-blue-400 transition-colors">Blueprints</a>
+                        <a href="/whitepaper" className="hover:text-blue-400 transition-colors">Whitepaper</a>
                         <a href="/analytics" className="hover:text-blue-400 transition-colors">Analytics</a>
                         <a href="/security" className="hover:text-blue-400 transition-colors">Security</a>
                         <a href="/governance" className="hover:text-blue-400 transition-colors">Governance</a>
