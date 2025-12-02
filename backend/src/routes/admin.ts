@@ -120,6 +120,69 @@ router.post('/award', async (req, res) => {
     }
 });
 
+// Grant MINTER_ROLE endpoint
+router.post('/grant-minter', async (req, res) => {
+    try {
+        const { address } = req.body;
+
+        if (!address || !ethers.isAddress(address)) {
+            return res.status(400).json({ error: 'Valid wallet address is required' });
+        }
+
+        if (!PRIVATE_KEY) {
+            return res.status(500).json({ error: 'PRIVATE_KEY not configured' });
+        }
+
+        // USDC Contract ABI (only needed functions)
+        const USDC_ABI = [
+            "function MINTER_ROLE() view returns (bytes32)",
+            "function hasRole(bytes32 role, address account) view returns (bool)",
+            "function grantRole(bytes32 role, address account)"
+        ];
+
+        // Use the configured USDC address or fallback to the one we know
+        const USDC_ADDRESS = process.env.USDC_ADDRESS || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
+        const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+        const usdcContract = new ethers.Contract(USDC_ADDRESS, USDC_ABI, wallet);
+
+        console.log(`🔑 Checking MINTER_ROLE for ${address}...`);
+
+        const MINTER_ROLE = await usdcContract.MINTER_ROLE();
+        const hasRole = await usdcContract.hasRole(MINTER_ROLE, address);
+
+        if (hasRole) {
+            console.log(`✅ ${address} already has MINTER_ROLE`);
+            return res.json({
+                success: true,
+                message: 'Address already has MINTER_ROLE',
+                alreadyGranted: true
+            });
+        }
+
+        console.log(`⏳ Granting MINTER_ROLE to ${address}...`);
+        const tx = await usdcContract.grantRole(MINTER_ROLE, address);
+        console.log(`Transaction sent: ${tx.hash}`);
+
+        const receipt = await tx.wait();
+        console.log(`✅ MINTER_ROLE granted! Block: ${receipt.blockNumber}`);
+
+        res.json({
+            success: true,
+            message: `Successfully granted MINTER_ROLE to ${address}`,
+            transactionHash: tx.hash
+        });
+
+    } catch (error: any) {
+        console.error('❌ Error granting role:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message || 'Failed to grant role'
+        });
+    }
+});
+
 // Simple web interface
 router.get('/award', (req, res) => {
     res.send(`
