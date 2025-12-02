@@ -66,24 +66,24 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
     };
 
     return (
-        <div className="glass-card rounded-xl p-6 space-y-6">
+        <div className="glass-card rounded-xl p-6 space-y-6 h-full flex flex-col justify-between">
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                         <Gauge className="w-5 h-5 text-cyan-400" />
                         PRESSURE GAUGE
                     </h3>
-                    <p className="text-sm text-gray-400 font-mono mt-1">LEVERAGE CONTROL</p>
+                    <p className="text-xs text-gray-500 font-mono mt-1 tracking-wider">LEVERAGE CONTROL</p>
                 </div>
                 <div className={`px-3 py-1 rounded-full border ${healthFactor < 1.5 ? 'bg-red-500/10 border-red-500/20 text-red-400' :
                         'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
                     }`}>
-                    <span className="text-sm font-mono font-bold">HF: {healthFactor.toFixed(2)}</span>
+                    <span className="text-xs font-mono font-bold">HF: {healthFactor.toFixed(2)}</span>
                 </div>
             </div>
 
             {/* Hydraulic Slider */}
-            <div className="py-4">
+            <div className="py-6">
                 <div
                     className={`hydraulic-track cursor-pointer ${shake ? 'animate-shake' : ''}`}
                     onMouseDown={handleMouseDown}
@@ -102,7 +102,7 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
                         className={`hydraulic-thumb ${localLeverage >= tierLimit ? 'locked' : ''}`}
                         style={{ left: `${getPercentage(localLeverage)}%` }}
                     >
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 border border-blue-500/30 px-2 py-1 rounded text-xs font-mono text-blue-400 whitespace-nowrap">
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 border border-blue-500/30 px-2 py-1 rounded text-[10px] font-mono text-blue-400 whitespace-nowrap">
                             {localLeverage.toFixed(1)}x
                         </div>
                     </div>
@@ -128,7 +128,7 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
                     </div>
 
                     {/* Markers */}
-                    <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs font-mono text-gray-600 select-none pointer-events-none">
+                    <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-[10px] font-mono text-gray-600 select-none pointer-events-none">
                         <span>1x</span>
                         <span>2x</span>
                         <span>3x</span>
@@ -141,11 +141,11 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
             {/* Info Grid */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
                 <div>
-                    <p className="text-xs text-gray-500 font-mono mb-1">LIQUIDATION PRICE</p>
+                    <p className="text-[10px] text-gray-500 font-mono mb-1 uppercase tracking-wider">Liquidation Price</p>
                     <p className="text-lg font-bold text-white">${liquidationPrice.toLocaleString()}</p>
                 </div>
                 <div>
-                    <p className="text-xs text-gray-500 font-mono mb-1">MAX LEVERAGE</p>
+                    <p className="text-[10px] text-gray-500 font-mono mb-1 uppercase tracking-wider">Max Leverage</p>
                     <p className="text-lg font-bold text-gray-400">{tierLimit.toFixed(1)}x <span className="text-xs font-normal text-gray-600">/ {maxLeverage}x</span></p>
                 </div>
             </div>

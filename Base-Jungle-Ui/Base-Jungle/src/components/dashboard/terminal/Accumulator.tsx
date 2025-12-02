@@ -20,16 +20,16 @@ const Accumulator: React.FC<AccumulatorProps> = ({
     onViewRewards
 }) => {
     return (
-        <div className="glass-card rounded-xl p-6 relative overflow-hidden">
+        <div className="glass-card rounded-xl p-6 relative overflow-hidden h-full flex flex-col">
             <div className="flex h-full gap-6">
 
                 {/* Vertical Glass Tank */}
-                <div className="w-16 h-full glass-tank flex-shrink-0 hidden sm:block">
+                <div className="w-12 h-full glass-tank flex-shrink-0 hidden sm:block relative">
                     {/* Bubbles generated via CSS */}
                     {[...Array(8)].map((_, i) => (
                         <div
                             key={i}
-                            className="tank-bubble w-2 h-2"
+                            className="tank-bubble w-1.5 h-1.5"
                             style={{
                                 left: `${Math.random() * 80 + 10}%`,
                                 animationDelay: `${Math.random() * 4}s`,
@@ -48,12 +48,12 @@ const Accumulator: React.FC<AccumulatorProps> = ({
                             <Database className="w-5 h-5 text-blue-400" />
                             ACCUMULATOR
                         </h3>
-                        <p className="text-sm text-gray-400 font-mono">REWARDS ENGINE</p>
+                        <p className="text-xs text-gray-500 font-mono tracking-wider">REWARDS ENGINE</p>
                     </div>
 
-                    <div className="space-y-4 my-6">
+                    <div className="space-y-4 my-4 flex-1 flex flex-col justify-center">
                         <div>
-                            <p className="text-xs text-gray-500 font-mono uppercase">Current Points</p>
+                            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Current Points</p>
                             <p className="text-3xl font-bold text-white glow-text-blue">
                                 {points.toLocaleString()} PTS
                             </p>
@@ -61,25 +61,25 @@ const Accumulator: React.FC<AccumulatorProps> = ({
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <p className="text-xs text-gray-500 font-mono uppercase">Multiplier</p>
+                                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Multiplier</p>
                                 <p className="text-lg font-bold text-purple-400">x{multiplier.toFixed(2)}</p>
                             </div>
                             <div>
-                                <p className="text-xs text-gray-500 font-mono uppercase">Velocity</p>
+                                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Velocity</p>
                                 <p className="text-lg font-bold text-green-400">{velocity.toFixed(2)}/hr</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Ecosystem Vitals */}
-                    <div className="pt-4 border-t border-white/5 space-y-3">
-                        <div className="flex justify-between items-center text-sm">
+                    <div className="pt-4 border-t border-white/5 space-y-2 mb-4">
+                        <div className="flex justify-between items-center text-xs">
                             <span className="text-gray-500 flex items-center gap-2">
                                 <Globe className="w-3 h-3" /> Global TVL
                             </span>
                             <span className="text-white font-mono">${(globalTVL / 1000000).toFixed(2)}M</span>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
+                        <div className="flex justify-between items-center text-xs">
                             <span className="text-gray-500 flex items-center gap-2">
                                 <Activity className="w-3 h-3" /> Avg APY
                             </span>
@@ -89,9 +89,9 @@ const Accumulator: React.FC<AccumulatorProps> = ({
 
                     <Button
                         onClick={onViewRewards}
-                        className="w-full mt-6 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30"
+                        className="w-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-mono tracking-wider h-10"
                     >
-                        VIEW REWARDS <ArrowUpRight className="w-4 h-4 ml-2" />
+                        VIEW REWARDS <ArrowUpRight className="w-3 h-3 ml-2" />
                     </Button>
                 </div>
             </div>
