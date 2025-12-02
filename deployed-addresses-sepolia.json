@@ -1,3 +1,15 @@
+{
+  "network": "baseSepolia",
+  "chainId": 84532,
+  "deployedAt": "2025-11-29T09:12:14.310Z",
+  "deployer": "0x72377a60870E3d2493F871FA5792a1160518fcc6",
+  "usdcAddress": "0x634c1cf5129fC7bd49736b9684375E112e4000E1",
+  "contracts": {
+    "treasuryManager": "0x87D8EEFfD2529982BE74ac6eDD851BcFcacCFC44",
+    "governanceToken": "0x1D3b7e7a2F4727136bfb838518b2961f10077853",
+    "referralManager": "0xc8A84e0BF9a4C213564e858A89c8f14738aD0f15",
+    "pointsTracker": "0x3dEDE79F6aD12973e723e67071F17e5C42A93173",
+    "strategyController": "0x65CD6764A4f574c1F6154518519925277C6CFF81",
     "conservativeVault": "0x986ca22e9f0A6104AAdea7C2698317A690045D13",
     "aggressiveVault": "0x7eD340313599090b25fA1F6F21671FE0210808E8",
     "masterVault": "0x7eD340313599090b25fA1F6F21671FE0210808E8",

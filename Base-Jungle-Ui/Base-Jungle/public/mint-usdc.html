@@ -198,6 +198,18 @@
             }
         };
 
+        let walletClient = null;
+        let account = null;
+
+        // Get USDC address from URL parameter or use default
+        const urlParams = new URLSearchParams(window.location.search);
+        const USDC_ADDRESS = urlParams.get('usdc') || '0x634c1cf5129fC7bd49736b9684375E112e4000E1';
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
         }
 
         async function connectWallet() {
