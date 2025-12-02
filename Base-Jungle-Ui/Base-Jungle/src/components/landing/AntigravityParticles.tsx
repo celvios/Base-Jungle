@@ -2,55 +2,82 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+// Custom shader material to handle per-particle size
+const ParticleMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        color: { value: new THREE.Color(0xffffff) },
+    },
+    vertexShader: `
+        attribute float size;
+        varying float vAlpha;
+        void main() {
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (300.0 / -mvPosition.z);
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 color;
+        void main() {
+            float r = distance(gl_PointCoord, vec2(0.5));
+            if (r > 0.5) discard;
+            float alpha = 1.0 - (r * 2.0);
+            alpha = pow(alpha, 1.5); // Soft edge
+            gl_FragColor = vec4(color, alpha * 0.8);
+        }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+});
+
 const AntigravityParticles: React.FC = () => {
-    const { size, viewport, camera } = useThree();
+    const { camera } = useThree();
     const pointsRef = useRef<THREE.Points>(null);
-    const count = 7500; // Target 5000-10000 particles
+    const count = 300; // Fixed count as per requirements
 
     // Mouse tracking in 3D space
-    const mousePosition = useRef(new THREE.Vector3(0, 0, 0));
+    const mousePosition = useRef(new THREE.Vector3(9999, 9999, 9999)); // Start far away
 
-    // Initialize particles
+    // Initialize particles with custom properties
     const particles = useMemo(() => {
         const positions = new Float32Array(count * 3);
-        const originalPositions = new Float32Array(count * 3);
-        const velocities = new Float32Array(count * 3);
-        const phases = new Float32Array(count);
+        const sizes = new Float32Array(count);
 
-        for (let i = 0; i < count; i++) {
-            // Random distribution: X(-800, 800), Y(-800, 800), Z(-500, 500)
-            const x = (Math.random() - 0.5) * 1600;
-            const y = (Math.random() - 0.5) * 1600;
-            const z = (Math.random() - 0.5) * 1000;
+        // Store custom data that doesn't need to be in the buffer
+        const data = new Array(count).fill(0).map(() => {
+            const x = (Math.random() - 0.5) * 1200; // -600 to 600
+            const y = (Math.random() - 0.5) * 1200; // -600 to 600
+            const z = (Math.random() - 0.5) * 800;  // -400 to 400
 
-            positions[i * 3] = x;
-            positions[i * 3 + 1] = y;
-            positions[i * 3 + 2] = z;
+            return {
+                position: new THREE.Vector3(x, y, z),
+                originalPosition: new THREE.Vector3(x, y, z),
+                velocity: new THREE.Vector3(0, 0, 0),
+                baseSize: 2 + Math.random() * 1.5, // 2-3.5px base
+                currentSize: 0,
+                pulsePhase: Math.random() * Math.PI * 2,
+                pulseSpeed: 0.02 + Math.random() * 0.03,
+            };
+        });
 
-            originalPositions[i * 3] = x;
-            originalPositions[i * 3 + 1] = y;
-            originalPositions[i * 3 + 2] = z;
+        // Initialize buffer arrays
+        data.forEach((p, i) => {
+            positions[i * 3] = p.position.x;
+            positions[i * 3 + 1] = p.position.y;
+            positions[i * 3 + 2] = p.position.z;
+            sizes[i] = p.baseSize;
+        });
 
-            // Initialize velocities to 0
-            velocities[i * 3] = 0;
-            velocities[i * 3 + 1] = 0;
-            velocities[i * 3 + 2] = 0;
-
-            // Random phase for organic movement
-            phases[i] = Math.random() * Math.PI * 2;
-        }
-
-        return { positions, originalPositions, velocities, phases };
-    }, [count]);
+        return { positions, sizes, data };
+    }, []);
 
     // Update mouse position
     useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
-            // Convert screen coordinates to normalized device coordinates (-1 to 1)
             const x = (event.clientX / window.innerWidth) * 2 - 1;
             const y = -(event.clientY / window.innerHeight) * 2 + 1;
 
-            // Project to 3D world space at z=0 plane
             const vector = new THREE.Vector3(x, y, 0.5);
             vector.unproject(camera);
             const dir = vector.sub(camera.position).normalize();
@@ -64,74 +91,63 @@ const AntigravityParticles: React.FC = () => {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, [camera]);
 
-    useFrame((state) => {
+    useFrame(() => {
         if (!pointsRef.current) return;
 
-        const time = state.clock.getElapsedTime();
-        const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
-        const { originalPositions, velocities, phases } = particles;
+        const geometry = pointsRef.current.geometry;
+        const positionAttribute = geometry.attributes.position;
+        const sizeAttribute = geometry.attributes.size;
 
-        const repulsionRadius = 250; // Adjustable: 150-300
-        const repulsionStrength = 10; // Adjustable: 5-15
-        const damping = 0.92; // Adjustable: 0.85-0.95
-        const returnStrength = 0.02; // Strength of return to original position
+        const interactionRadius = 250;
+        const repulsionStrength = 8;
+        const damping = 0.92;
+        const returnStrength = 0.02;
 
-        for (let i = 0; i < count; i++) {
-            const idx = i * 3;
+        particles.data.forEach((particle, i) => {
+            // 1. ALWAYS update pulsing animation
+            particle.pulsePhase += particle.pulseSpeed;
+            const pulseMultiplier = 1 + Math.sin(particle.pulsePhase) * 0.4;
+            particle.currentSize = particle.baseSize * pulseMultiplier;
 
-            // Current position
-            let px = positions[idx];
-            let py = positions[idx + 1];
-            let pz = positions[idx + 2];
+            // 2. Calculate distance to mouse
+            const dist = particle.position.distanceTo(mousePosition.current);
 
-            // 1. Base Antigravity Float (Sine/Cosine oscillation)
-            // Very slow organic movement
-            const floatSpeed = 0.001;
-            const floatAmp = 1.5;
-            const phase = phases[i];
-
-            const floatX = Math.sin(time * floatSpeed + phase) * floatAmp;
-            const floatY = Math.cos(time * floatSpeed + phase * 0.5) * floatAmp;
-
-            // 2. Calculate Distance to Mouse
-            const dx = px - mousePosition.current.x;
-            const dy = py - mousePosition.current.y;
-            const dz = pz - mousePosition.current.z;
-            const distSq = dx * dx + dy * dy + dz * dz;
-            const dist = Math.sqrt(distSq);
-
-            // 3. Apply Repulsion Force
-            if (dist < repulsionRadius) {
-                const force = (repulsionRadius - dist) / repulsionRadius;
-                const forceFactor = force * force * repulsionStrength; // Exponential falloff
-
-                // Normalize direction and apply force
-                velocities[idx] += (dx / dist) * forceFactor;
-                velocities[idx + 1] += (dy / dist) * forceFactor;
-                velocities[idx + 2] += (dz / dist) * forceFactor;
+            // 3. Apply expansion based on proximity
+            let finalSize = particle.currentSize;
+            if (dist < interactionRadius) {
+                const proximityFactor = Math.pow(1 - (dist / interactionRadius), 2);
+                const expansionMultiplier = 1 + (proximityFactor * 3); // Max 4x size
+                finalSize = particle.currentSize * expansionMultiplier;
             }
 
-            // 4. Apply Return Force (Spring back to original + float)
-            const targetX = originalPositions[idx] + floatX;
-            const targetY = originalPositions[idx + 1] + floatY;
-            const targetZ = originalPositions[idx + 2];
+            // 4. Apply repulsion force to velocity
+            if (dist < interactionRadius) {
+                const forceStrength = Math.pow((interactionRadius - dist) / interactionRadius, 2);
+                const direction = new THREE.Vector3()
+                    .subVectors(particle.position, mousePosition.current)
+                    .normalize();
 
-            velocities[idx] += (targetX - px) * returnStrength;
-            velocities[idx + 1] += (targetY - py) * returnStrength;
-            velocities[idx + 2] += (targetZ - pz) * returnStrength;
+                const repulsionForce = direction.multiplyScalar(forceStrength * repulsionStrength);
+                particle.velocity.add(repulsionForce);
+            }
 
-            // 5. Apply Velocity & Damping
-            velocities[idx] *= damping;
-            velocities[idx + 1] *= damping;
-            velocities[idx + 2] *= damping;
+            // 5. Gentle pull back to original position
+            const toOriginal = new THREE.Vector3()
+                .subVectors(particle.originalPosition, particle.position)
+                .multiplyScalar(returnStrength);
+            particle.velocity.add(toOriginal);
 
-            // Update Position
-            positions[idx] += velocities[idx];
-            positions[idx + 1] += velocities[idx + 1];
-            positions[idx + 2] += velocities[idx + 2];
-        }
+            // 6. Apply velocity and damping
+            particle.position.add(particle.velocity);
+            particle.velocity.multiplyScalar(damping);
 
-        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+            // 7. Update geometry arrays
+            positionAttribute.setXYZ(i, particle.position.x, particle.position.y, particle.position.z);
+            sizeAttribute.setX(i, finalSize);
+        });
+
+        positionAttribute.needsUpdate = true;
+        sizeAttribute.needsUpdate = true;
     });
 
     return (
@@ -143,16 +159,14 @@ const AntigravityParticles: React.FC = () => {
                     array={particles.positions}
                     itemSize={3}
                 />
+                <bufferAttribute
+                    attach="attributes-size"
+                    count={count}
+                    array={particles.sizes}
+                    itemSize={1}
+                />
             </bufferGeometry>
-            <pointsMaterial
-                size={2.5}
-                color="#ffffff"
-                transparent
-                opacity={0.7}
-                blending={THREE.AdditiveBlending}
-                sizeAttenuation={true}
-                depthWrite={false}
-            />
+            <primitive object={ParticleMaterial} attach="material" />
         </points>
     );
 };
