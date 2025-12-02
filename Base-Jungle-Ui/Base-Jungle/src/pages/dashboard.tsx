@@ -9,6 +9,8 @@ import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
 import { useUserRank } from "@/hooks/use-leaderboard";
 import { type Address } from "viem";
+import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
+import ProfileMenu from "@/components/dashboard/ProfileMenu";
 
 // Terminal Components
 import TerminalLayout from "@/components/dashboard/terminal/TerminalLayout";
@@ -20,6 +22,14 @@ import Accumulator from "@/components/dashboard/terminal/Accumulator";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (isConnected) {
+      const timer = setTimeout(() => setLoading(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected]);
 
   // ✅ Real contract data - Vault balances
   const { data: conservativeBalance } = useVaultBalance(
@@ -97,8 +107,34 @@ export default function Dashboard() {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
+        <div className="p-6 space-y-6">
+          <div className="flex justify-between items-center">
+            <Skeleton className="h-12 w-1/3" />
+            <Skeleton className="h-10 w-32 rounded-full" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <SkeletonCard />
+            </div>
+            <div className="space-y-6">
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+          </div>
+          <SkeletonCard />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
+      <div className="fixed top-6 right-6 z-50">
+        <ProfileMenu />
+      </div>
 
       {/* Header: Status Manifold */}
       <StatusManifold
