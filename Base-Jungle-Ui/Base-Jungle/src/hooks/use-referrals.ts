@@ -78,6 +78,19 @@ export function useReferralCounts(userAddress: Address | undefined) {
     });
 }
 
+// Hook: Get direct referrals list
+export function useDirectReferrals(userAddress: Address | undefined) {
+    return useReadContract({
+        address: REFERRAL_REGISTRY_ADDRESS,
+        abi: REFERRAL_REGISTRY_ABI,
+        functionName: 'getDirectReferrals',
+        args: userAddress ? [userAddress] : undefined,
+        query: {
+            enabled: !!userAddress,
+        },
+    });
+}
+
 // Hook: Get pending bonus
 export function usePendingBonus(userAddress: Address | undefined) {
     return useReadContract({
