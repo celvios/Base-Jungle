@@ -19,7 +19,7 @@ const EcosystemPulse: React.FC = () => {
     const marqueeContent = [...stats, ...stats, ...stats, ...stats];
 
     return (
-        <div className="w-full bg-[#050a14] border-y border-blue-900/30 overflow-hidden py-3 relative z-30">
+        <div className="w-full bg-[#020202] border-y border-gray-900 overflow-hidden py-3 relative z-30">
             <div className="flex">
                 <motion.div
                     className="flex items-center gap-12 whitespace-nowrap"
