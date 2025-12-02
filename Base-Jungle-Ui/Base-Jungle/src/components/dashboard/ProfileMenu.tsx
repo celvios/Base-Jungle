@@ -1,11 +1,11 @@
 import React from 'react';
 import { useWallet } from '@/contexts/wallet-context';
 import { User, LogOut, Copy, Check } from 'lucide-react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 const ProfileMenu: React.FC = () => {
     const { address, disconnect } = useWallet();
-    const [, setLocation] = useNavigate();
+    const [, setLocation] = useLocation();
     const [copied, setCopied] = React.useState(false);
     const [isOpen, setIsOpen] = React.useState(false);
 
