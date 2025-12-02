@@ -1,12 +1,9 @@
-import React, { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Environment, Loader } from '@react-three/drei';
-import AntigravityScene from '@/components/landing/AntigravityScene';
-import GenesisSeed from '@/components/landing/GenesisSeed';
+import React from 'react';
 import HeroOverlay from '@/components/landing/HeroOverlay';
 import LawsOfJungle from '@/components/landing/LawsOfJungle';
 import TierShowcase from '@/components/landing/TierShowcase';
 import EcosystemPulse from '@/components/landing/EcosystemPulse';
+import AntigravityParticles from '@/components/landing/AntigravityParticles';
 import { Twitter, Disc, Github, Hexagon } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
