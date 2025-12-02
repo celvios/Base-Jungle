@@ -19,7 +19,7 @@ const TierShowcase: React.FC = () => {
     ];
 
     return (
-        <section ref={targetRef} className="relative h-[300vh] bg-[#050505]">
+        <section ref={targetRef} className="relative h-[200vh] bg-[#050505]">
             <div className="sticky top-0 flex h-screen items-center overflow-hidden">
                 <div className="absolute top-12 left-8 z-10">
                     <h2 className="text-4xl font-bold font-mono text-white">SPECIMEN PARALLAX</h2>
