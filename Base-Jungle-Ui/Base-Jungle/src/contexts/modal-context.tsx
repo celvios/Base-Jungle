@@ -6,6 +6,7 @@ export type ModalType =
   | "harvest"
   | "deposit"
   | "strategyChange"
+  | "leverage-control"
   | "x-ray"
   | "field-journal"
   | "referral-beacon"
