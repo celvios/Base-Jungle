@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mint Test USDC - Base Jungle</title>
+    <script src="https://cdn.jsdelivr.net/npm/viem@2.7.0/dist/viem.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #0052FF 0%, #00D4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0052FF;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0052FF 0%, #0041CC 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+        }
+
+        .status.error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff6b6b;
+        }
+
+        .status.info {
+            background: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.3);
+            color: #00D4FF;
+        }
+
+        .wallet-info {
+            background: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .wallet-info code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🌴 Mint Test USDC</h1>
+        <p>Mint test USDC tokens for testing Base Jungle on Base Sepolia testnet</p>
+
+        <div id="walletInfo" class="wallet-info" style="display: none;">
+            <div><strong>Connected:</strong> <code id="connectedAddress"></code></div>
+            <div><strong>Network:</strong> <span id="networkName"></span></div>
+        </div>
+
+        <div class="input-group">
+            <label for="recipient">Recipient Address</label>
+            <input type="text" id="recipient" placeholder="0x..." />
+        </div>
+
+        <div class="input-group">
+            <label for="amount">Amount (USDC)</label>
+            <input type="number" id="amount" placeholder="10000" value="10000" />
+        </div>
+
+        <button id="mintBtn" onclick="mintUSDC()">Connect Wallet & Mint</button>
+
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // USDC Contract ABI (only mint function)
+        const USDC_ABI = [
+            {
+                inputs: [
+                    { name: 'to', type: 'address' },
+                    { name: 'amount', type: 'uint256' }
+                ],
+                name: 'mint',
+                outputs: [],
+                stateMutability: 'nonpayable',
+                type: 'function'
+            }
+        ];
+
+        // Base Sepolia configuration
+        const BASE_SEPOLIA = {
+            id: 84532,
+            name: 'Base Sepolia',
+            network: 'base-sepolia',
+            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+            rpcUrls: {
+                default: { http: ['https://sepolia.base.org'] },
+                public: { http: ['https://sepolia.base.org'] }
+            },
+            blockExplorers: {
+                default: { name: 'BaseScan', url: 'https://sepolia.basescan.org' }
+            }
+        };
+
+        let walletClient = null;
+        let account = null;
+
+        // Get USDC address from URL parameter or use default
+        const urlParams = new URLSearchParams(window.location.search);
+        const USDC_ADDRESS = urlParams.get('usdc') || '0xYourUSDCAddressHere';
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum === 'undefined') {
+                showStatus('MetaMask is not installed. Please install MetaMask to continue.', 'error');
+                return false;
+            }
+
+            try {
+                // Request account access
+                const accounts = await window.ethereum.request({
+                    method: 'eth_requestAccounts'
+                });
+                account = accounts[0];
+
+                // Check if on Base Sepolia
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+
+                if (chainId !== '0x14a34') { // 84532 in hex
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: '0x14a34' }],
+                        });
+                    } catch (switchError) {
+                        // Chain not added, try to add it
+                        if (switchError.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: '0x14a34',
+                                    chainName: 'Base Sepolia',
+                                    nativeCurrency: {
+                                        name: 'Ether',
+                                        symbol: 'ETH',
+                                        decimals: 18
+                                    },
+                                    rpcUrls: ['https://sepolia.base.org'],
+                                    blockExplorerUrls: ['https://sepolia.basescan.org']
+                                }]
+                            });
+                        } else {
+                            throw switchError;
+                        }
+                    }
+                }
+
+                // Update UI
+                document.getElementById('connectedAddress').textContent =
+                    account.slice(0, 6) + '...' + account.slice(-4);
+                document.getElementById('networkName').textContent = 'Base Sepolia';
+                document.getElementById('walletInfo').style.display = 'block';
+
+                // Pre-fill recipient with connected address
+                if (!document.getElementById('recipient').value) {
+                    document.getElementById('recipient').value = account;
+                }
+
+                return true;
+            } catch (error) {
+                showStatus('Failed to connect wallet: ' + error.message, 'error');
+                return false;
+            }
+        }
+
+        async function mintUSDC() {
+            const btn = document.getElementById('mintBtn');
+            const recipient = document.getElementById('recipient').value;
+            const amount = document.getElementById('amount').value;
+
+            // Validation
+            if (!recipient || !recipient.match(/^0x[a-fA-F0-9]{40}$/)) {
+                showStatus('Please enter a valid Ethereum address', 'error');
+                return;
+            }
+
+            if (!amount || parseFloat(amount) <= 0) {
+                showStatus('Please enter a valid amount', 'error');
+                return;
+            }
+
+            // Connect wallet if not connected
+            if (!account) {
+                const connected = await connectWallet();
+                if (!connected) return;
+            }
+
+            try {
+                btn.disabled = true;
+                btn.textContent = 'Minting...';
+                showStatus('Preparing transaction...', 'info');
+
+                // Convert amount to 6 decimals (USDC standard)
+                const amountWei = BigInt(Math.floor(parseFloat(amount) * 1000000));
+
+                // Encode the mint function call
+                const data = window.ethereum.request({
+                    method: 'eth_sendTransaction',
+                    params: [{
+                        from: account,
+                        to: USDC_ADDRESS,
+                        data: encodeMintCall(recipient, amountWei)
+                    }]
+                });
+
+                showStatus('Confirm the transaction in MetaMask...', 'info');
+
+                const txHash = await data;
+
+                showStatus(`Transaction submitted! Hash: ${txHash.slice(0, 10)}...`, 'info');
+
+                // Wait for confirmation
+                await waitForTransaction(txHash);
+
+                showStatus(`✅ Successfully minted ${amount} USDC to ${recipient.slice(0, 6)}...${recipient.slice(-4)}`, 'success');
+
+                btn.textContent = 'Mint More';
+            } catch (error) {
+                console.error(error);
+                showStatus('❌ Minting failed: ' + error.message, 'error');
+                btn.textContent = 'Try Again';
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function encodeMintCall(to, amount) {
+            // Simple ABI encoding for mint(address,uint256)
+            const functionSelector = '0x40c10f19'; // keccak256("mint(address,uint256)").slice(0, 10)
+            const paddedAddress = to.slice(2).padStart(64, '0');
+            const paddedAmount = amount.toString(16).padStart(64, '0');
+            return functionSelector + paddedAddress + paddedAmount;
+        }
+
+        async function waitForTransaction(txHash) {
+            return new Promise((resolve, reject) => {
+                const checkReceipt = async () => {
+                    try {
+                        const receipt = await window.ethereum.request({
+                            method: 'eth_getTransactionReceipt',
+                            params: [txHash]
+                        });
+
+                        if (receipt) {
+                            if (receipt.status === '0x1') {
+                                resolve(receipt);
+                            } else {
+                                reject(new Error('Transaction failed'));
+                            }
+                        } else {
+                            setTimeout(checkReceipt, 2000);
+                        }
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                checkReceipt();
+            });
+        }
+
+        // Auto-connect if wallet was previously connected
+        window.addEventListener('load', async () => {
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                await connectWallet();
+            }
+        });
+    </script>
+</body>
+
+</html>
