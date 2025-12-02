@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Lock, Gauge } from 'lucide-react';
-import { Slider } from '@/components/ui/slider';
+import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Lock, Gauge } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PressureGaugeProps {
     currentLeverage: number;
     maxLeverage: number;
     tierLimit: number;
+    tierName: string;
+    nextTierName: string;
+    nextTierRequirement: string;
+    healthFactor: number;
+    liquidationPrice: number;
     onLeverageChange: (value: number) => void;
 }
 
@@ -14,91 +18,144 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
     currentLeverage,
     maxLeverage,
     tierLimit,
+    tierName,
+    nextTierName,
+    nextTierRequirement,
+    healthFactor,
+    liquidationPrice,
     onLeverageChange
 }) => {
     const [isDragging, setIsDragging] = useState(false);
+    const [localLeverage, setLocalLeverage] = useState(currentLeverage);
+    const [shake, setShake] = useState(false);
 
-    // Calculate percentage for visual fill
-    const fillPercent = (currentLeverage / maxLeverage) * 100;
-    const limitPercent = (tierLimit / maxLeverage) * 100;
+    useEffect(() => {
+        setLocalLeverage(currentLeverage);
+    }, [currentLeverage]);
+
+    const handleMouseDown = () => setIsDragging(true);
+    const handleMouseUp = () => {
+        setIsDragging(false);
+        onLeverageChange(localLeverage);
+    };
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!isDragging) return;
+
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const percentage = x / rect.width;
+        const newValue = 1 + (percentage * (maxLeverage - 1));
+
+        // Snap to 0.1 increments
+        const snappedValue = Math.round(newValue * 10) / 10;
+
+        if (snappedValue > tierLimit) {
+            setLocalLeverage(tierLimit);
+            if (!shake) {
+                setShake(true);
+                setTimeout(() => setShake(false), 400);
+            }
+        } else {
+            setLocalLeverage(snappedValue);
+        }
+    };
+
+    const getPercentage = (value: number) => {
+        return ((value - 1) / (maxLeverage - 1)) * 100;
+    };
 
     return (
-        <div className="col-span-1 bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden">
-
-            <div className="flex justify-between items-start mb-4 z-10">
+        <div className="glass-card rounded-xl p-6 space-y-6">
+            <div className="flex justify-between items-start">
                 <div>
-                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-1 flex items-center gap-2">
-                        <Gauge className="w-3 h-3" /> Pressure Gauge
-                    </div>
-                    <div className="text-2xl font-bold font-mono text-white">
-                        {currentLeverage.toFixed(1)}x <span className="text-sm text-gray-500">LEVERAGE</span>
-                    </div>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Gauge className="w-5 h-5 text-cyan-400" />
+                        PRESSURE GAUGE
+                    </h3>
+                    <p className="text-sm text-gray-400 font-mono mt-1">LEVERAGE CONTROL</p>
                 </div>
-                {currentLeverage >= tierLimit && (
-                    <div className="text-xs font-mono text-red-500 flex items-center gap-1 bg-red-900/20 px-2 py-1 rounded border border-red-500/30">
-                        <Lock className="w-3 h-3" /> MAX PRESSURE
-                    </div>
-                )}
+                <div className={`px-3 py-1 rounded-full border ${healthFactor < 1.5 ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                        'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
+                    }`}>
+                    <span className="text-sm font-mono font-bold">HF: {healthFactor.toFixed(2)}</span>
+                </div>
             </div>
 
-            {/* Hydraulic Slider Visual */}
-            <div className="relative py-4 z-10">
-                {/* Track Background */}
-                <div className="h-3 bg-black/50 rounded-full border border-white/10 relative overflow-hidden">
-                    {/* Limit Zone (Greyed out) */}
-                    <div
-                        className="absolute inset-y-0 right-0 bg-gray-900/50 pattern-diagonal-lines"
-                        style={{ width: `${100 - limitPercent}%` }}
-                    />
-
-                    {/* Active Liquid Fill */}
-                    <motion.div
-                        className={`absolute inset-y-0 left-0 ${currentLeverage >= tierLimit ? 'bg-red-500' : 'bg-purple-500'} shadow-[0_0_15px_rgba(168,85,247,0.5)]`}
-                        style={{ width: `${fillPercent}%` }}
-                        animate={{
-                            backgroundColor: currentLeverage >= tierLimit ? '#ef4444' : '#a855f7',
-                        }}
-                    />
-                </div>
-
-                {/* Slider Input (Invisible but interactive) */}
-                <Slider
-                    defaultValue={[currentLeverage]}
-                    max={maxLeverage}
-                    step={0.1}
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onValueChange={(vals) => {
-                        const val = vals[0];
-                        if (val <= tierLimit) {
-                            onLeverageChange(val);
-                        } else {
-                            // Haptic/Visual feedback for limit hit could go here
-                            onLeverageChange(tierLimit);
-                        }
-                    }}
-                />
-
-                {/* Piston Head (Visual only, follows value) */}
-                <motion.div
-                    className="absolute top-1/2 -translate-y-1/2 w-6 h-8 bg-gray-300 border-2 border-white rounded shadow-lg pointer-events-none flex items-center justify-center"
-                    style={{ left: `calc(${fillPercent}% - 12px)` }}
-                >
-                    <div className="w-0.5 h-4 bg-gray-400" />
-                </motion.div>
-
-                {/* Limit Marker */}
+            {/* Hydraulic Slider */}
+            <div className="py-4">
                 <div
-                    className="absolute top-0 bottom-0 w-0.5 bg-red-500/50 z-0"
-                    style={{ left: `${limitPercent}%` }}
+                    className={`hydraulic-track cursor-pointer ${shake ? 'animate-shake' : ''}`}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onMouseMove={handleMouseMove}
                 >
-                    <div className="absolute -top-4 -translate-x-1/2 text-[9px] font-mono text-red-500">MAX</div>
+                    {/* Fill */}
+                    <div
+                        className="hydraulic-fill"
+                        style={{ width: `${getPercentage(localLeverage)}%` }}
+                    />
+
+                    {/* Thumb */}
+                    <div
+                        className={`hydraulic-thumb ${localLeverage >= tierLimit ? 'locked' : ''}`}
+                        style={{ left: `${getPercentage(localLeverage)}%` }}
+                    >
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 border border-blue-500/30 px-2 py-1 rounded text-xs font-mono text-blue-400 whitespace-nowrap">
+                            {localLeverage.toFixed(1)}x
+                        </div>
+                    </div>
+
+                    {/* Limit Marker */}
+                    <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-red-500/50 z-0"
+                        style={{ left: `${getPercentage(tierLimit)}%` }}
+                    >
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <div className="absolute -top-2 -translate-x-1/2 text-red-500 cursor-help">
+                                        <Lock className="w-4 h-4" />
+                                    </div>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-black/90 border-red-500/20 text-red-200">
+                                    <p>Upgrade to {nextTierName} to unlock higher leverage</p>
+                                    <p className="text-xs text-red-400 mt-1">Requires {nextTierRequirement}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+
+                    {/* Markers */}
+                    <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs font-mono text-gray-600 select-none pointer-events-none">
+                        <span>1x</span>
+                        <span>2x</span>
+                        <span>3x</span>
+                        <span>4x</span>
+                        <span>5x</span>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex justify-between text-[10px] font-mono text-gray-500 mt-2">
-                <span>1.0x</span>
-                <span>{maxLeverage.toFixed(1)}x</span>
+            {/* Info Grid */}
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                <div>
+                    <p className="text-xs text-gray-500 font-mono mb-1">LIQUIDATION PRICE</p>
+                    <p className="text-lg font-bold text-white">${liquidationPrice.toLocaleString()}</p>
+                </div>
+                <div>
+                    <p className="text-xs text-gray-500 font-mono mb-1">MAX LEVERAGE</p>
+                    <p className="text-lg font-bold text-gray-400">{tierLimit.toFixed(1)}x <span className="text-xs font-normal text-gray-600">/ {maxLeverage}x</span></p>
+                </div>
             </div>
+
+            {healthFactor < 1.2 && (
+                <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                    <p className="text-xs text-red-400">Warning: Liquidation risk high. Add collateral.</p>
+                </div>
+            )}
         </div>
     );
 };

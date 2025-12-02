@@ -1,64 +1,99 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Zap } from 'lucide-react';
+import { Database, ArrowUpRight, Globe, Activity } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface AccumulatorProps {
     points: number;
     multiplier: number;
-    onHarvest: () => void;
+    velocity: number;
+    globalTVL: number;
+    avgAPY: number;
+    onViewRewards: () => void;
 }
 
-const Accumulator: React.FC<AccumulatorProps> = ({ points, multiplier, onHarvest }) => {
+const Accumulator: React.FC<AccumulatorProps> = ({
+    points,
+    multiplier,
+    velocity,
+    globalTVL,
+    avgAPY,
+    onViewRewards
+}) => {
     return (
-        <div className="col-span-1 bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col relative overflow-hidden">
+        <div className="glass-card rounded-xl p-6 relative overflow-hidden">
+            <div className="flex h-full gap-6">
 
-            <div className="z-10 flex justify-between items-start mb-4">
-                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                    <Zap className="w-3 h-3" /> Accumulator
+                {/* Vertical Glass Tank */}
+                <div className="w-16 h-full glass-tank flex-shrink-0 hidden sm:block">
+                    {/* Bubbles generated via CSS */}
+                    {[...Array(8)].map((_, i) => (
+                        <div
+                            key={i}
+                            className="tank-bubble w-2 h-2"
+                            style={{
+                                left: `${Math.random() * 80 + 10}%`,
+                                animationDelay: `${Math.random() * 4}s`,
+                                animationDuration: `${3 + Math.random() * 3}s`,
+                                '--wobble': `${(Math.random() - 0.5) * 20}px`
+                            } as React.CSSProperties}
+                        />
+                    ))}
+                    <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-blue-600/30 to-transparent" />
                 </div>
-                <div className="text-xs font-mono text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded bg-blue-900/20">
-                    {multiplier}x Speed
+
+                {/* Content */}
+                <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-1">
+                            <Database className="w-5 h-5 text-blue-400" />
+                            ACCUMULATOR
+                        </h3>
+                        <p className="text-sm text-gray-400 font-mono">REWARDS ENGINE</p>
+                    </div>
+
+                    <div className="space-y-4 my-6">
+                        <div>
+                            <p className="text-xs text-gray-500 font-mono uppercase">Current Points</p>
+                            <p className="text-3xl font-bold text-white glow-text-blue">
+                                {points.toLocaleString()} PTS
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-xs text-gray-500 font-mono uppercase">Multiplier</p>
+                                <p className="text-lg font-bold text-purple-400">x{multiplier.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-500 font-mono uppercase">Velocity</p>
+                                <p className="text-lg font-bold text-green-400">{velocity.toFixed(2)}/hr</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Ecosystem Vitals */}
+                    <div className="pt-4 border-t border-white/5 space-y-3">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500 flex items-center gap-2">
+                                <Globe className="w-3 h-3" /> Global TVL
+                            </span>
+                            <span className="text-white font-mono">${(globalTVL / 1000000).toFixed(2)}M</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500 flex items-center gap-2">
+                                <Activity className="w-3 h-3" /> Avg APY
+                            </span>
+                            <span className="text-green-400 font-mono">{avgAPY}%</span>
+                        </div>
+                    </div>
+
+                    <Button
+                        onClick={onViewRewards}
+                        className="w-full mt-6 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30"
+                    >
+                        VIEW REWARDS <ArrowUpRight className="w-4 h-4 ml-2" />
+                    </Button>
                 </div>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center justify-center z-10 space-y-4">
-                <div className="text-3xl font-bold font-mono text-white tracking-tight">
-                    {points.toLocaleString()} <span className="text-sm text-gray-500">PTS</span>
-                </div>
-
-                <Button
-                    onClick={onHarvest}
-                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-mono uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(37,99,235,0.3)]"
-                >
-                    Harvest Rewards
-                </Button>
-            </div>
-
-            {/* Bubble Tank Visual */}
-            <div className="absolute inset-0 z-0 opacity-20">
-                {/* Rising Bubbles Animation (Simulated with multiple divs) */}
-                {[...Array(10)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className="absolute bottom-0 w-2 h-2 bg-blue-400 rounded-full"
-                        style={{
-                            left: `${Math.random() * 100}%`,
-                        }}
-                        animate={{
-                            y: [0, -300],
-                            opacity: [0, 1, 0],
-                            scale: [0.5, 1.5]
-                        }}
-                        transition={{
-                            duration: 3 + Math.random() * 2,
-                            repeat: Infinity,
-                            delay: Math.random() * 2,
-                            ease: "linear"
-                        }}
-                    />
-                ))}
-                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent" />
             </div>
         </div>
     );

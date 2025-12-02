@@ -1,78 +1,127 @@
 import React from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion';
-import { Activity } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { RefreshCw, TrendingUp, DollarSign } from 'lucide-react';
 
 interface YieldReactorProps {
-    balance: number;
+    principal: number;
+    totalYield: number;
+    harvestableYield: number;
     dailyPnL: number;
-    data: any[]; // Chart data
+    data: Array<{ time: string; value: number }>;
+    onHarvest: () => void;
 }
 
-const YieldReactor: React.FC<YieldReactorProps> = ({ balance, dailyPnL, data }) => {
+const YieldReactor: React.FC<YieldReactorProps> = ({
+    principal,
+    totalYield,
+    harvestableYield,
+    dailyPnL,
+    data,
+    onHarvest
+}) => {
     return (
-        <div className="col-span-1 md:col-span-2 row-span-2 relative bg-[#0a0a0a]/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden flex flex-col">
+        <div className="glass-card rounded-xl p-6 col-span-1 md:col-span-2 relative overflow-hidden group">
+            {/* Background Pulse Effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-blue-500/10 transition-all duration-700" />
 
-            {/* Header Data */}
-            <div className="p-6 border-b border-white/5 flex justify-between items-start z-10">
-                <div>
-                    <div className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-1">Total Yield Balance</div>
-                    <div className="text-4xl font-bold font-mono text-white tracking-tight">
-                        ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div className="flex flex-col h-full relative z-10">
+                {/* Header */}
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            <RefreshCw className="w-5 h-5 text-blue-500 animate-spin-slow" />
+                            YIELD REACTOR
+                        </h3>
+                        <p className="text-sm text-gray-400 font-mono mt-1">AUTO-COMPOUNDING ENGINE</p>
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                        <span className="text-sm font-mono text-green-400 flex items-center gap-1">
-                            +${dailyPnL.toFixed(2)} (24h)
-                        </span>
-                        <span className="text-[10px] text-gray-600 font-mono uppercase">Auto-Compounding Active</span>
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                        <TrendingUp className="w-4 h-4 text-green-400" />
+                        <span className="text-sm font-mono text-green-400">+{dailyPnL}% 24H</span>
                     </div>
                 </div>
 
-                {/* Pulsing Tube Indicator */}
-                <div className="flex flex-col items-center gap-2">
-                    <div className="w-1.5 h-16 bg-black/50 rounded-full border border-white/10 overflow-hidden relative">
-                        <motion.div
-                            animate={{ height: ["0%", "100%", "0%"], opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                            className="absolute bottom-0 w-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
-                        />
+                {/* Stats Grid */}
+                <div className="grid grid-cols-3 gap-6 mb-8">
+                    <div className="space-y-1">
+                        <p className="text-xs text-gray-500 font-mono uppercase">Principal (TVL)</p>
+                        <p className="text-2xl font-bold text-white">
+                            ${principal.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </p>
                     </div>
-                    <span className="text-[9px] font-mono text-blue-500 uppercase">Pulse</span>
+                    <div className="space-y-1">
+                        <p className="text-xs text-gray-500 font-mono uppercase">Lifetime Yield</p>
+                        <p className="text-2xl font-bold text-blue-400 glow-text-blue">
+                            +${totalYield.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-xs text-gray-500 font-mono uppercase">Harvestable</p>
+                        <p className="text-2xl font-bold text-green-400">
+                            ${harvestableYield.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            {/* Chart Area */}
-            <div className="flex-1 w-full h-full min-h-[250px] relative z-0">
-                <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data}>
-                        <defs>
-                            <linearGradient id="colorYield" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                            </linearGradient>
-                        </defs>
-                        <XAxis
-                            dataKey="time"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: '#4b5563', fontSize: 10, fontFamily: 'monospace' }}
-                        />
-                        <Tooltip
-                            contentStyle={{ backgroundColor: '#000', border: '1px solid #333', borderRadius: '8px' }}
-                            itemStyle={{ color: '#fff', fontFamily: 'monospace' }}
-                            labelStyle={{ color: '#6b7280', marginBottom: '4px' }}
-                            cursor={{ stroke: '#3b82f6', strokeWidth: 1, strokeDasharray: '4 4' }}
-                        />
-                        <Area
-                            type="monotone"
-                            dataKey="value"
-                            stroke="#3b82f6"
-                            strokeWidth={2}
-                            fillOpacity={1}
-                            fill="url(#colorYield)"
-                        />
-                    </AreaChart>
-                </ResponsiveContainer>
+                {/* Chart Area */}
+                <div className="flex-1 min-h-[200px] w-full mb-6">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={data}>
+                            <defs>
+                                <linearGradient id="colorYield" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#0052FF" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#0052FF" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis
+                                dataKey="time"
+                                stroke="rgba(255,255,255,0.2)"
+                                tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                                tickLine={false}
+                                axisLine={false}
+                            />
+                            <YAxis
+                                stroke="rgba(255,255,255,0.2)"
+                                tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }}
+                                tickLine={false}
+                                axisLine={false}
+                                domain={['auto', 'auto']}
+                            />
+                            <Tooltip
+                                contentStyle={{
+                                    backgroundColor: 'rgba(5,5,5,0.9)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '8px',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                                itemStyle={{ color: '#fff' }}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="value"
+                                stroke="#0052FF"
+                                strokeWidth={2}
+                                fillOpacity={1}
+                                fill="url(#colorYield)"
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Action */}
+                <Button
+                    onClick={onHarvest}
+                    className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 transition-all h-12 font-mono tracking-wider"
+                >
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    HARVEST USDC (${harvestableYield.toFixed(2)})
+                </Button>
+
+                {/* Pulse Tube (Decorative) */}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-32 bg-gray-800 rounded-full overflow-hidden opacity-50">
+                    <div className="w-full h-full bg-blue-500/50 animate-pulse-glow" />
+                </div>
             </div>
         </div>
     );

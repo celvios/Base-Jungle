@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { useVaultBalance } from "@/hooks/use-vault";
 import { usePointsBalance } from "@/hooks/use-points";
-import { useReferralData } from "@/hooks/use-referrals";
+import { useReferralData, useDirectReferrals } from "@/hooks/use-referrals";
 import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
 import { useUserRank } from "@/hooks/use-leaderboard";
@@ -47,6 +47,7 @@ export default function Dashboard() {
 
   // ✅ Real contract data - Referrals
   const { data: referralData } = useReferralData(address as Address);
+  const { data: directReferrals } = useDirectReferrals(address as Address);
 
   // ✅ Real API data - User rank
   const { data: rankData } = useUserRank(address);
@@ -79,11 +80,12 @@ export default function Dashboard() {
     { time: '24:00', value: netWorth },
   ];
 
-  const mockReferrals = [
-    { address: '0x4a...92', tier: 'Novice', status: 'active' as const, lastActive: '2h ago' },
-    { address: '0x8b...11', tier: 'Scout', status: 'risk' as const, lastActive: '2d ago' },
-    { address: '0x2c...44', tier: 'Novice', status: 'inactive' as const, lastActive: '5d ago' },
-  ];
+  const mockReferrals = directReferrals ? directReferrals.map(addr => ({
+    address: addr,
+    tier: 'Novice',
+    status: 'active' as const,
+    lastActive: '2h ago'
+  })) : [];
 
   // Show connect wallet modal if not connected
   if (!isConnected) {
@@ -139,12 +141,15 @@ export default function Dashboard() {
       {/* Header: Status Manifold */}
       <StatusManifold
         tier={tier}
-        depositProgress={depositProgress}
-        networkProgress={networkProgress}
         depositAmount={depositAmount}
+        depositProgress={depositProgress}
         nextTierDeposit={nextTierDeposit}
         referralCount={referralCount}
         nextTierReferrals={nextTierReferrals}
+        networkProgress={networkProgress}
+        totalBalance={netWorth}
+        onDeposit={() => console.log('Deposit')}
+        onViewReferral={() => window.location.href = '/referrals'}
       />
 
       <TerminalLayout>
@@ -153,33 +158,45 @@ export default function Dashboard() {
 
           {/* Main Module: Yield Reactor (Chart) - Spans 2 cols */}
           <YieldReactor
-            balance={netWorth}
-            dailyPnL={netWorth * 0.01} // Mock daily PnL
+            principal={netWorth}
+            totalYield={netWorth * 0.15} // Mock lifetime yield
+            harvestableYield={netWorth * 0.01} // Mock harvestable
+            dailyPnL={1.2}
             data={chartData}
+            onHarvest={() => console.log('Harvest')}
           />
 
           {/* Right Column Stack */}
           <div className="col-span-1 space-y-6 flex flex-col">
             {/* Strategy Module: Pressure Gauge */}
             <PressureGauge
-              currentLeverage={1.5} // Mock
+              currentLeverage={1.5}
               maxLeverage={5.0}
-              tierLimit={3.0} // Mock based on tier
+              tierLimit={3.0}
+              tierName={tier}
+              nextTierName="WHALE"
+              nextTierRequirement="50 Active Refs"
+              healthFactor={1.8}
+              liquidationPrice={2800}
               onLeverageChange={(val) => console.log('Leverage:', val)}
             />
 
             {/* Rewards Module: Accumulator */}
             <Accumulator
               points={pointsData?.balance || 0}
-              multiplier={1.25} // Mock
-              onHarvest={() => console.log('Harvest')}
+              multiplier={1.25}
+              velocity={106.25}
+              globalTVL={12450200}
+              avgAPY={14.2}
+              onViewRewards={() => console.log('View Rewards')}
             />
           </div>
 
-          {/* Bottom Row: Signal List - Spans full width or partial */}
-          <div className="col-span-1 md:col-span-3">
-            <SignalList referrals={mockReferrals} />
-          </div>
+          {/* Bottom Row: Signal List - Spans full width */}
+          <SignalList
+            referrals={mockReferrals}
+            onNudge={(addr) => console.log('Nudge', addr)}
+          />
 
         </div>
       </TerminalLayout>

@@ -1,0 +1,154 @@
+/* Glassmorphism Utilities */
+.glass-card {
+  background: rgba(5, 5, 5, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+/* Liquid Tube Progress Bar */
+.liquid-tube {
+  position: relative;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.liquid-tube-fill {
+  position: relative;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px rgba(0, 82, 255, 0.3);
+}
+
+.liquid-tube-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+  border-radius: 9999px 9999px 0 0;
+}
+
+/* Hydraulic Slider */
+.hydraulic-track {
+  position: relative;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hydraulic-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, #0052FF, #00A3FF);
+  border-radius: 6px;
+  box-shadow: 0 0 15px rgba(0, 82, 255, 0.4);
+}
+
+.hydraulic-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  background: #050505;
+  border: 2px solid #0052FF;
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(0, 82, 255, 0.6);
+  cursor: grab;
+  transition: transform 0.1s ease;
+  z-index: 10;
+}
+
+.hydraulic-thumb:active {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) scale(0.95);
+}
+
+.hydraulic-thumb.locked {
+  border-color: #EF4444;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+}
+
+/* Glow Effects */
+.glow-text-blue {
+  text-shadow: 0 0 10px rgba(0, 82, 255, 0.5);
+}
+
+.glow-text-cyan {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+}
+
+.glow-border-blue {
+  box-shadow: 0 0 15px rgba(0, 82, 255, 0.2);
+  border-color: rgba(0, 82, 255, 0.3);
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 2;
+}
+
+/* Vertical Tank */
+.glass-tank {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.tank-bubble {
+  position: absolute;
+  background: rgba(0, 82, 255, 0.4);
+  border-radius: 50%;
+  animation: rise 4s infinite ease-in;
+}
+
+@keyframes rise {
+  0% {
+    bottom: -10px;
+    transform: translateX(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    bottom: 100%;
+    transform: translateX(var(--wobble));
+    opacity: 0;
+  }
+}
