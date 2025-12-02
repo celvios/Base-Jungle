@@ -34,6 +34,12 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: false }));
 
+// Debug: Log all requests
+app.use((req, res, next) => {
+  console.log(`[Request] ${req.method} ${req.path}`);
+  next();
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
