@@ -76,6 +76,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug: List files in dist
+  app.get("/api/debug/files", (req, res) => {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const distPath = import.meta.dirname; // Same as index-prod.ts
+
+      const files = fs.readdirSync(distPath);
+      const fileDetails = files.map(f => {
+        const stat = fs.statSync(path.join(distPath, f));
+        return { name: f, isDir: stat.isDirectory(), size: stat.size };
+      });
+
+      res.json({
+        path: distPath,
+        files: fileDetails,
+        env: process.env.NODE_ENV
+      });
+    } catch (e) {
+      res.status(500).json({ error: e.message, stack: e.stack });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
