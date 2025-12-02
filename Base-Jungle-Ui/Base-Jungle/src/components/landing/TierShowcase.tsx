@@ -1,9 +1,9 @@
 import React from 'react';
-import StackedGallery from './SpecimenGallery/StackedGallery';
+import HolographicComparison from './SpecimenGallery/HolographicComparison';
 
 const TierShowcase: React.FC = () => {
     return (
-        <StackedGallery />
+        <HolographicComparison />
     );
 };
 
