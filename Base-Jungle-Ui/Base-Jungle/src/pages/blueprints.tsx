@@ -1,15 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ControlDeck from '@/components/blueprints/ControlDeck';
 import LogicBlockDiagram from '@/components/blueprints/LogicBlockDiagram';
 import AllocationMatrix from '@/components/blueprints/AllocationMatrix';
 import LeverageEngine from '@/components/blueprints/LeverageEngine';
 import SimulationBench from '@/components/blueprints/SimulationBench';
 import GlossarySidebar from '@/components/blueprints/GlossarySidebar';
-
+import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const BlueprintsPage: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState('tree');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white font-sans pt-20 pb-16">
+        <BackToHome />
+        <div className="flex">
+          <div className="flex-1 px-6 md:px-12 max-w-7xl mx-auto w-full space-y-8">
+            <Skeleton className="h-12 w-1/3" />
+            <Skeleton className="h-6 w-1/2" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans pt-20 pb-16">

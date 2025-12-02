@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ScrollSpyNav from '@/components/whitepaper/ScrollSpyNav';
 import SearchBar from '@/components/whitepaper/SearchBar';
 import TierMatrix from '@/components/whitepaper/TierMatrix';
@@ -8,9 +8,44 @@ import MobileNavFab from '@/components/whitepaper/MobileNavFab';
 import RoadmapTimeline from '@/components/whitepaper/RoadmapTimeline';
 import ArchitectureStack from '@/components/whitepaper/ArchitectureStack';
 import CodeBlockViewer from '@/components/whitepaper/CodeBlockViewer';
+import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const WhitepaperPage: React.FC = () => {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setLoading(false), 1000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#050505] text-white font-sans">
+                <BackToHome />
+                <div className="flex w-full">
+                    <aside className="hidden lg:block w-64 p-8 border-r border-gray-900">
+                        <Skeleton className="h-8 w-3/4 mb-4" />
+                        <Skeleton className="h-4 w-1/2 mb-8" />
+                        <div className="space-y-3">
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-full" />
+                            <Skeleton className="h-6 w-full" />
+                        </div>
+                    </aside>
+                    <main className="flex-1 p-8 lg:p-12 space-y-8">
+                        <Skeleton className="h-12 w-1/3" />
+                        <Skeleton className="h-6 w-2/3" />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                    </main>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans">
             <BackToHome />
