@@ -52,9 +52,9 @@ const DashboardMobile: React.FC<DashboardMobileProps> = ({ userData }) => {
                 <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4">
                     <div className="text-xs text-gray-500 font-mono uppercase mb-3">System Logs</div>
                     <div className="space-y-2">
-                        <div className="text-[10px] font-mono text-green-400">> Harvested 450 AERO</div>
-                        <div className="text-[10px] font-mono text-blue-400">> Rebalanced Position #2</div>
-                        <div className="text-[10px] font-mono text-gray-400">> System Check: Optimal</div>
+                        <div className="text-[10px] font-mono text-green-400">{">"} Harvested 450 AERO</div>
+                        <div className="text-[10px] font-mono text-blue-400">{">"} Rebalanced Position #2</div>
+                        <div className="text-[10px] font-mono text-gray-400">{">"} System Check: Optimal</div>
                     </div>
                 </div>
             </div>
