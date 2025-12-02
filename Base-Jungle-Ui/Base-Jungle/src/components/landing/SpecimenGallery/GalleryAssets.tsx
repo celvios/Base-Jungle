@@ -15,7 +15,7 @@ export const NoviceAsset = () => {
     });
 
     return (
-        <Box ref={ref} args={[1.2, 1.2, 1.2]}>
+        <Box ref={ref} args={[0.8, 0.8, 0.8]}>
             <meshPhysicalMaterial
                 color="#3b82f6" // Blue
                 transmission={0.6}
@@ -41,7 +41,7 @@ export const ScoutAsset = () => {
         }
     });
     return (
-        <Tetrahedron ref={ref} args={[1.4, 0]}>
+        <Tetrahedron ref={ref} args={[0.9, 0]}>
             <meshPhysicalMaterial
                 color="#06b6d4" // Cyan
                 transmission={0.7}
@@ -78,7 +78,7 @@ export const CaptainAsset = () => {
 
     return (
         <group>
-            <Dodecahedron ref={ref} args={[1, 0]}>
+            <Dodecahedron ref={ref} args={[0.7, 0]}>
                 <meshStandardMaterial
                     color="#2563eb" // Royal Blue
                     emissive="#1e40af"
@@ -89,12 +89,12 @@ export const CaptainAsset = () => {
             </Dodecahedron>
 
             <mesh ref={ring1Ref}>
-                <torusGeometry args={[1.6, 0.03, 16, 100]} />
+                <torusGeometry args={[1.1, 0.02, 16, 100]} />
                 <meshBasicMaterial color="#60a5fa" />
             </mesh>
 
             <mesh ref={ring2Ref} rotation={[Math.PI / 2, 0, 0]}>
-                <torusGeometry args={[1.4, 0.03, 16, 100]} />
+                <torusGeometry args={[0.9, 0.02, 16, 100]} />
                 <meshBasicMaterial color="#93c5fd" />
             </mesh>
         </group>
@@ -117,7 +117,7 @@ export const WhaleAsset = () => {
 
     return (
         <group ref={ref}>
-            <Icosahedron args={[1.5, 1]}>
+            <Icosahedron args={[1.0, 1]}>
                 <meshStandardMaterial
                     color="#7c3aed" // Violet
                     wireframe
@@ -127,7 +127,7 @@ export const WhaleAsset = () => {
             </Icosahedron>
 
             {/* Inner Core */}
-            <Icosahedron args={[0.8, 0]}>
+            <Icosahedron args={[0.5, 0]}>
                 <MeshDistortMaterial
                     color="#4c1d95"
                     emissive="#5b21b6"

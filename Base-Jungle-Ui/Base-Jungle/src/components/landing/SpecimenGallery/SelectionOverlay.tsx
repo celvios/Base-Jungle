@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight } from 'lucide-react';
+import { X, ArrowRight, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAccount } from 'wagmi';
+import { useAppKit } from '@reown/appkit/react';
 
 interface SelectionOverlayProps {
     activeTier: any;
@@ -9,6 +11,20 @@ interface SelectionOverlayProps {
 }
 
 const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ activeTier, onClose }) => {
+    const { isConnected } = useAccount();
+    const { open } = useAppKit();
+
+    const handleAction = () => {
+        if (!isConnected) {
+            open();
+        } else {
+            // TODO: Open actual Deposit Modal or trigger transaction
+            console.log(`Opening deposit modal for ${activeTier.name} with amount ${activeTier.price}`);
+            // For now, we can show an alert or toast
+            alert(`Ready to deposit ${activeTier.price} for ${activeTier.name} tier!`);
+        }
+    };
+
     return (
         <AnimatePresence>
             {activeTier && (
@@ -54,8 +70,18 @@ const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ activeTier, onClose
                                     <div className="text-3xl font-mono text-white font-bold">{activeTier.price}</div>
                                 </div>
 
-                                <Button className="w-full h-14 bg-blue-600 hover:bg-blue-500 text-white font-mono uppercase tracking-widest text-lg shadow-[0_0_20px_rgba(0,82,255,0.4)]">
-                                    Deposit & Unlock <ArrowRight className="ml-2 w-5 h-5" />
+                                <Button
+                                    onClick={handleAction}
+                                    className={`w-full h-14 font-mono uppercase tracking-widest text-lg shadow-[0_0_20px_rgba(0,82,255,0.4)] transition-all ${isConnected
+                                            ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                                            : 'bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-900/20'
+                                        }`}
+                                >
+                                    {isConnected ? (
+                                        <>Deposit & Unlock <ArrowRight className="ml-2 w-5 h-5" /></>
+                                    ) : (
+                                        <>Connect Wallet <Wallet className="ml-2 w-5 h-5" /></>
+                                    )}
                                 </Button>
                             </div>
                         </div>

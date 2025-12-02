@@ -46,7 +46,7 @@ const ParallaxScroll: React.FC = () => {
                         <pointLight position={[10, 10, 10]} intensity={1} />
 
                         {/* Floating Assets Container */}
-                        <group position={[0, 1.5, 0]}> {/* Lifted up to float above cards */}
+                        <group position={[0, 0.5, 0]}> {/* Lifted up to float above cards */}
                             {tiers.map((tier, i) => {
                                 // Calculate position based on index and scroll
                                 // We manually animate the group position in 3D space to match scroll
