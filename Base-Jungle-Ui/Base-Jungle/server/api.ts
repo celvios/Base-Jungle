@@ -651,6 +651,31 @@ router.get('/admin/migrate', async (req, res) => {
 });
 
 // Admin: Run database migration (one-click setup)
+// Admin: Inspect database (debug)
+router.get('/admin/inspect-db', async (req, res) => {
+    try {
+        // Get constraints
+        const constraints = await pool.query(`
+            SELECT conname, pg_get_constraintdef(oid) 
+            FROM pg_constraint 
+            WHERE conrelid = 'points'::regclass
+        `);
+
+        // Get distinct sources
+        const sources = await pool.query(`
+            SELECT DISTINCT source FROM points
+        `);
+
+        res.json({
+            constraints: constraints.rows,
+            existing_sources: sources.rows
+        });
+    } catch (error) {
+        console.error('Inspection error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/admin/migrate', async (req, res) => {
     try {
         // Run migration (safe to run multiple times - CREATE IF NOT EXISTS)
