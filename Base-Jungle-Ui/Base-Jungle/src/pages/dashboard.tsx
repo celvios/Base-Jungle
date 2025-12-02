@@ -10,26 +10,16 @@ import { useLeverageManager } from "@/hooks/use-leverage";
 import { useUserRank } from "@/hooks/use-leaderboard";
 import { type Address } from "viem";
 
-// New Crystal Components
-import CrystalLayout from "@/components/dashboard/crystal/CrystalLayout";
-import CoreReactor from "@/components/dashboard/crystal/CoreReactor";
-import HolographicRadar from "@/components/dashboard/crystal/HolographicRadar";
-import CrystalFormation from "@/components/dashboard/crystal/CrystalFormation";
-import CapacitorBank from "@/components/dashboard/crystal/CapacitorBank";
-import ControlDeck from "@/components/dashboard/crystal/ControlDeck";
-import DashboardMobile from "@/components/dashboard/crystal/DashboardMobile";
+// Terminal Components
+import TerminalLayout from "@/components/dashboard/terminal/TerminalLayout";
+import StatusManifold from "@/components/dashboard/terminal/StatusManifold";
+import YieldReactor from "@/components/dashboard/terminal/YieldReactor";
+import PressureGauge from "@/components/dashboard/terminal/PressureGauge";
+import SignalList from "@/components/dashboard/terminal/SignalList";
+import Accumulator from "@/components/dashboard/terminal/Accumulator";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   // ✅ Real contract data - Vault balances
   const { data: conservativeBalance } = useVaultBalance(
@@ -61,38 +51,28 @@ export default function Dashboard() {
     (aggressiveBalance ? Number(aggressiveBalance) / 1e6 : 0)
   );
 
-  // Map risk level
-  const getRiskLevel = () => {
-    const riskValue = contractSettings?.[1];
-    if (riskValue === undefined) return "medium";
-    if (riskValue === 0) return "low";
-    if (riskValue === 1) return "medium";
-    return "high";
-  };
+  // Mock Data for Visualization (Replace with real logic later)
+  const tier = referralData?.tier || "Novice";
+  const depositAmount = netWorth.toFixed(2);
+  const nextTierDeposit = "10000"; // Example target
+  const depositProgress = Math.min((netWorth / 10000) * 100, 100);
 
-  const userData = {
-    netWorth,
-    totalPoints: pointsData?.balance || 0,
-    dailyPointRate: pointsData?.dailyRate || 0,
-    referrals: {
-      direct: referralData?.directCount || 0,
-      indirect: referralData?.tierTwoCount || 0,
-      total: (referralData?.directCount || 0) + (referralData?.tierTwoCount || 0),
-    },
-    autoCompound: contractSettings?.[0] || true,
-    riskLevel: getRiskLevel() as "low" | "medium" | "high",
-    leverageUnlocked: leverageUnlocked || false,
-    tier: referralData?.tier || "Novice",
-    leaderboardRank: rankData?.rank || 999,
-  };
+  const referralCount = (referralData?.directCount || 0) + (referralData?.tierTwoCount || 0);
+  const nextTierReferrals = 50; // Example target
+  const networkProgress = Math.min((referralCount / 50) * 100, 100);
 
-  // Mock Logs for Radar
-  const mockLogs = [
-    "Scanning for yield opportunities...",
-    "Detected 12% APY on Aerodrome",
-    "Rebalance Check: Optimal",
-    "Health Factor: 1.8 (Safe)",
-    "Harvesting pending rewards..."
+  const chartData = [
+    { time: '00:00', value: netWorth * 0.95 },
+    { time: '06:00', value: netWorth * 0.97 },
+    { time: '12:00', value: netWorth * 0.98 },
+    { time: '18:00', value: netWorth * 0.99 },
+    { time: '24:00', value: netWorth },
+  ];
+
+  const mockReferrals = [
+    { address: '0x4a...92', tier: 'Novice', status: 'active' as const, lastActive: '2h ago' },
+    { address: '0x8b...11', tier: 'Scout', status: 'risk' as const, lastActive: '2d ago' },
+    { address: '0x2c...44', tier: 'Novice', status: 'inactive' as const, lastActive: '5d ago' },
   ];
 
   // Show connect wallet modal if not connected
@@ -106,7 +86,7 @@ export default function Dashboard() {
           <div>
             <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
             <p className="text-gray-400">
-              Access the Crystal Cockpit to manage your automated ecosystem.
+              Access the Liquid Terminal to manage your automated ecosystem.
             </p>
           </div>
           <Button onClick={connect} size="lg" className="w-full bg-blue-600 hover:bg-blue-700">
@@ -117,35 +97,56 @@ export default function Dashboard() {
     );
   }
 
-  // Mobile View
-  if (isMobile) {
-    return <DashboardMobile userData={userData} />;
-  }
-
-  // Desktop 3D View
   return (
-    <div className="relative h-screen w-full bg-[#050505] overflow-hidden">
-      <CrystalLayout>
-        {/* Center: Core Reactor */}
-        <CoreReactor netWorth={userData.netWorth} tvl={12450000} />
+    <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
 
-        {/* Right: Radar */}
-        <HolographicRadar logs={mockLogs} />
-
-        {/* Left: Crystal Formation (Referrals) */}
-        <CrystalFormation referrals={userData.referrals} tier={userData.tier} />
-
-        {/* Left Top: Capacitor Bank (Points) */}
-        <CapacitorBank points={userData.totalPoints} dailyRate={userData.dailyPointRate} />
-      </CrystalLayout>
-
-      {/* Bottom: Control Deck */}
-      <ControlDeck
-        autoCompound={userData.autoCompound}
-        riskLevel={userData.riskLevel}
-        onToggleAutoCompound={() => { }} // TODO: Hook up to contract write
-        onChangeRisk={() => { }} // TODO: Hook up to contract write
+      {/* Header: Status Manifold */}
+      <StatusManifold
+        tier={tier}
+        depositProgress={depositProgress}
+        networkProgress={networkProgress}
+        depositAmount={depositAmount}
+        nextTierDeposit={nextTierDeposit}
+        referralCount={referralCount}
+        nextTierReferrals={nextTierReferrals}
       />
+
+      <TerminalLayout>
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+          {/* Main Module: Yield Reactor (Chart) - Spans 2 cols */}
+          <YieldReactor
+            balance={netWorth}
+            dailyPnL={netWorth * 0.01} // Mock daily PnL
+            data={chartData}
+          />
+
+          {/* Right Column Stack */}
+          <div className="col-span-1 space-y-6 flex flex-col">
+            {/* Strategy Module: Pressure Gauge */}
+            <PressureGauge
+              currentLeverage={1.5} // Mock
+              maxLeverage={5.0}
+              tierLimit={3.0} // Mock based on tier
+              onLeverageChange={(val) => console.log('Leverage:', val)}
+            />
+
+            {/* Rewards Module: Accumulator */}
+            <Accumulator
+              points={pointsData?.balance || 0}
+              multiplier={1.25} // Mock
+              onHarvest={() => console.log('Harvest')}
+            />
+          </div>
+
+          {/* Bottom Row: Signal List - Spans full width or partial */}
+          <div className="col-span-1 md:col-span-3">
+            <SignalList referrals={mockReferrals} />
+          </div>
+
+        </div>
+      </TerminalLayout>
     </div>
   );
 }
