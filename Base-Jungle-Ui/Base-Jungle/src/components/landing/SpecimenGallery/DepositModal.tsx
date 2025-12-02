@@ -23,6 +23,7 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, tier }) =>
 
     // Determine target vault based on tier
     const getTargetVault = () => {
+        if (!tier) return import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address;
         if (tier.name === 'Novice' || tier.name === 'Scout') {
             return import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address;
         }
