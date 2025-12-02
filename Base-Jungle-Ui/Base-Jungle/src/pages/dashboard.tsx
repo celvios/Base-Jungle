@@ -24,9 +24,11 @@ import { useYieldMetrics } from "@/hooks/use-yield-metrics";
 import { useLeverageMetrics } from "@/hooks/use-leverage-metrics";
 import { useReferralMetadata } from "@/hooks/use-referral-metadata";
 import { useHistoricalData } from "@/hooks/use-historical-data";
+import { useModal } from "@/contexts/modal-context";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
+  const { openModal } = useModal();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -178,7 +180,7 @@ export default function Dashboard() {
         nextTierReferrals={nextTierReferrals}
         networkProgress={networkProgress}
         totalBalance={netWorth}
-        onDeposit={() => console.log('Deposit')}
+        onDeposit={() => openModal('deposit')}
         onViewReferral={() => window.location.href = '/referrals'}
       />
 
@@ -194,7 +196,10 @@ export default function Dashboard() {
               harvestableYield={harvestableYield}
               dailyPnL={dailyPnL}
               data={chartData}
-              onHarvest={() => console.log('Harvest')}
+              onHarvest={() => openModal('harvest', {
+                vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
+                vaultName: 'Conservative Vault'
+              })}
             />
           </div>
 
