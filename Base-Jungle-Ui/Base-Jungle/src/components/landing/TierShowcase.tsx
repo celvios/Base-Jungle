@@ -1,13 +1,11 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Environment, OrbitControls } from '@react-three/drei';
+import Carousel from './SpecimenRing/Carousel';
+import DepositInterface from './SpecimenRing/DepositInterface';
 
 const TierShowcase: React.FC = () => {
-    const targetRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: targetRef,
-    });
-
-    const x = useTransform(scrollYProgress, [0, 1], ["1%", "-55%"]);
+    const [activeIndex, setActiveIndex] = useState(0);
 
     const tiers = [
         { id: 1, name: 'Sprout', price: '$100', risk: 'Low', lock: '90 Days', color: 'from-green-400 to-green-600' },
@@ -19,46 +17,38 @@ const TierShowcase: React.FC = () => {
     ];
 
     return (
-        <section ref={targetRef} className="relative h-[200vh] bg-[#050505]">
-            <div className="sticky top-0 flex h-screen items-center overflow-hidden">
-                <div className="absolute top-12 left-8 z-10">
-                    <h2 className="text-4xl font-bold font-mono text-white">SPECIMEN PARALLAX</h2>
-                    <p className="text-gray-500 font-mono text-sm mt-2">Scroll to explore tiers</p>
-                </div>
-
-                <motion.div style={{ x }} className="flex gap-12 px-24">
-                    {tiers.map((tier) => (
-                        <div key={tier.id} className="relative w-[400px] h-[500px] flex-shrink-0 bg-[#0a0a0a] border border-gray-800 rounded-3xl p-8 flex flex-col justify-between group hover:border-gray-600 transition-colors">
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl pointer-events-none" />
-
-                            <div>
-                                <div className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-2">Specimen 0{tier.id}</div>
-                                <h3 className="text-5xl font-bold text-white mb-2">{tier.name}</h3>
-                                <div className={`text-xl font-mono font-bold bg-clip-text text-transparent bg-gradient-to-r ${tier.color}`}>
-                                    {tier.price}
-                                </div>
-                            </div>
-
-                            {/* Abstract Shape Placeholder */}
-                            <div className="flex-1 flex items-center justify-center my-8">
-                                <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${tier.color} opacity-20 blur-3xl group-hover:opacity-40 transition-opacity`} />
-                                <div className={`w-24 h-24 border-2 border-gray-700 rounded-lg rotate-45 group-hover:rotate-90 transition-transform duration-700`} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 border-t border-gray-800 pt-6">
-                                <div>
-                                    <div className="text-[10px] text-gray-500 uppercase">Risk Profile</div>
-                                    <div className="text-sm font-bold text-white">{tier.risk}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[10px] text-gray-500 uppercase">Lock / Leverage</div>
-                                    <div className="text-sm font-bold text-white">{tier.lock}</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </motion.div>
+        <section className="relative h-screen bg-[#050505] overflow-hidden">
+            {/* Header Overlay */}
+            <div className="absolute top-12 left-8 z-10 pointer-events-none">
+                <h2 className="text-4xl font-bold font-mono text-white">SPECIMEN RING</h2>
+                <p className="text-gray-500 font-mono text-sm mt-2">Select your target containment unit</p>
             </div>
+
+            {/* 3D Carousel Canvas */}
+            <div className="absolute inset-0 z-0">
+                <Canvas camera={{ position: [0, 2, 8], fov: 45 }}>
+                    <ambientLight intensity={0.5} />
+                    <pointLight position={[10, 10, 10]} intensity={1} />
+                    <pointLight position={[-10, -10, -10]} intensity={0.5} />
+
+                    <Carousel
+                        tiers={tiers}
+                        activeIndex={activeIndex}
+                        onSelect={setActiveIndex}
+                    />
+
+                    <Environment preset="city" />
+                    <OrbitControls
+                        enableZoom={false}
+                        enablePan={false}
+                        maxPolarAngle={Math.PI / 2}
+                        minPolarAngle={Math.PI / 3}
+                    />
+                </Canvas>
+            </div>
+
+            {/* Deposit Interface Overlay */}
+            <DepositInterface activeTier={tiers[activeIndex]} />
         </section>
     );
 };
