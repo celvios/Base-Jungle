@@ -25,6 +25,7 @@ import { useLeverageMetrics } from "@/hooks/use-leverage-metrics";
 import { useReferralMetadata } from "@/hooks/use-referral-metadata";
 import { useHistoricalData } from "@/hooks/use-historical-data";
 import { useModal } from "@/contexts/modal-context";
+import { useAccumulatorData } from "@/hooks/use-accumulator-data";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
@@ -118,6 +119,9 @@ export default function Dashboard() {
     import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS as Address,
     address as Address
   );
+
+  // ✅ Real Accumulator Data
+  const { points, multiplier, velocity, globalTVL, avgAPY } = useAccumulatorData(address as Address);
 
   // Show connect wallet modal if not connected
   if (!isConnected) {
@@ -221,12 +225,12 @@ export default function Dashboard() {
             {/* Rewards Module: Accumulator */}
             <div className="flex-1">
               <Accumulator
-                points={pointsData?.balance || 0}
-                multiplier={1.25}
-                velocity={106.25}
-                globalTVL={12450200}
-                avgAPY={14.2}
-                onViewRewards={() => console.log('View Rewards')}
+                points={points}
+                multiplier={multiplier}
+                velocity={velocity}
+                globalTVL={globalTVL}
+                avgAPY={avgAPY}
+                onViewRewards={() => window.location.href = '/rewards'}
               />
             </div>
           </div>
