@@ -83,7 +83,11 @@ const HolographicComparison: React.FC = () => {
         if (!isConnected) {
             open();
         } else {
-            alert(`Ready to deposit ${tier.price} for ${tier.name} tier!`);
+            // Trigger Deposit Modal (Placeholder for now, will be replaced by actual modal trigger)
+            // Ideally, this should open a modal with the tier's deposit amount pre-filled
+            console.log(`Open deposit modal for ${tier.name} with amount ${tier.price}`);
+            // For now, we can redirect to dashboard or show an alert
+            alert(`Opening Deposit Channel for ${tier.name} Tier...\nAmount: ${tier.price}`);
         }
     };
 

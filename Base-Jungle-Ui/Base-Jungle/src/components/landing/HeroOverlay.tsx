@@ -7,8 +7,8 @@ const HeroOverlay: React.FC = () => {
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none">
             <div className="text-center space-y-6 pointer-events-auto px-4">
                 <h1 className="text-6xl md:text-9xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-none select-none">
-                    GROWTH.<br />
-                    AUTOMATED.
+                    BASE<br />
+                    JUNGLE.
                 </h1>
 
                 <p className="text-gray-400 font-mono text-sm md:text-base max-w-xl mx-auto leading-relaxed">
