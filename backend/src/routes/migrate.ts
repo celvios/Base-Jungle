@@ -109,4 +109,39 @@ router.get('/fix-trigger', async (req, res) => {
     }
 });
 
+// Fix points constraint endpoint - adds 'blockchain_sync' to allowed sources
+router.get('/fix-points-constraint', async (req, res) => {
+    try {
+        const client = await pool.connect();
+
+        try {
+            console.log('🔧 Fixing points source constraint...');
+
+            // Drop old constraint
+            await client.query('ALTER TABLE points DROP CONSTRAINT IF EXISTS points_source_check');
+
+            // Add new constraint with blockchain_sync included
+            await client.query(`
+                ALTER TABLE points 
+                ADD CONSTRAINT points_source_check 
+                CHECK (source IN ('deposit', 'harvest', 'referral', 'bonus', 'daily', 'tier_upgrade', 'blockchain_sync'))
+            `);
+
+            console.log('✅ Points constraint fixed successfully');
+
+            res.json({
+                success: true,
+                message: 'Points source constraint updated to include blockchain_sync'
+            });
+
+        } finally {
+            client.release();
+        }
+
+    } catch (err: any) {
+        console.error('❌ Constraint fix failed:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 export default router;

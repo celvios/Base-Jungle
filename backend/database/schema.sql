@@ -75,7 +75,7 @@ CREATE TABLE points (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     wallet_address VARCHAR(42) NOT NULL,
     amount INTEGER NOT NULL,
-    source VARCHAR(20) NOT NULL CHECK (source IN ('deposit', 'harvest', 'referral', 'bonus', 'daily', 'tier_upgrade')),
+    source VARCHAR(20) NOT NULL CHECK (source IN ('deposit', 'harvest', 'referral', 'bonus', 'daily', 'tier_upgrade', 'blockchain_sync')),
     
     -- Optional metadata (JSON for flexibility)
     metadata JSONB,
