@@ -19,6 +19,11 @@ import YieldReactor from "@/components/dashboard/terminal/YieldReactor";
 import PressureGauge from "@/components/dashboard/terminal/PressureGauge";
 import SignalList from "@/components/dashboard/terminal/SignalList";
 import Accumulator from "@/components/dashboard/terminal/Accumulator";
+import { useNextTier } from "@/hooks/use-next-tier";
+import { useYieldMetrics } from "@/hooks/use-yield-metrics";
+import { useLeverageMetrics } from "@/hooks/use-leverage-metrics";
+import { useReferralMetadata } from "@/hooks/use-referral-metadata";
+import { useHistoricalData } from "@/hooks/use-historical-data";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
@@ -50,7 +55,7 @@ export default function Dashboard() {
   const { data: directReferrals } = useDirectReferrals(address as Address);
 
   // ✅ Real API data - User rank
-  const { data: rankData } = useUserRank(address);
+  const { data: rankData } = useUserRank(address || undefined);
 
   // ✅ Real settings
   const { data: contractSettings } = useUserSettingsContract(address as Address);
@@ -62,30 +67,55 @@ export default function Dashboard() {
     (aggressiveBalance ? Number(aggressiveBalance) / 1e6 : 0)
   );
 
-  // Mock Data for Visualization (Replace with real logic later)
-  const tier = referralData?.tier || "Novice";
-  const depositAmount = netWorth.toFixed(2);
-  const nextTierDeposit = "10000"; // Example target
-  const depositProgress = Math.min((netWorth / 10000) * 100, 100);
-
   const referralCount = (referralData?.directCount || 0) + (referralData?.tierTwoCount || 0);
-  const nextTierReferrals = 50; // Example target
-  const networkProgress = Math.min((referralCount / 50) * 100, 100);
+  const currentTier = referralData?.tier || "Novice";
 
-  const chartData = [
-    { time: '00:00', value: netWorth * 0.95 },
-    { time: '06:00', value: netWorth * 0.97 },
-    { time: '12:00', value: netWorth * 0.98 },
-    { time: '18:00', value: netWorth * 0.99 },
-    { time: '24:00', value: netWorth },
-  ];
+  // ✅ Real Tier Progress Logic
+  const {
+    nextTierName,
+    depositRequirement,
+    referralRequirement,
+    depositProgress,
+    referralProgress,
+    isMaxTier
+  } = useNextTier(currentTier, netWorth, referralCount);
 
-  const mockReferrals = directReferrals ? directReferrals.map(addr => ({
-    address: addr,
-    tier: 'Novice',
-    status: 'active' as const,
-    lastActive: '2h ago'
-  })) : [];
+  const depositAmount = netWorth.toFixed(2);
+  const nextTierDeposit = isMaxTier ? "MAX" : depositRequirement.toLocaleString();
+  const nextTierReferrals = isMaxTier ? 0 : referralRequirement;
+  const networkProgress = isMaxTier ? 100 : referralProgress;
+  const displayDepositProgress = isMaxTier ? 100 : depositProgress;
+
+  // ✅ Real Yield Metrics
+  const {
+    principal,
+    totalYield,
+    harvestableYield,
+    dailyPnL,
+    isLoading: loadingYield
+  } = useYieldMetrics(
+    import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address,
+    import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS as Address,
+    address as Address
+  );
+
+  // ✅ Real Leverage Metrics
+  const {
+    healthFactor,
+    liquidationPrice,
+    currentLeverage,
+    maxLeverage
+  } = useLeverageMetrics(address as Address);
+
+  // ✅ Real Referral Metadata
+  const { data: referralMetadata, isLoading: loadingReferrals } = useReferralMetadata(address as Address);
+
+  // ✅ Real Historical Data
+  const { chartData } = useHistoricalData(
+    import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address,
+    import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS as Address,
+    address as Address
+  );
 
   // Show connect wallet modal if not connected
   if (!isConnected) {
@@ -140,9 +170,9 @@ export default function Dashboard() {
 
       {/* Header: Status Manifold */}
       <StatusManifold
-        tier={tier}
+        tier={currentTier}
         depositAmount={depositAmount}
-        depositProgress={depositProgress}
+        depositProgress={displayDepositProgress}
         nextTierDeposit={nextTierDeposit}
         referralCount={referralCount}
         nextTierReferrals={nextTierReferrals}
@@ -159,10 +189,10 @@ export default function Dashboard() {
           {/* Main Module: Yield Reactor (Chart) - Spans 2 cols */}
           <div className="lg:col-span-2 h-full">
             <YieldReactor
-              principal={netWorth}
-              totalYield={netWorth * 0.15} // Mock lifetime yield
-              harvestableYield={netWorth * 0.01} // Mock harvestable
-              dailyPnL={1.2}
+              principal={principal}
+              totalYield={totalYield}
+              harvestableYield={harvestableYield}
+              dailyPnL={dailyPnL}
               data={chartData}
               onHarvest={() => console.log('Harvest')}
             />
@@ -172,14 +202,14 @@ export default function Dashboard() {
           <div className="lg:col-span-1 space-y-6 flex flex-col h-full">
             {/* Strategy Module: Pressure Gauge */}
             <PressureGauge
-              currentLeverage={1.5}
-              maxLeverage={5.0}
-              tierLimit={3.0}
-              tierName={tier}
-              nextTierName="WHALE"
-              nextTierRequirement="50 Active Refs"
-              healthFactor={1.8}
-              liquidationPrice={2800}
+              currentLeverage={currentLeverage}
+              maxLeverage={maxLeverage}
+              tierLimit={3.0} // TODO: Fetch from Tier Config
+              tierName={currentTier}
+              nextTierName={nextTierName || "MAX"}
+              nextTierRequirement={isMaxTier ? "None" : `${nextTierReferrals} Active Refs`}
+              healthFactor={healthFactor}
+              liquidationPrice={liquidationPrice}
               onLeverageChange={(val) => console.log('Leverage:', val)}
             />
 
@@ -199,7 +229,7 @@ export default function Dashboard() {
           {/* Bottom Row: Signal List - Spans full width */}
           <div className="lg:col-span-3">
             <SignalList
-              referrals={mockReferrals}
+              referrals={referralMetadata || []}
               onNudge={(addr) => console.log('Nudge', addr)}
             />
           </div>

@@ -280,4 +280,56 @@ router.get('/user/:walletAddress/referrals', async (req, res) => {
     }
 });
 
+// Balance history endpoint - /api/user/:walletAddress/balance-history
+router.get('/user/:walletAddress/balance-history', async (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const { period = '24h', vaultAddress } = req.query;
+
+        // Calculate time range based on period
+        const intervalMap: Record<string, string> = {
+            '1h': '1 hour',
+            '24h': '24 hours',
+            '7d': '7 days',
+            '30d': '30 days',
+        };
+
+        const interval = intervalMap[period as string] || '24 hours';
+
+        let query = `
+            SELECT 
+                EXTRACT(EPOCH FROM snapshot_time) * 1000 as time,
+                SUM(balance_usdc) as value
+            FROM balance_snapshots
+            WHERE user_address = $1
+                AND snapshot_time > NOW() - INTERVAL '${interval}'
+        `;
+
+        const params: any[] = [walletAddress];
+
+        if (vaultAddress) {
+            query += ' AND vault_address = $2';
+            params.push(vaultAddress);
+        }
+
+        query += ' GROUP BY snapshot_time ORDER BY snapshot_time ASC';
+
+        const result = await pool.query(query, params);
+
+        // If no data, return current balance as single point
+        if (result.rows.length === 0) {
+            res.json([{
+                time: Date.now(),
+                value: 0
+            }]);
+            return;
+        }
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Balance history error:', error);
+        res.status(500).json({ error: 'Failed to fetch balance history' });
+    }
+});
+
 export default router;
