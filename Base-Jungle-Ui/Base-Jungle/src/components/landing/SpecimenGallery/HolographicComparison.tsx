@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Check, ArrowRight, Wallet } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
+import DepositModal from './DepositModal';
 
 const HolographicComparison: React.FC = () => {
     const { isConnected } = useAccount();
     const { open } = useAppKit();
+    const [selectedTier, setSelectedTier] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const tiers = [
         {
@@ -83,11 +86,8 @@ const HolographicComparison: React.FC = () => {
         if (!isConnected) {
             open();
         } else {
-            // Trigger Deposit Modal (Placeholder for now, will be replaced by actual modal trigger)
-            // Ideally, this should open a modal with the tier's deposit amount pre-filled
-            console.log(`Open deposit modal for ${tier.name} with amount ${tier.price}`);
-            // For now, we can redirect to dashboard or show an alert
-            alert(`Opening Deposit Channel for ${tier.name} Tier...\nAmount: ${tier.price}`);
+            setSelectedTier(tier);
+            setIsModalOpen(true);
         }
     };
 
@@ -161,6 +161,13 @@ const HolographicComparison: React.FC = () => {
                     </motion.div>
                 ))}
             </div>
+
+            {/* Deposit Modal */}
+            <DepositModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                tier={selectedTier}
+            />
         </section>
     );
 };
