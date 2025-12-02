@@ -5,7 +5,7 @@ import AllocationMatrix from '@/components/blueprints/AllocationMatrix';
 import LeverageEngine from '@/components/blueprints/LeverageEngine';
 import SimulationBench from '@/components/blueprints/SimulationBench';
 import GlossarySidebar from '@/components/blueprints/GlossarySidebar';
-import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
+import { SkeletonCard, Skeleton } from '@/components/ui/skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const BlueprintsPage: React.FC = () => {

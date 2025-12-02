@@ -4,7 +4,7 @@ import Roundtable from '@/components/governance/Roundtable';
 import TimeChamber from '@/components/governance/TimeChamber';
 import FutureBallot from '@/components/governance/FutureBallot';
 import ForumFeed from '@/components/governance/ForumFeed';
-import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
+import { SkeletonCard, Skeleton } from '@/components/ui/skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const GovernancePage: React.FC = () => {

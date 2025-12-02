@@ -4,7 +4,7 @@ import CanopyGrowthChart from '@/components/analytics/CanopyGrowthChart';
 import YieldHeatmap from '@/components/analytics/YieldHeatmap';
 import FoodChain from '@/components/analytics/FoodChain';
 import RainCycle from '@/components/analytics/RainCycle';
-import { SkeletonCard, SkeletonChart, Skeleton } from '@/components/ui/Skeleton';
+import { SkeletonCard, SkeletonChart, Skeleton } from '@/components/ui/skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const AnalyticsPage: React.FC = () => {

@@ -5,7 +5,7 @@ import DefenseParameters from '@/components/security/DefenseParameters';
 import AuditVault from '@/components/security/AuditVault';
 import EmergencyOverride from '@/components/security/EmergencyOverride';
 import InsuranceFund from '@/components/security/InsuranceFund';
-import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
+import { SkeletonCard, Skeleton } from '@/components/ui/skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const SecurityPage: React.FC = () => {

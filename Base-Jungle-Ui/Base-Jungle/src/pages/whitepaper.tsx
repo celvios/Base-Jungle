@@ -8,7 +8,7 @@ import MobileNavFab from '@/components/whitepaper/MobileNavFab';
 import RoadmapTimeline from '@/components/whitepaper/RoadmapTimeline';
 import ArchitectureStack from '@/components/whitepaper/ArchitectureStack';
 import CodeBlockViewer from '@/components/whitepaper/CodeBlockViewer';
-import { SkeletonCard, Skeleton } from '@/components/ui/Skeleton';
+import { SkeletonCard, Skeleton } from '@/components/ui/skeleton';
 import BackToHome from '@/components/ui/BackToHome';
 
 const WhitepaperPage: React.FC = () => {
