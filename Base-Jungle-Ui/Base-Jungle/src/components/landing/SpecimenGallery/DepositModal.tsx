@@ -140,10 +140,8 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose, tier }) =>
                             </Button>
                         </motion.div>
                     </div>
-                </div>
-        </>
-    )
-}
+                </>
+            )}
         </AnimatePresence >
     );
 };
