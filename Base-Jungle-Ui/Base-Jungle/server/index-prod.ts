@@ -5,21 +5,33 @@ import { type Server } from "node:http";
 import express, { type Express } from "express";
 import runApp from "./app";
 
-export async function serveStatic(app: Express, _server: Server) {
-  const distPath = import.meta.dirname;
+const distPath = import.meta.dirname;
 
-  if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}, make sure to build the client first`,
-    );
+console.log(`[Static] Serving static files from: ${distPath}`);
+try {
+  const files = fs.readdirSync(distPath);
+  console.log(`[Static] Files in dist: ${files.join(", ")}`);
+} catch (e) {
+  console.error(`[Static] Failed to list files in ${distPath}:`, e);
+}
+
+if (!fs.existsSync(distPath)) {
+  throw new Error(
+    `Could not find the build directory: ${distPath}, make sure to build the client first`,
+  );
+}
+
+app.use(express.static(distPath));
+
+// fall through to index.html if the file doesn't exist
+app.use("*", (req, res) => {
+  const indexPath = path.resolve(distPath, "index.html");
+  if (!fs.existsSync(indexPath)) {
+    console.error(`[Static] index.html not found at ${indexPath}`);
+    return res.status(404).json({ error: "index.html not found", path: indexPath });
   }
-
-  app.use(express.static(distPath));
-
-  // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
-    res.sendFile(path.resolve(distPath, "index.html"));
-  });
+  res.sendFile(indexPath);
+});
 }
 
 (async () => {
