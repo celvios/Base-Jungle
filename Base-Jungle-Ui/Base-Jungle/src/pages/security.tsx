@@ -5,10 +5,12 @@ import DefenseParameters from '@/components/security/DefenseParameters';
 import AuditVault from '@/components/security/AuditVault';
 import EmergencyOverride from '@/components/security/EmergencyOverride';
 import InsuranceFund from '@/components/security/InsuranceFund';
+import BackToHome from '@/components/ui/BackToHome';
 
 const SecurityPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#000000] text-white font-sans pb-24 md:pb-12">
+            <BackToHome />
             <div className="w-full px-4 md:px-8 pt-24 md:pt-12">
 
                 {/* 1. Hero Section: System Integrity */}

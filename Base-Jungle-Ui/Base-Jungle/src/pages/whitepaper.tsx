@@ -8,10 +8,12 @@ import MobileNavFab from '@/components/whitepaper/MobileNavFab';
 import RoadmapTimeline from '@/components/whitepaper/RoadmapTimeline';
 import ArchitectureStack from '@/components/whitepaper/ArchitectureStack';
 import CodeBlockViewer from '@/components/whitepaper/CodeBlockViewer';
+import BackToHome from '@/components/ui/BackToHome';
 
 const WhitepaperPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans">
+            <BackToHome />
             <MobileNavFab />
             <div className="flex w-full">
                 {/* Left Sidebar - Navigation */}

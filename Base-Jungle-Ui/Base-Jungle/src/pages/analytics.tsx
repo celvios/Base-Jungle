@@ -4,10 +4,12 @@ import CanopyGrowthChart from '@/components/analytics/CanopyGrowthChart';
 import YieldHeatmap from '@/components/analytics/YieldHeatmap';
 import FoodChain from '@/components/analytics/FoodChain';
 import RainCycle from '@/components/analytics/RainCycle';
+import BackToHome from '@/components/ui/BackToHome';
 
 const AnalyticsPage: React.FC = () => {
     return (
         <div className="min-h-screen w-full bg-[#050505] text-white font-sans pt-24 pb-16">
+            <BackToHome />
             <div className="w-full space-y-8 px-6 md:px-8">
 
                 {/* Header */}

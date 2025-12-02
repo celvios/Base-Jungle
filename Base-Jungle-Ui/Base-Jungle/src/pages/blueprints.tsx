@@ -6,11 +6,14 @@ import LeverageEngine from '@/components/blueprints/LeverageEngine';
 import SimulationBench from '@/components/blueprints/SimulationBench';
 import GlossarySidebar from '@/components/blueprints/GlossarySidebar';
 
+import BackToHome from '@/components/ui/BackToHome';
+
 const BlueprintsPage: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState('tree');
 
   return (
     <div className="min-h-screen bg-[#050505] text-white font-sans pt-20 pb-16">
+      <BackToHome />
       <div className="flex">
 
         {/* Main Content Area */}
