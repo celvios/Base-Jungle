@@ -11,7 +11,7 @@ const LandingPage: React.FC = () => {
         <div className="min-h-screen bg-[#050505] text-white font-sans overflow-x-hidden">
 
             {/* 1. Hero Section: The Zero-Gravity Chamber */}
-            <section className="relative h-screen w-full bg-white">
+            <section className="relative h-screen w-full">
                 <div className="absolute inset-0 z-0">
                     <AntigravityParticles />
                 </div>
