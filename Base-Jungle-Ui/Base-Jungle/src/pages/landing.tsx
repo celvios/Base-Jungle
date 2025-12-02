@@ -3,7 +3,6 @@ import HeroOverlay from '@/components/landing/HeroOverlay';
 import LawsOfJungle from '@/components/landing/LawsOfJungle';
 import TierShowcase from '@/components/landing/TierShowcase';
 import EcosystemPulse from '@/components/landing/EcosystemPulse';
-import AntigravityParticles from '@/components/landing/AntigravityParticles';
 import { Twitter, Disc, Github, Hexagon } from 'lucide-react';
 
 const LandingPage: React.FC = () => {
@@ -13,7 +12,7 @@ const LandingPage: React.FC = () => {
             {/* 1. Hero Section: The Zero-Gravity Chamber */}
             <section className="relative h-screen w-full">
                 <div className="absolute inset-0 z-0">
-                    <AntigravityParticles />
+                    {/* Particles Removed */}
                 </div>
                 <HeroOverlay />
             </section>
