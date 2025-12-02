@@ -15,14 +15,8 @@ const LandingPage: React.FC = () => {
 
             {/* 1. Hero Section: The Zero-Gravity Chamber */}
             <section className="relative h-screen w-full">
-                <div className="absolute inset-0 z-0">
-                    <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-                        <Suspense fallback={null}>
-                            <AntigravityScene />
-                            <GenesisSeed />
-                            <Environment preset="city" />
-                        </Suspense>
-                    </Canvas>
+                <div className="absolute inset-0 z-0 bg-gradient-to-b from-blue-900/10 to-transparent">
+                    {/* 3D Background Removed */}
                 </div>
                 <HeroOverlay />
             </section>
