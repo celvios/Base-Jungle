@@ -2,7 +2,6 @@ import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { MeshTransmissionMaterial, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion } from 'framer-motion-3d';
 
 interface GlassCardProps {
     position: [number, number, number];
@@ -98,8 +97,23 @@ const GlassCard: React.FC<GlassCardProps> = ({ position, rotation = [0, 0, 0], s
             {/* Content Container */}
             <group position={[0, 0, 0.1]}>
                 {title && (
+                    <Text
+                        position={[-1.3, 0.8, 0]}
+                        fontSize={0.1}
+                        color="white"
+                        anchorX="left"
+                        anchorY="top"
+                    >
+                        {title.toUpperCase()}
+                    </Text>
+                )}
+                {children}
+            </group>
+
+            {/* Ambient Glow Behind */}
+            <pointLight position={[0, 0, -1]} intensity={hovered ? 2 : 1} color="#0052FF" distance={5} decay={2} />
         </group>
-            );
+    );
 };
 
-            export default GlassCard;
+export default GlassCard;
