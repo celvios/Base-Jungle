@@ -76,7 +76,8 @@ const GlassCard: React.FC<GlassCardProps> = ({ position, rotation = [0, 0, 0], s
                         color="white"
                         anchorX="left"
                         anchorY="top"
-                        font="/fonts/Inter-Bold.ttf" // Assuming font exists or fallback
+                        anchorX="left"
+                        anchorY="top"
                     >
                         {title.toUpperCase()}
                     </Text>

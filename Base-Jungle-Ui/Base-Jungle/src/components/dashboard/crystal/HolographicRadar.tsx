@@ -54,7 +54,6 @@ const HolographicRadar: React.FC<HolographicRadarProps> = ({ logs }) => {
                 <Text
                     fontSize={0.08}
                     color="#00FFFF"
-                    font="/fonts/JetBrainsMono-Regular.ttf"
                     anchorX="center"
                     anchorY="top"
                     maxWidth={2}

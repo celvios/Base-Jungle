@@ -62,7 +62,6 @@ const CapacitorBank: React.FC<CapacitorBankProps> = ({ points, dailyRate }) => {
                 <Text
                     fontSize={0.2}
                     color="white"
-                    font="/fonts/Inter-Bold.ttf"
                     anchorX="center"
                     anchorY="top"
                 >
@@ -72,7 +71,6 @@ const CapacitorBank: React.FC<CapacitorBankProps> = ({ points, dailyRate }) => {
                     position={[0, -0.25, 0]}
                     fontSize={0.08}
                     color="#888"
-                    font="/fonts/JetBrainsMono-Regular.ttf"
                     anchorX="center"
                     anchorY="top"
                 >

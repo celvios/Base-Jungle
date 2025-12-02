@@ -44,7 +44,6 @@ const CoreReactor: React.FC<CoreReactorProps> = ({ netWorth, tvl }) => {
                         position={[0, 0.2, 0]}
                         fontSize={0.3}
                         color="white"
-                        font="/fonts/Inter-Bold.ttf"
                         anchorX="center"
                         anchorY="middle"
                     >
@@ -54,7 +53,6 @@ const CoreReactor: React.FC<CoreReactorProps> = ({ netWorth, tvl }) => {
                         position={[0, -0.2, 0]}
                         fontSize={0.1}
                         color="#88ccff"
-                        font="/fonts/JetBrainsMono-Regular.ttf"
                         anchorX="center"
                         anchorY="middle"
                     >
