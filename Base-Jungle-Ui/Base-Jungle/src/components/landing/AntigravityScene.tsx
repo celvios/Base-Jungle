@@ -1,103 +1,113 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 const AntigravityScene: React.FC = () => {
-    const pointsRef = useRef<THREE.Points>(null);
-    const count = 2000;
+    const meshRef = useRef<THREE.InstancedMesh>(null);
+    const count = 1500; // High particle count
+    const dummy = useMemo(() => new THREE.Object3D(), []);
 
-    // Generate initial random positions
-    const { initialPositions, currentPositions } = useMemo(() => {
-        const initial = new Float32Array(count * 3);
-        const current = new Float32Array(count * 3);
-
+    // Generate initial random positions and velocities
+    const particles = useMemo(() => {
+        const temp = [];
         for (let i = 0; i < count; i++) {
-            const x = (Math.random() - 0.5) * 15;
-            const y = (Math.random() - 0.5) * 15;
-            const z = (Math.random() - 0.5) * 15;
+            const t = Math.random() * 100;
+            const factor = 20 + Math.random() * 100;
+            const speed = 0.01 + Math.random() / 200;
+            const x = (Math.random() - 0.5) * 30;
+            const y = (Math.random() - 0.5) * 30;
+            const z = (Math.random() - 0.5) * 15; // Depth
 
-            initial[i * 3] = x;
-            initial[i * 3 + 1] = y;
-            initial[i * 3 + 2] = z;
+            // Random rotation speed
+            const mx = Math.random() * 0.01;
+            const my = Math.random() * 0.01;
 
-            current[i * 3] = x;
-            current[i * 3 + 1] = y;
-            current[i * 3 + 2] = z;
+            temp.push({ t, factor, speed, x, y, z, mx, my });
         }
-        return { initialPositions: initial, currentPositions: current };
-    }, []);
+        return temp;
+    }, [count]);
 
     useFrame((state) => {
-        if (!pointsRef.current) return;
+        if (!meshRef.current) return;
 
         const time = state.clock.getElapsedTime();
-        const mouse = state.pointer; // Normalized mouse coordinates (-1 to +1)
+        const mouse = state.pointer; // Normalized (-1 to 1)
 
-        // Convert mouse to world space (approximate at z=0 plane for simplicity)
-        // For a more accurate raycast, we'd use a Raycaster, but this is faster for particles
-        const mouseVector = new THREE.Vector3(mouse.x * 8, mouse.y * 5, 0);
+        // Convert mouse to approximate world space at z=0
+        const mouseVec = new THREE.Vector3(mouse.x * 15, mouse.y * 10, 0);
 
-        const positions = pointsRef.current.geometry.attributes.position.array as Float32Array;
+        // Scroll factor for "Warp Speed"
+        // We read window.scrollY directly for simplicity in this context
+        const scrollY = window.scrollY;
+        const warpFactor = Math.min(scrollY / 500, 5); // Cap warp speed
 
-        for (let i = 0; i < count; i++) {
-            const i3 = i * 3;
+        particles.forEach((particle, i) => {
+            let { t, factor, speed, x, y, z, mx, my } = particle;
 
-            // Get current home position (with some floating animation)
-            const homeX = initialPositions[i3];
-            const homeY = initialPositions[i3 + 1] + Math.sin(time * 0.5 + initialPositions[i3]) * 0.2;
-            const homeZ = initialPositions[i3 + 2];
+            // 1. Idle Float (Antigravity)
+            // Particles drift slowly upwards
+            let newY = y + (speed * 2) + (warpFactor * -0.2); // Warp pushes down
 
-            // Calculate distance to mouse
-            const dx = positions[i3] - mouseVector.x;
-            const dy = positions[i3 + 1] - mouseVector.y;
-            // We ignore Z distance for the "force field" cylinder effect, or include it for a sphere effect
-            // Let's use a 2D cylinder effect for better feel on screen
-            const distSq = dx * dx + dy * dy;
-            const repulsionRadiusSq = 4; // Radius of 2 units
+            // Reset if too high or too low (looping)
+            if (newY > 15) newY = -15;
+            if (newY < -15) newY = 15;
 
-            if (distSq < repulsionRadiusSq) {
-                const dist = Math.sqrt(distSq);
-                const force = (2 - dist) * 0.1; // Repulsion strength
+            particle.y = newY; // Update state
 
+            // 2. Magnetic Repulsion (Mouse Interaction)
+            const dx = x - mouseVec.x;
+            const dy = newY - mouseVec.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const repulsionRadius = 4;
+
+            let targetX = x;
+            let targetY = newY;
+            let targetZ = z;
+
+            if (dist < repulsionRadius) {
+                const force = (repulsionRadius - dist) * 0.5;
                 const angle = Math.atan2(dy, dx);
-
-                // Push away
-                positions[i3] += Math.cos(angle) * force;
-                positions[i3 + 1] += Math.sin(angle) * force;
-            } else {
-                // Return to home
-                positions[i3] += (homeX - positions[i3]) * 0.05;
-                positions[i3 + 1] += (homeY - positions[i3 + 1]) * 0.05;
-                positions[i3 + 2] += (homeZ - positions[i3 + 2]) * 0.05;
+                targetX += Math.cos(angle) * force;
+                targetY += Math.sin(angle) * force;
+                targetZ += force * 0.5; // Push back in Z too
             }
-        }
 
-        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+            // 3. Update Dummy Object
+            dummy.position.set(targetX, targetY, targetZ);
 
-        // Gentle global rotation
-        pointsRef.current.rotation.y = time * 0.05;
+            // Rotation
+            dummy.rotation.x = (particle.mx * time * 10);
+            dummy.rotation.y = (particle.my * time * 10);
+            dummy.rotation.z = time * 0.1;
+
+            // Scale (Pulse slightly)
+            const s = 0.5 + Math.sin(t + time) * 0.2;
+            dummy.scale.set(s, s, s);
+
+            dummy.updateMatrix();
+            meshRef.current.setMatrixAt(i, dummy.matrix);
+        });
+
+        meshRef.current.instanceMatrix.needsUpdate = true;
     });
 
     return (
-        <points ref={pointsRef}>
-            <bufferGeometry>
-                <bufferAttribute
-                    attach="attributes-position"
-                    count={count}
-                    array={currentPositions}
-                    itemSize={3}
-                />
-            </bufferGeometry>
-            <pointsMaterial
-                transparent
+        <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
+            {/* Deconstructed Crystal Shape (Tetrahedron is sharp and techy) */}
+            <tetrahedronGeometry args={[0.2, 0]} />
+            <meshPhysicalMaterial
                 color="#0052FF"
-                size={0.03}
-                sizeAttenuation={true}
-                depthWrite={false}
-                opacity={0.6}
-                blending={THREE.AdditiveBlending}
+                emissive="#001a4d"
+                emissiveIntensity={0.2}
+                roughness={0.1}
+                metalness={0.1}
+                transmission={0.6} // Glass effect
+                thickness={1}
+                clearcoat={1}
+                clearcoatRoughness={0.1}
+                ior={1.5}
             />
-        </points>
+        </instancedMesh>
     );
 };
 
