@@ -76,7 +76,7 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
                     <p className="text-xs text-gray-500 font-mono mt-1 tracking-wider">LEVERAGE CONTROL</p>
                 </div>
                 <div className={`px-3 py-1 rounded-full border ${healthFactor < 1.5 ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                        'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
+                    'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'
                     }`}>
                     <span className="text-xs font-mono font-bold">HF: {healthFactor.toFixed(2)}</span>
                 </div>
@@ -85,7 +85,7 @@ const PressureGauge: React.FC<PressureGaugeProps> = ({
             {/* Hydraulic Slider */}
             <div className="py-6">
                 <div
-                    className={`hydraulic-track cursor-pointer ${shake ? 'animate-shake' : ''}`}
+                    className={`hydraulic-track relative cursor-pointer ${shake ? 'animate-shake' : ''}`}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
