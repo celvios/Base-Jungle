@@ -1,4 +1,6 @@
 import React from 'react';
+import { Canvas } from '@react-three/fiber';
+import AntigravityParticles from '@/components/landing/AntigravityParticles';
 import HeroOverlay from '@/components/landing/HeroOverlay';
 import LawsOfJungle from '@/components/landing/LawsOfJungle';
 import TierShowcase from '@/components/landing/TierShowcase';
@@ -12,7 +14,13 @@ const LandingPage: React.FC = () => {
             {/* 1. Hero Section: The Zero-Gravity Chamber */}
             <section className="relative h-screen w-full">
                 <div className="absolute inset-0 z-0">
-                    {/* Particles Removed */}
+                    <Canvas
+                        camera={{ position: [0, 0, 500], fov: 75, near: 0.1, far: 2000 }}
+                        gl={{ antialias: true, alpha: true }}
+                        dpr={[1, 2]}
+                    >
+                        <AntigravityParticles />
+                    </Canvas>
                 </div>
                 <HeroOverlay />
             </section>
