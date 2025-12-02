@@ -153,21 +153,23 @@ export default function Dashboard() {
       />
 
       <TerminalLayout>
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Main Grid - Tighter spacing */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
 
           {/* Main Module: Yield Reactor (Chart) - Spans 2 cols */}
-          <YieldReactor
-            principal={netWorth}
-            totalYield={netWorth * 0.15} // Mock lifetime yield
-            harvestableYield={netWorth * 0.01} // Mock harvestable
-            dailyPnL={1.2}
-            data={chartData}
-            onHarvest={() => console.log('Harvest')}
-          />
+          <div className="lg:col-span-2 h-full">
+            <YieldReactor
+              principal={netWorth}
+              totalYield={netWorth * 0.15} // Mock lifetime yield
+              harvestableYield={netWorth * 0.01} // Mock harvestable
+              dailyPnL={1.2}
+              data={chartData}
+              onHarvest={() => console.log('Harvest')}
+            />
+          </div>
 
           {/* Right Column Stack */}
-          <div className="col-span-1 space-y-6 flex flex-col">
+          <div className="lg:col-span-1 space-y-6 flex flex-col h-full">
             {/* Strategy Module: Pressure Gauge */}
             <PressureGauge
               currentLeverage={1.5}
@@ -182,21 +184,25 @@ export default function Dashboard() {
             />
 
             {/* Rewards Module: Accumulator */}
-            <Accumulator
-              points={pointsData?.balance || 0}
-              multiplier={1.25}
-              velocity={106.25}
-              globalTVL={12450200}
-              avgAPY={14.2}
-              onViewRewards={() => console.log('View Rewards')}
-            />
+            <div className="flex-1">
+              <Accumulator
+                points={pointsData?.balance || 0}
+                multiplier={1.25}
+                velocity={106.25}
+                globalTVL={12450200}
+                avgAPY={14.2}
+                onViewRewards={() => console.log('View Rewards')}
+              />
+            </div>
           </div>
 
           {/* Bottom Row: Signal List - Spans full width */}
-          <SignalList
-            referrals={mockReferrals}
-            onNudge={(addr) => console.log('Nudge', addr)}
-          />
+          <div className="lg:col-span-3">
+            <SignalList
+              referrals={mockReferrals}
+              onNudge={(addr) => console.log('Nudge', addr)}
+            />
+          </div>
 
         </div>
       </TerminalLayout>
