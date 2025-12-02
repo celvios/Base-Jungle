@@ -3,40 +3,29 @@ import { BookOpen } from 'lucide-react';
 
 const GlossarySidebar: React.FC = () => {
     const terms = [
-        { term: 'Rebalancing', def: 'Moving funds to higher APY pools automatically.' },
-        { term: 'Harvesting', def: 'Collecting reward tokens (AERO) and selling them for USDC.' },
-        { term: 'Slippage', def: 'Price difference during a swap (Max 0.5%).' },
-        { term: 'Health Factor', def: 'Safety score. < 1.0 means liquidation. We keep it > 1.4.' },
-        { term: 'Delta Neutral', def: 'Hedging against price moves to earn yield safely.' },
-        { term: 'Auto-Compound', def: 'Reinvesting yield to earn interest on interest.' },
+        { term: 'Impermanent Loss', def: 'Temporary loss of funds due to volatility in a liquidity pair.' },
+        { term: 'Delta Neutral', def: 'A strategy that hedges against price movements to minimize directional risk.' },
+        { term: 'Auto-Compound', def: 'Automatically reinvesting yield to maximize APY.' },
+        { term: 'Liquidation', def: 'Forced closure of a position when collateral value drops below a threshold.' },
+        { term: 'Health Factor', def: 'A metric indicating the safety of a leveraged position (>1.0 is safe).' },
     ];
 
     return (
-        <div className="hidden xl:block w-64 border-l border-gray-800 bg-[#050505] p-6 h-full fixed right-0 top-16 overflow-y-auto">
-            <div className="flex items-center gap-2 mb-6">
-                <BookOpen className="w-4 h-4 text-gray-500" />
-                <h3 className="text-xs font-mono text-gray-500 tracking-widest uppercase">Tech Glossary</h3>
-            </div>
+        <div className="hidden xl:block w-72 fixed right-0 top-20 bottom-0 border-l border-gray-800 bg-[#050505]/95 backdrop-blur p-6 overflow-y-auto">
+            <h3 className="text-gray-400 font-mono text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
+                <BookOpen className="w-4 h-4" />
+                Protocol Glossary
+            </h3>
 
             <div className="space-y-6">
-                {terms.map((item, i) => (
-                    <div key={i} className="group">
-                        <h4 className="text-xs font-bold text-cyan-500 font-mono mb-1 group-hover:text-cyan-400 transition-colors">
-                            {item.term}
-                        </h4>
-                        <p className="text-[11px] text-gray-500 leading-relaxed font-mono group-hover:text-gray-400 transition-colors">
+                {terms.map((item) => (
+                    <div key={item.term}>
+                        <div className="text-cyan-400 font-mono text-sm font-bold mb-1">{item.term}</div>
+                        <div className="text-gray-500 text-xs leading-relaxed">
                             {item.def}
-                        </p>
+                        </div>
                     </div>
                 ))}
-            </div>
-
-            <div className="mt-8 pt-8 border-t border-gray-800">
-                <div className="text-[10px] text-gray-600 font-mono">
-                    <p className="mb-2">SYSTEM STATUS:</p>
-                    <p className="text-emerald-500">● ALL SYSTEMS NOMINAL</p>
-                    <p>LAST AUDIT: 12 DAYS AGO</p>
-                </div>
             </div>
         </div>
     );
