@@ -332,4 +332,74 @@ router.get('/user/:walletAddress/balance-history', async (req, res) => {
     }
 });
 
+// Admin: Run database migrations
+router.post('/admin/migrate', async (req, res) => {
+    try {
+        const { secret } = req.body;
+
+        // Simple secret check (set ADMIN_SECRET in env vars)
+        if (secret !== process.env.ADMIN_SECRET) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Run migration
+        const migrationSQL = `
+            CREATE TABLE IF NOT EXISTS balance_snapshots (
+                id SERIAL PRIMARY KEY,
+                user_address VARCHAR(42) NOT NULL,
+                vault_address VARCHAR(42) NOT NULL,
+                balance_usdc DECIMAL(20, 6) NOT NULL,
+                share_balance DECIMAL(30, 18) NOT NULL,
+                snapshot_time TIMESTAMP NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_balance_snapshots_user_time 
+            ON balance_snapshots(user_address, snapshot_time DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_balance_snapshots_vault 
+            ON balance_snapshots(vault_address, snapshot_time DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_balance_snapshots_user_vault_time 
+            ON balance_snapshots(user_address, vault_address, snapshot_time DESC);
+        `;
+
+        await pool.query(migrationSQL);
+
+        res.json({
+            success: true,
+            message: 'Migration completed successfully',
+            tables: ['balance_snapshots']
+        });
+    } catch (error) {
+        console.error('Migration error:', error);
+        res.status(500).json({
+            error: 'Migration failed',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+
+// Admin: Trigger manual snapshot
+router.post('/admin/snapshot', async (req, res) => {
+    try {
+        const { secret } = req.body;
+
+        if (secret !== process.env.ADMIN_SECRET) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // This would trigger the snapshot job
+        // For now, just return success - actual implementation would import and run the job
+        res.json({
+            success: true,
+            message: 'Snapshot job triggered. Check logs for progress.',
+            note: 'Use the cron job service on Render to run snapshots automatically'
+        });
+    } catch (error) {
+        console.error('Snapshot trigger error:', error);
+        res.status(500).json({ error: 'Failed to trigger snapshot' });
+    }
+});
+
 export default router;

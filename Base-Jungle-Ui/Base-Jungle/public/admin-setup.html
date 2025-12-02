@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base Jungle - Admin Setup</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #0052FF 0%, #00D4FF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #0052FF;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0052FF 0%, #0041CC 100%);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+        }
+        .result.success {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+        }
+        .result.error {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            color: #ff6b6b;
+        }
+        .divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌴 Base Jungle Admin</h1>
+        <p>One-time setup for database migrations and initial snapshot</p>
+
+        <div class="input-group">
+            <label for="secret">Admin Secret</label>
+            <input type="password" id="secret" placeholder="Enter ADMIN_SECRET from env vars">
+        </div>
+
+        <button onclick="runMigration()">Run Database Migration</button>
+        <div id="migration-result" class="result"></div>
+
+        <div class="divider"></div>
+
+        <button onclick="triggerSnapshot()">Trigger Initial Snapshot</button>
+        <div id="snapshot-result" class="result"></div>
+
+        <div class="divider"></div>
+
+        <p style="font-size: 12px; color: rgba(255, 255, 255, 0.5);">
+            💡 Tip: After running these, set up the cron job on Render to run snapshots hourly.
+        </p>
+    </div>
+
+    <script>
+        async function runMigration() {
+            const secret = document.getElementById('secret').value;
+            const resultDiv = document.getElementById('migration-result');
+            const button = event.target;
+
+            if (!secret) {
+                showResult(resultDiv, 'Please enter admin secret', 'error');
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Running migration...';
+
+            try {
+                const response = await fetch('/api/admin/migrate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(resultDiv, `✅ ${data.message}`, 'success');
+                } else {
+                    showResult(resultDiv, `❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `❌ Network error: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Run Database Migration';
+            }
+        }
+
+        async function triggerSnapshot() {
+            const secret = document.getElementById('secret').value;
+            const resultDiv = document.getElementById('snapshot-result');
+            const button = event.target;
+
+            if (!secret) {
+                showResult(resultDiv, 'Please enter admin secret', 'error');
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Triggering snapshot...';
+
+            try {
+                const response = await fetch('/api/admin/snapshot', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ secret })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(resultDiv, `✅ ${data.message}`, 'success');
+                } else {
+                    showResult(resultDiv, `❌ ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(resultDiv, `❌ Network error: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Trigger Initial Snapshot';
+            }
+        }
+
+        function showResult(element, message, type) {
+            element.textContent = message;
+            element.className = `result ${type}`;
+            element.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
