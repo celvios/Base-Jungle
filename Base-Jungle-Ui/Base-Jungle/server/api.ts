@@ -650,4 +650,128 @@ router.get('/admin/migrate', async (req, res) => {
     }
 });
 
+// Admin: Run database migration (one-click setup)
+router.get('/admin/migrate', async (req, res) => {
+    try {
+        // Run migration (safe to run multiple times - CREATE IF NOT EXISTS)
+        const migrationSQL = `
+            CREATE TABLE IF NOT EXISTS balance_snapshots (
+                id SERIAL PRIMARY KEY,
+                user_address VARCHAR(42) NOT NULL,
+                vault_address VARCHAR(42) NOT NULL,
+                balance_usdc DECIMAL(20, 6) NOT NULL,
+                share_balance DECIMAL(30, 18) NOT NULL,
+                snapshot_time TIMESTAMP NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_balance_snapshots_user_time 
+            ON balance_snapshots(user_address, snapshot_time DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_balance_snapshots_vault 
+            ON balance_snapshots(vault_address, snapshot_time DESC);
+
+            CREATE INDEX IF NOT EXISTS idx_balance_snapshots_user_vault_time 
+            ON balance_snapshots(user_address, vault_address, snapshot_time DESC);
+        `;
+
+        await pool.query(migrationSQL);
+
+        // Return HTML success page
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Migration Complete</title>
+                <style>
+                    body {
+                        font-family: system-ui, -apple-system, sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+                        color: #fff;
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 40px;
+                        background: rgba(255, 255, 255, 0.05);
+                        border-radius: 16px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    h1 { color: #00ff00; margin-bottom: 20px; }
+                    p { color: rgba(255, 255, 255, 0.8); line-height: 1.6; }
+                    .success { font-size: 64px; margin-bottom: 20px; }
+                    a {
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 12px 24px;
+                        background: #0052FF;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 8px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="success">✅</div>
+                    <h1>Migration Complete!</h1>
+                    <p>The <code>balance_snapshots</code> table has been created successfully.</p>
+                    <p>Next step: Set up the Render Cron Job for automatic hourly snapshots.</p>
+                    <a href="/">Back to Dashboard</a>
+                </div>
+            </body>
+            </html>
+        `);
+    } catch (error) {
+        console.error('Migration error:', error);
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Migration Failed</title>
+                <style>
+                    body {
+                        font-family: system-ui, -apple-system, sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+                        color: #fff;
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 40px;
+                        background: rgba(255, 0, 0, 0.1);
+                        border-radius: 16px;
+                        border: 1px solid rgba(255, 0, 0, 0.3);
+                    }
+                    h1 { color: #ff6b6b; margin-bottom: 20px; }
+                    pre {
+                        background: rgba(0, 0, 0, 0.3);
+                        padding: 16px;
+                        border-radius: 8px;
+                        text-align: left;
+                        overflow-x: auto;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>❌ Migration Failed</h1>
+                    <p>Error details:</p>
+                    <pre>${error instanceof Error ? error.message : 'Unknown error'}</pre>
+                </div>
+            </body>
+            </html>
+        `);
+    }
+});
+
 export default router;
+
