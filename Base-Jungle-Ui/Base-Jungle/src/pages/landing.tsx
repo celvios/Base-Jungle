@@ -66,8 +66,6 @@ const LandingPage: React.FC = () => {
                     © 2024 Base Jungle Protocol. All rights reserved.
                 </div>
             </footer>
-
-            <Loader />
         </div>
     );
 };
