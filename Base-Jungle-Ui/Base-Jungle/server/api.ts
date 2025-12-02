@@ -327,22 +327,210 @@ router.get('/user/:walletAddress/balance-history', async (req, res) => {
 
         res.json(result.rows);
     } catch (error) {
+        if (userAddress) {
+            query += ' WHERE user_address = $1';
+            params.push(userAddress);
+        }
+
+        query += ` ORDER BY created_at DESC LIMIT $${params.length + 1}`;
+        params.push(limit);
+
+        const result = await pool.query(query, params);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Bot activity error:', error);
+        res.status(500).json({ error: 'Failed to fetch bot activity' });
+    }
+});
+
+// Points endpoint - /api/user/:walletAddress/points
+router.get('/user/:walletAddress/points', async (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+
+        // Calculate total points
+        const totalPointsQuery = await pool.query(
+            'SELECT SUM(amount) as total_points FROM points WHERE wallet_address = $1',
+            [walletAddress]
+        );
+
+        // Fetch points history
+        const historyQuery = await pool.query(
+            `SELECT 
+        EXTRACT(EPOCH FROM created_at) * 1000 as date,
+        amount as points,
+        source
+       FROM points
+       WHERE wallet_address = $1
+       ORDER BY created_at DESC
+       LIMIT 100`,
+            [walletAddress]
+        );
+
+        // Get user tier
+        const userQuery = await pool.query(
+            'SELECT tier FROM users WHERE wallet_address = $1',
+            [walletAddress]
+        );
+
+        const totalPoints = parseInt(totalPointsQuery.rows[0]?.total_points || '0');
+        const tier = userQuery.rows[0]?.tier || 0;
+        const tierNames = ['Novice', 'Scout', 'Captain', 'Whale'];
+        const rank = tierNames[tier];
+
+        // Calculate daily point rate (points per day based on TVL)
+        const dailyPointRate = Math.floor(totalPoints / 100); // Simplified
+
+        // Next rank calculation
+        const nextRankPoints = (tier + 1) * 5000;
+        const nextRankName = tierNames[Math.min(tier + 1, 3)];
+
+        res.json({
+            totalPoints,
+            rank,
+            dailyPointRate,
+            pointsHistory: historyQuery.rows,
+            nextRankPoints,
+            nextRankName,
+        });
+    } catch (error) {
+        console.error('Points error:', error);
+        res.status(500).json({ error: 'Failed to fetch points' });
+    }
+});
+
+// Referrals endpoint - /api/user/:walletAddress/referrals
+router.get('/user/:walletAddress/referrals', async (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+
+        // Get user referral code
+        const userQuery = await pool.query(
+            'SELECT referral_code FROM users WHERE wallet_address = $1',
+            [walletAddress]
+        );
+
+        const referralCode = userQuery.rows[0]?.referral_code || '';
+        const referralLink = `https://basejungle.xyz/ref/${referralCode}`;
+
+        // Count direct referrals
+        const directQuery = await pool.query(
+            'SELECT COUNT(*) as count FROM referrals WHERE referrer = $1 AND level = 1',
+            [walletAddress]
+        );
+
+        // Count indirect referrals
+        const indirectQuery = await pool.query(
+            'SELECT COUNT(*) as count FROM referrals WHERE referrer = $1 AND level = 2',
+            [walletAddress]
+        );
+
+        // Get referral tree
+        const treeQuery = await pool.query(
+            `SELECT 
+        referee as address,
+        level,
+        EXTRACT(EPOCH FROM created_at) * 1000 as "joinDate",
+        true as "isActive", 
+        0 as "totalDeposited"
+       FROM referrals
+       WHERE referrer = $1
+       ORDER BY created_at DESC`,
+            [walletAddress]
+        );
+
+        // Get user tier
+        const tierQuery = await pool.query(
+            'SELECT tier FROM users WHERE wallet_address = $1',
+            [walletAddress]
+        );
+
+        const tier = tierQuery.rows[0]?.tier || 0;
+        const tierNames = ['Novice', 'Scout', 'Captain', 'Whale'];
+        const currentTier = tierNames[tier];
+        const nextTier = tierNames[Math.min(tier + 1, 3)];
+
+        // Calculate requirements
+        const directReferrals = parseInt(directQuery.rows[0]?.count || '0');
+        const indirectReferrals = parseInt(indirectQuery.rows[0]?.count || '0');
+        const activeReferrals = directReferrals; // Simplified
+        const nextTierRequirement = (tier + 1) * 5;
+
+        res.json({
+            referralCode,
+            referralLink,
+            directReferrals,
+            indirectReferrals,
+            activeReferrals,
+            currentTier,
+            nextTier,
+            nextTierRequirement,
+            totalBonusPoints: directReferrals * 100 + indirectReferrals * 50,
+            referralTree: treeQuery.rows,
+        });
+    } catch (error) {
+        console.error('Referrals error:', error);
+        res.status(500).json({ error: 'Failed to fetch referrals' });
+    }
+});
+
+// Balance history endpoint - /api/user/:walletAddress/balance-history
+router.get('/user/:walletAddress/balance-history', async (req, res) => {
+    try {
+        const { walletAddress } = req.params;
+        const { period = '24h', vaultAddress } = req.query;
+
+        // Calculate time range based on period
+        const intervalMap: Record<string, string> = {
+            '1h': '1 hour',
+            '24h': '24 hours',
+            '7d': '7 days',
+            '30d': '30 days',
+        };
+
+        const interval = intervalMap[period as string] || '24 hours';
+
+        let query = `
+            SELECT 
+                EXTRACT(EPOCH FROM snapshot_time) * 1000 as time,
+                SUM(balance_usdc) as value
+            FROM balance_snapshots
+            WHERE user_address = $1
+                AND snapshot_time > NOW() - INTERVAL '${interval}'
+        `;
+
+        const params: any[] = [walletAddress];
+
+        if (vaultAddress) {
+            query += ' AND vault_address = $2';
+            params.push(vaultAddress);
+        }
+
+        query += ' GROUP BY snapshot_time ORDER BY snapshot_time ASC';
+
+        const result = await pool.query(query, params);
+
+        // If no data, return current balance as single point
+        if (result.rows.length === 0) {
+            res.json([{
+                time: Date.now(),
+                value: 0
+            }]);
+            return;
+        }
+
+        res.json(result.rows);
+    } catch (error) {
         console.error('Balance history error:', error);
         res.status(500).json({ error: 'Failed to fetch balance history' });
     }
 });
 
-// Admin: Run database migrations
-router.post('/admin/migrate', async (req, res) => {
+// Simple one-click migration endpoint
+router.get('/admin/migrate', async (req, res) => {
     try {
-        const { secret } = req.body;
-
-        // Simple secret check (set ADMIN_SECRET in env vars)
-        if (secret !== process.env.ADMIN_SECRET) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        // Run migration
+        // Run migration (safe to run multiple times - CREATE IF NOT EXISTS)
         const migrationSQL = `
             CREATE TABLE IF NOT EXISTS balance_snapshots (
                 id SERIAL PRIMARY KEY,
@@ -366,39 +554,99 @@ router.post('/admin/migrate', async (req, res) => {
 
         await pool.query(migrationSQL);
 
-        res.json({
-            success: true,
-            message: 'Migration completed successfully',
-            tables: ['balance_snapshots']
-        });
+        // Return HTML success page
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Migration Complete</title>
+                <style>
+                    body {
+                        font-family: system-ui, -apple-system, sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+                        color: #fff;
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 40px;
+                        background: rgba(255, 255, 255, 0.05);
+                        border-radius: 16px;
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                    }
+                    h1 { color: #00ff00; margin-bottom: 20px; }
+                    p { color: rgba(255, 255, 255, 0.8); line-height: 1.6; }
+                    .success { font-size: 64px; margin-bottom: 20px; }
+                    a {
+                        display: inline-block;
+                        margin-top: 20px;
+                        padding: 12px 24px;
+                        background: #0052FF;
+                        color: white;
+                        text-decoration: none;
+                        border-radius: 8px;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="success">✅</div>
+                    <h1>Migration Complete!</h1>
+                    <p>The <code>balance_snapshots</code> table has been created successfully.</p>
+                    <p>Next step: Set up the Render Cron Job for automatic hourly snapshots.</p>
+                    <a href="/">Back to Dashboard</a>
+                </div>
+            </body>
+            </html>
+        `);
     } catch (error) {
         console.error('Migration error:', error);
-        res.status(500).json({
-            error: 'Migration failed',
-            details: error instanceof Error ? error.message : 'Unknown error'
-        });
-    }
-});
-
-// Admin: Trigger manual snapshot
-router.post('/admin/snapshot', async (req, res) => {
-    try {
-        const { secret } = req.body;
-
-        if (secret !== process.env.ADMIN_SECRET) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        // This would trigger the snapshot job
-        // For now, just return success - actual implementation would import and run the job
-        res.json({
-            success: true,
-            message: 'Snapshot job triggered. Check logs for progress.',
-            note: 'Use the cron job service on Render to run snapshots automatically'
-        });
-    } catch (error) {
-        console.error('Snapshot trigger error:', error);
-        res.status(500).json({ error: 'Failed to trigger snapshot' });
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Migration Failed</title>
+                <style>
+                    body {
+                        font-family: system-ui, -apple-system, sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+                        color: #fff;
+                    }
+                    .container {
+                        text-align: center;
+                        padding: 40px;
+                        background: rgba(255, 0, 0, 0.1);
+                        border-radius: 16px;
+                        border: 1px solid rgba(255, 0, 0, 0.3);
+                    }
+                    h1 { color: #ff6b6b; margin-bottom: 20px; }
+                    pre {
+                        background: rgba(0, 0, 0, 0.3);
+                        padding: 16px;
+                        border-radius: 8px;
+                        text-align: left;
+                        overflow-x: auto;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>❌ Migration Failed</h1>
+                    <p>Error details:</p>
+                    <pre>${error instanceof Error ? error.message : 'Unknown error'}</pre>
+                </div>
+            </body>
+            </html>
+        `);
     }
 });
 
