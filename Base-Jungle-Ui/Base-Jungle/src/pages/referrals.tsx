@@ -1,6 +1,7 @@
 import React from 'react';
 import { useWallet } from '@/contexts/wallet-context';
 import { useReferralData, useDirectReferrals } from '@/hooks/use-referrals';
+import { usePointsBalance } from '@/hooks/use-points';
 import { type Address } from 'viem';
 import SporeGenerator from '@/components/referrals/SporeGenerator';
 import SpecimenLeaderboard from '@/components/referrals/SpecimenLeaderboard';
@@ -13,13 +14,15 @@ const ReferralsPage: React.FC = () => {
   const { data: referralData, isLoading } = useReferralData(address as Address);
   const { data: directReferrals } = useDirectReferrals(address as Address);
 
-  // Mock data for now until hook is fully populated
+  // ✅ Real points data from contract
+  const { data: pointsData } = usePointsBalance(address as Address);
+  const totalRewards = pointsData?.balance || 0;
+  const pendingRewards = pointsData?.pending || 0;
+
   const directCount = referralData?.directCount || 0;
   const indirectCount = referralData?.tierTwoCount || 0;
   const referralCode = address ? address.slice(2, 8).toUpperCase() : "CONNECT";
   const referralLink = `${window.location.origin}?ref=${referralCode}`;
-  const pendingRewards = 450; // Mock
-  const totalRewards = 12500; // Mock
 
   const referralsList = directReferrals || [];
 
