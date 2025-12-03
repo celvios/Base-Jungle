@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertTriangle, TrendingUp, ExternalLink, RefreshCw } from "lucide-react";
+import { AlertTriangle, TrendingUp, ExternalLink, RefreshCw, Lightbulb } from "lucide-react";
 import { ModalContainer } from "./modal-container";
 import { useModal } from "@/contexts/modal-context";
 import { useWallet } from "@/contexts/wallet-context";
@@ -392,7 +392,7 @@ export function HarvestModal({
         {/* Recommendation */}
         <div className="p-4 rounded border border-blue-500/30 bg-blue-500/5">
           <p className="text-sm text-blue-300/80 text-center">
-            💡 Wait {daysRemaining} days to avoid ${earlyPenalty.toFixed(2)} penalty and receive full yield of ${estimatedYield.toFixed(2)}
+            <Lightbulb className="w-4 h-4 inline mr-1" /> Wait {daysRemaining} days to avoid ${earlyPenalty.toFixed(2)} penalty and receive full yield of ${estimatedYield.toFixed(2)}
           </p>
         </div>
 

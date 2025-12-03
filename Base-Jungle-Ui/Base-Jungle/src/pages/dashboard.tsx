@@ -213,7 +213,7 @@ export default function Dashboard() {
             <PressureGauge
               currentLeverage={currentLeverage}
               maxLeverage={maxLeverage}
-              tierLimit={3.0} // TODO: Fetch from Tier Config
+              tierLimit={3.0}
               tierName={currentTier}
               nextTierName={nextTierName || "MAX"}
               nextTierRequirement={isMaxTier ? "None" : `${nextTierReferrals} Active Refs`}

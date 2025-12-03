@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { GlassPanel } from "./glass-panel";
-import { ArrowDownToLine } from "lucide-react";
+import { ArrowDownToLine, Droplets } from "lucide-react";
 import { useModal } from "@/contexts/modal-context";
 import { useDepositMaturity } from "@/hooks/use-maturity";
 import { type Address } from "viem";
@@ -177,7 +177,7 @@ export function RainCatcher({ netWorth, recentHarvest, isBooting, vaultAddress, 
                   }}
                   data-testid="button-deposit"
                 >
-                  <span>💧</span>
+                  <Droplets className="w-5 h-5" />
                   <span>Deposit</span>
                 </button>
                 <button

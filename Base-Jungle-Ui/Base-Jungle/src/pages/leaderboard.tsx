@@ -1,5 +1,5 @@
 import { GlassPanel } from "@/components/dashboard/glass-panel";
-import { Trophy, Medal, Award, TrendingUp } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, AlertTriangle, Info } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLeaderboard } from "@/hooks/use-leaderboard";
@@ -60,7 +60,7 @@ export default function LeaderboardPage() {
           <GlassPanel className="border-l-4 border-l-red-500">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="text-red-500 text-xl">⚠️</div>
+                <AlertTriangle className="w-5 h-5 text-red-500" />
                 <h3 className="text-lg font-semibold text-red-500">Connection Error</h3>
               </div>
               <p className="text-muted-foreground">
@@ -86,7 +86,7 @@ export default function LeaderboardPage() {
           <GlassPanel className="border-l-4 border-l-primary/50">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <div className="text-primary text-xl">ℹ️</div>
+                <Info className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-semibold">No Data Available</h3>
               </div>
               <p className="text-muted-foreground">

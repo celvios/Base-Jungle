@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Shield, AlertTriangle, Activity } from 'lucide-react';
 import ScrollSpyNav from '@/components/whitepaper/ScrollSpyNav';
 import SearchBar from '@/components/whitepaper/SearchBar';
 import TierMatrix from '@/components/whitepaper/TierMatrix';
@@ -224,7 +225,7 @@ const WhitepaperPage: React.FC = () => {
 
                                 <div className="space-y-4">
                                     <div className="p-4 bg-red-900/10 border border-red-900/30 rounded-lg">
-                                        <h4 className="text-sm font-bold text-red-400 mb-2">🛡️ Smart Contract Security</h4>
+                                        <h4 className="text-sm font-bold text-red-400 mb-2 flex items-center gap-2"><Shield className="w-4 h-4" /> Smart Contract Security</h4>
                                         <ul className="text-sm text-gray-400 space-y-1">
                                             <li>• OpenZeppelin battle-tested libraries</li>
                                             <li>• Multi-sig treasury (3-of-5 Gnosis Safe)</li>
@@ -234,7 +235,7 @@ const WhitepaperPage: React.FC = () => {
                                     </div>
 
                                     <div className="p-4 bg-yellow-900/10 border border-yellow-900/30 rounded-lg">
-                                        <h4 className="text-sm font-bold text-yellow-400 mb-2">⚠️ Oracle Risk Mitigation</h4>
+                                        <h4 className="text-sm font-bold text-yellow-400 mb-2 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Oracle Risk Mitigation</h4>
                                         <p className="text-sm text-gray-400">
                                             We use dual oracle feeds (Chainlink + Pyth) with a 1% deviation threshold.
                                             If price feeds diverge beyond this limit, deposits and withdrawals are automatically paused.
@@ -242,7 +243,7 @@ const WhitepaperPage: React.FC = () => {
                                     </div>
 
                                     <div className="p-4 bg-blue-900/10 border border-blue-900/30 rounded-lg">
-                                        <h4 className="text-sm font-bold text-blue-400 mb-2">📊 Health Factor Monitoring</h4>
+                                        <h4 className="text-sm font-bold text-blue-400 mb-2 flex items-center gap-2"><Activity className="w-4 h-4" /> Health Factor Monitoring</h4>
                                         <p className="text-sm text-gray-400">
                                             For leveraged positions, the <GlossaryTooltip term="Health Factor" definition="A safety metric calculated as (collateral value × liquidation threshold) / borrowed value. Below 1.0 triggers liquidation.">Health Factor</GlossaryTooltip> is
                                             monitored every block. Automatic rebalancing occurs at HF &lt; 1.4 to prevent liquidations.

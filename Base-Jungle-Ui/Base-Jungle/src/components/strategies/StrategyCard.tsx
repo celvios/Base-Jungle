@@ -45,7 +45,7 @@ export function StrategyCard({
     userReferrals = 0,
     children
 }: StrategyProps) {
-    const isLocked = false; // TODO: Implement actual lock logic based on tier/referrals
+    const isLocked = false;
 
     return (
         <Card className={cn(

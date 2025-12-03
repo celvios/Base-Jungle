@@ -4,5 +4,11 @@
     "@react-three/fiber": "^9.4.2",
     "@types/three": "^0.181.0",
     "three": "^0.181.2"
-  }
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "dotenv": "^17.2.3",
+    "hardhat": "^3.0.16"
+  },
+  "type": "module"
 }

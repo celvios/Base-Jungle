@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Zap, AlertTriangle, TrendingUp, Lock, Unlock } from "lucide-react";
+import { Zap, AlertTriangle, TrendingUp, Lock, Unlock, Sparkles } from "lucide-react";
 import { ModalContainer } from "./modal-container";
 import { useModal } from "@/contexts/modal-context";
 import { useWallet } from "@/contexts/wallet-context";
@@ -121,7 +121,7 @@ export function LeverageControlModal() {
                             <div className="flex items-start gap-3">
                                 <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                                 <div className="text-xs text-yellow-300 space-y-2">
-                                    <p className="font-bold">⚠️ Leverage Risks:</p>
+                                    <p className="font-bold flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Leverage Risks:</p>
                                     <ul className="list-disc list-inside space-y-1 text-yellow-300/80">
                                         <li>Higher leverage = Higher risk of liquidation</li>
                                         <li>Monitor your health factor closely</li>
@@ -136,7 +136,7 @@ export function LeverageControlModal() {
                             <div className="flex items-start gap-3">
                                 <TrendingUp className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                                 <div className="text-xs text-blue-300 space-y-2">
-                                    <p className="font-bold">✨ Potential Benefits:</p>
+                                    <p className="font-bold flex items-center gap-1"><Sparkles className="w-3 h-3" /> Potential Benefits:</p>
                                     <ul className="list-disc list-inside space-y-1 text-blue-300/80">
                                         <li>Amplified returns on successful strategies</li>
                                         <li>Access to advanced yield farming</li>
