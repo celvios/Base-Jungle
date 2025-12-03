@@ -18,6 +18,7 @@ export function Navigation() {
   const navLinks = [
     { label: "Home", href: "/", type: "link" as const },
     { label: "Dashboard", href: "/dashboard", type: "link" as const },
+    { label: "Strategies", href: "/strategies", type: "link" as const },
     { label: "Whitepaper", href: "/whitepaper", type: "link" as const },
     { label: "Governance", href: "/governance", type: "link" as const },
     { label: "Security", href: "/security", type: "link" as const },

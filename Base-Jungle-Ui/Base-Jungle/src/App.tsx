@@ -13,6 +13,7 @@ import WhitepaperPage from "@/pages/whitepaper";
 import AnalyticsPage from "@/pages/analytics";
 import GovernancePage from "@/pages/governance";
 import SecurityPage from "@/pages/security";
+import StrategiesPage from "@/pages/strategies";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ModalProvider } from "@/contexts/modal-context";
@@ -22,7 +23,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/contexts/theme-context";
-import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark, Shield } from "lucide-react";
+import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark, Shield, Layers } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
 
 function Router() {
@@ -39,6 +40,7 @@ function Router() {
           <ReferralsPage />
         </ProtectedRoute>
       </Route>
+      <Route path="/strategies" component={StrategiesPage} />
       <Route path="/blueprints" component={BlueprintsPage} />
       <Route path="/leaderboard">
         <ProtectedRoute>
@@ -58,6 +60,7 @@ function Router() {
 const mobileMenuItems = [
   { title: "Home", url: "/", icon: HomeIcon },
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Strategies", url: "/strategies", icon: Layers },
   { title: "Referrals", url: "/referrals", icon: Users },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
   { title: "Governance", url: "/governance", icon: Landmark },
