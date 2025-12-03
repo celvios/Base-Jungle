@@ -4,7 +4,6 @@ import { AggressiveStrategyDetails } from "@/components/strategies/AggressiveStr
 import { StrategyMetrics, StrategyMetric } from "@/components/strategies/StrategyMetrics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, Zap, Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Mock Data - In a real app, this would come from an API
 const CONSERVATIVE_STRATEGIES: StrategyProps[] = [
@@ -122,14 +121,36 @@ export default function StrategiesPage() {
                     <TabsContent value="conservative" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {CONSERVATIVE_STRATEGIES.map(strategy => (
-                                <StrategyMetrics metrics={METRICS} />
+                                <StrategyCard key={strategy.id} {...strategy} />
+                            ))}
+                        </div>
+                    </TabsContent>
+
+                    <TabsContent value="aggressive" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {AGGRESSIVE_STRATEGIES.map(strategy => (
+                                <div key={strategy.id} className="flex flex-col h-full">
+                                    <StrategyCard {...strategy}>
+                                        <div className="mt-4 pt-4 border-t border-white/10">
+                                            <AggressiveStrategyDetails {...strategy.details} />
+                                        </div>
+                                    </StrategyCard>
+                                </div>
+                            ))}
+                        </div>
+                    </TabsContent>
+                </Tabs>
+
+                {/* Global Metrics */}
+                <div className="pt-8 border-t border-white/5">
+                    <StrategyMetrics metrics={METRICS} />
                 </div>
 
-                        {/* Glossary Hint */}
-                        <div className="text-center text-xs text-muted-foreground/50 pt-8">
-                            <p>Data sourced from Chainlink & Pyth Oracles. Updates every block.</p>
-                        </div>
-                    </div>
+                {/* Glossary Hint */}
+                <div className="text-center text-xs text-muted-foreground/50 pt-8">
+                    <p>Data sourced from Chainlink & Pyth Oracles. Updates every block.</p>
+                </div>
             </div>
-            );
+        </div>
+    );
 }
