@@ -5,6 +5,7 @@ const footerLinks = {
   protocol: [
     { label: "Blueprints", href: "/blueprints" },
     { label: "Whitepaper", href: "/whitepaper" },
+    { label: "Strategies", href: "/strategies" },
   ],
   resources: [
     { label: "Analytics", href: "#analytics" },
