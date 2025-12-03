@@ -13,7 +13,9 @@ import WhitepaperPage from "@/pages/whitepaper";
 import AnalyticsPage from "@/pages/analytics";
 import GovernancePage from "@/pages/governance";
 import SecurityPage from "@/pages/security";
+import SecurityPage from "@/pages/security";
 import StrategiesPage from "@/pages/strategies";
+import RewardsPage from "@/pages/rewards";
 import NotFound from "@/pages/not-found";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ModalProvider } from "@/contexts/modal-context";
@@ -41,6 +43,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/strategies" component={StrategiesPage} />
+      <Route path="/rewards" component={RewardsPage} />
       <Route path="/blueprints" component={BlueprintsPage} />
       <Route path="/leaderboard">
         <ProtectedRoute>
@@ -61,6 +64,7 @@ const mobileMenuItems = [
   { title: "Home", url: "/", icon: HomeIcon },
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Strategies", url: "/strategies", icon: Layers },
+  { title: "Rewards", url: "/rewards", icon: Trophy },
   { title: "Referrals", url: "/referrals", icon: Users },
   { title: "Leaderboard", url: "/leaderboard", icon: Trophy },
   { title: "Governance", url: "/governance", icon: Landmark },

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from "wouter";
 import { Database, ArrowUpRight, Globe, Activity } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 
@@ -87,12 +88,13 @@ const Accumulator: React.FC<AccumulatorProps> = ({
                         </div>
                     </div>
 
-                    <Button
-                        onClick={onViewRewards}
-                        className="w-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-mono tracking-wider h-10"
-                    >
-                        VIEW REWARDS <ArrowUpRight className="w-3 h-3 ml-2" />
-                    </Button>
+                    <Link href="/rewards">
+                        <Button
+                            className="w-full bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 text-xs font-mono tracking-wider h-10"
+                        >
+                            VIEW REWARDS <ArrowUpRight className="w-3 h-3 ml-2" />
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </div>
