@@ -85,8 +85,8 @@ export default function StrategiesPage() {
     const [activeTab, setActiveTab] = useState("conservative");
 
     return (
-        <div className="min-h-screen bg-background pt-24 pb-12 px-4 md:px-8">
-            <div className="max-w-7xl mx-auto space-y-8">
+        <div className="min-h-screen bg-background pt-24 pb-12 px-4 md:px-8 lg:px-12">
+            <div className="w-full space-y-8">
 
                 {/* Header */}
                 <div className="space-y-4">
@@ -120,7 +120,7 @@ export default function StrategiesPage() {
                     </div>
 
                     <TabsContent value="conservative" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {CONSERVATIVE_STRATEGIES.map(strategy => (
                                 <StrategyCard key={strategy.id} {...strategy} />
                             ))}
@@ -128,7 +128,7 @@ export default function StrategiesPage() {
                     </TabsContent>
 
                     <TabsContent value="aggressive" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {AGGRESSIVE_STRATEGIES.map(strategy => (
                                 <div key={strategy.id} className="relative">
                                     <StrategyCard {...strategy} />
