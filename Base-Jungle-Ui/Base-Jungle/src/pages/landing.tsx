@@ -55,6 +55,7 @@ const LandingPage: React.FC = () => {
                         <a href="/whitepaper" className="hover:text-blue-400 transition-colors">Whitepaper</a>
                         <a href="/analytics" className="hover:text-blue-400 transition-colors">Analytics</a>
                         <a href="/security" className="hover:text-blue-400 transition-colors">Security</a>
+                        <a href="/strategies" className="hover:text-blue-400 transition-colors">Strategies</a>
                         <a href="/governance" className="hover:text-blue-400 transition-colors">Governance</a>
                     </div>
 
