@@ -22,7 +22,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-md" data-testid="footer-logo-icon" />
+              <img src="/logo.png" alt="Base Jungle Logo" className="w-8 h-8 object-contain" data-testid="footer-logo-icon" />
               <span className="text-xl font-bold tracking-tight" data-testid="text-footer-logo">
                 Base Jungle
               </span>
