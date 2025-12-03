@@ -40,7 +40,7 @@ const LandingPage: React.FC = () => {
                     {/* Brand */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                            <Hexagon className="w-8 h-8 text-blue-500 fill-blue-500/20" />
+                            <img src="/logo.png" alt="Base Jungle Logo" className="w-8 h-8 object-contain" />
                             <span className="text-xl font-bold tracking-tight">Base Jungle</span>
                         </div>
                         <p className="text-gray-500 text-sm font-mono max-w-xs">
