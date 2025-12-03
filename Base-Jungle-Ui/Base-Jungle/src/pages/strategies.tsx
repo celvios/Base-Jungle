@@ -122,36 +122,14 @@ export default function StrategiesPage() {
                     <TabsContent value="conservative" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {CONSERVATIVE_STRATEGIES.map(strategy => (
-                                <StrategyCard key={strategy.id} {...strategy} />
-                            ))}
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="aggressive" className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {AGGRESSIVE_STRATEGIES.map(strategy => (
-                                <div key={strategy.id} className="relative">
-                                    <StrategyCard {...strategy} />
-                                    {/* Overlay specialized details for aggressive strategies */}
-                                    <div className="absolute bottom-4 left-4 right-4">
-                                        <AggressiveStrategyDetails {...strategy.details} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </TabsContent>
-                </Tabs>
-
-                {/* Global Metrics */}
-                <div className="pt-8 border-t border-white/5">
-                    <StrategyMetrics metrics={METRICS} />
+                                <StrategyMetrics metrics={METRICS} />
                 </div>
 
-                {/* Glossary Hint */}
-                <div className="text-center text-xs text-muted-foreground/50 pt-8">
-                    <p>Data sourced from Chainlink & Pyth Oracles. Updates every block.</p>
-                </div>
+                        {/* Glossary Hint */}
+                        <div className="text-center text-xs text-muted-foreground/50 pt-8">
+                            <p>Data sourced from Chainlink & Pyth Oracles. Updates every block.</p>
+                        </div>
+                    </div>
             </div>
-        </div>
-    );
+            );
 }

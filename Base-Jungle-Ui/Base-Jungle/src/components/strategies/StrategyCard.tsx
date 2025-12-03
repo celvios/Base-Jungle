@@ -26,6 +26,7 @@ export interface StrategyProps {
     isAggressive?: boolean;
     userTier?: string; // To check if unlocked
     userReferrals?: number;
+    children?: React.ReactNode;
 }
 
 export function StrategyCard({
@@ -41,17 +42,18 @@ export function StrategyCard({
     warning,
     isAggressive,
     userTier = "Novice", // Default for now
-    userReferrals = 0
+    userReferrals = 0,
+    children
 }: StrategyProps) {
     const isLocked = false; // TODO: Implement actual lock logic based on tier/referrals
 
     return (
         <Card className={cn(
-            "glass-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 border-t-2",
+            "glass-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 border-t-2 h-full flex flex-col",
             isAggressive ? "border-t-orange-500/50" : "border-t-blue-500/50"
         )}>
             {/* A. Header & Executive Summary */}
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-4 shrink-0">
                 <div className="flex justify-between items-start mb-2">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -81,7 +83,7 @@ export function StrategyCard({
                 </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 flex-1 flex flex-col">
                 {/* B. The Flow Visualization (The "Anatomy") */}
                 <div className="space-y-3 relative">
                     <div className="absolute left-[15px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary/50 to-transparent -z-10" />
@@ -112,7 +114,7 @@ export function StrategyCard({
                 </div>
 
                 {/* C. Risk & Compliance Readout */}
-                <div className="rounded-lg bg-black/20 border border-white/5 p-4 space-y-4">
+                <div className="rounded-lg bg-black/20 border border-white/5 p-4 space-y-4 mt-auto">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Max Leverage</div>
@@ -142,6 +144,8 @@ export function StrategyCard({
                         </div>
                     )}
                 </div>
+
+                {children}
             </CardContent>
         </Card>
     );
