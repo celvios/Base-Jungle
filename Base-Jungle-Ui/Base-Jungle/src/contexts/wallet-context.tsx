@@ -5,6 +5,7 @@ import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { config, queryClient } from '@/lib/wagmi';
 import { useSIWE } from '@/hooks/use-siwe';
+import { isMobile, logMobileConnection, getMobileConnectionInstructions } from '@/lib/mobile-wallet';
 
 interface WalletContextType {
   address: string | null;
@@ -30,6 +31,7 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (isConnected && address && !isAuthenticated && !hasAttemptedAuth && !isAuthenticating) {
       setHasAttemptedAuth(true);
+      logMobileConnection('Auto-authenticating', { address });
       authenticate().catch(console.error);
     }
 
@@ -39,6 +41,13 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
   }, [isConnected, address, isAuthenticated, hasAttemptedAuth, isAuthenticating, authenticate]);
 
   const connect = () => {
+    logMobileConnection('Connect button clicked');
+
+    // Show mobile-specific instructions if needed
+    if (isMobile()) {
+      console.log(getMobileConnectionInstructions());
+    }
+
     open(); // Opens the AppKit modal
   };
 

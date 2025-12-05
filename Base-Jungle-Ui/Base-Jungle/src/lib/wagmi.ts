@@ -35,7 +35,16 @@ export const modal = createAppKit({
         socials: ['google', 'x', 'discord', 'farcaster'], // Social logins
         onramp: true, // Buy crypto with fiat
         swaps: true, // Token swaps within modal
+        allWallets: 'SHOW', // Show all available wallets (important for mobile)
     },
+    // Enable mobile wallet detection
+    enableWalletConnect: true,
+    enableInjected: true,
+    enableCoinbase: true,
+    // Mobile-specific settings
+    mobileWallets: 'SHOW', // Show mobile wallets
+    desktopWallets: 'SHOW', // Show desktop wallets
+    walletImages: {}, // Custom wallet images if needed
     themeMode: 'dark',
     themeVariables: {
         '--w3m-accent': '#10b981', // Green accent to match Base Jungle theme
