@@ -21,17 +21,20 @@ export const wagmiAdapter = new WagmiAdapter({
 // Get wagmi config to add injected connector
 export const config = wagmiAdapter.wagmiConfig;
 
-// 3. Create modal - simplified for maximum compatibility
+// Define metadata strictly to ensure deep links work on mobile
+const metadata = {
+    name: 'Base Jungle',
+    description: 'DeFi Yield Optimization Protocol on Base',
+    url: 'https://base-jungle.vercel.app',
+    icons: ['https://base-jungle.vercel.app/favicon.png']
+};
+
+// 3. Create modal with debug mode and explicit flags
 export const modal = createAppKit({
     adapters: [wagmiAdapter],
     networks: [baseSepolia],
     projectId,
-    metadata: {
-        name: 'Base Jungle',
-        description: 'DeFi Yield Optimization Protocol on Base',
-        url: typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app',
-        icons: [`${typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app'}/favicon.png`],
-    },
+    metadata,
     features: {
         analytics: true,
         email: true,
@@ -39,6 +42,13 @@ export const modal = createAppKit({
         onramp: true,
         swaps: true,
     },
+    // Force enable core connection methods
+    enableWalletConnect: true,
+    enableInjected: true,
+    enableCoinbase: true,
+    // Add debug logs
+    enableAnalytics: true,
+    // Theme configuration
     themeMode: 'dark',
     themeVariables: {
         '--w3m-accent': '#10b981',
