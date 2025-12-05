@@ -18,7 +18,7 @@ export const wagmiAdapter = new WagmiAdapter({
     ssr: false,
 });
 
-// 3. Create modal with proper mobile support
+// 3. Create modal with proper mobile wallet detection
 export const modal = createAppKit({
     adapters: [wagmiAdapter],
     networks: [baseSepolia],
@@ -29,6 +29,20 @@ export const modal = createAppKit({
         url: typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app',
         icons: [`${typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app'}/favicon.png`],
     },
+    // CRITICAL: Featured wallets shown first on mobile
+    featuredWalletIds: [
+        'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
+        'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa', // Coinbase Wallet
+        '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369', // Rainbow
+        '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
+    ],
+    // Include recommended wallets
+    includeWalletIds: [
+        'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
+        'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa', // Coinbase
+        '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369', // Rainbow
+        '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust
+    ],
     features: {
         analytics: true,
         email: true,
@@ -36,12 +50,11 @@ export const modal = createAppKit({
         onramp: true,
         swaps: true,
     },
-    // Theme configuration
     themeMode: 'dark',
     themeVariables: {
         '--w3m-accent': '#10b981',
     },
-    // CRITICAL: Enable all wallets for mobile
+    // Show all wallets option
     allWallets: 'SHOW',
 });
 
