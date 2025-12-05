@@ -17,6 +17,9 @@ contract PointsTracker is AccessControl, ReentrancyGuard {
     bytes32 public constant UPDATER_ROLE = keccak256("UPDATER_ROLE");
     bytes32 public constant SNAPSHOT_ROLE = keccak256("SNAPSHOT_ROLE");
 
+    // Minimum amount to prevent precision loss (100 wei)
+    uint256 public constant MIN_POINTS_AMOUNT = 100;
+
     struct UserPoints {
         uint256 totalPoints;
         uint256 lastClaimTimestamp;
@@ -41,6 +44,10 @@ contract PointsTracker is AccessControl, ReentrancyGuard {
     event PointsUpdated(address indexed user, uint256 amount, string reason);
     event DailyPointsClaimed(address indexed user, uint256 amount, uint256 daysAccumulated);
     event SnapshotCreated(uint256 timestamp, bytes32 merkleRoot);
+    event AmountTooSmall(address indexed user, uint256 amount);
+
+    // Custom errors for gas efficiency
+    error InsufficientAmount(uint256 provided, uint256 minimum);
 
     constructor(address _referralManager, address _activityVerifier, address _positionNFT) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -62,6 +69,12 @@ contract PointsTracker is AccessControl, ReentrancyGuard {
     function updatePoints(address user, uint256 amount, string calldata reason) external onlyRole(UPDATER_ROLE) nonReentrant {
         require(!snapshotTaken, "Snapshot taken");
         
+        // Validate minimum amount to prevent precision loss
+        if (amount < MIN_POINTS_AMOUNT) {
+            emit AmountTooSmall(user, amount);
+            revert InsufficientAmount(amount, MIN_POINTS_AMOUNT);
+        }
+        
         // Award points to user
         userPoints[user].totalPoints += amount;
         emit PointsUpdated(user, amount, reason);
@@ -71,16 +84,24 @@ contract PointsTracker is AccessControl, ReentrancyGuard {
         if (referrer != address(0)) {
             // Direct commission: 10%
             uint256 directCommission = (amount * 1000) / 10000;
-            userPoints[referrer].totalPoints += directCommission;
-            emit PointsUpdated(referrer, directCommission, "referral_commission_l1");
+            
+            // Only award if commission is non-zero
+            if (directCommission > 0) {
+                userPoints[referrer].totalPoints += directCommission;
+                emit PointsUpdated(referrer, directCommission, "referral_commission_l1");
+            }
             
             // Get grandparent (second-tier)
             address grandParent = referralManager.getReferrer(referrer);
             if (grandParent != address(0)) {
                 // Indirect commission: 5%
                 uint256 indirectCommission = (amount * 500) / 10000;
-                userPoints[grandParent].totalPoints += indirectCommission;
-                emit PointsUpdated(grandParent, indirectCommission, "referral_commission_l2");
+                
+                // Only award if commission is non-zero
+                if (indirectCommission > 0) {
+                    userPoints[grandParent].totalPoints += indirectCommission;
+                    emit PointsUpdated(grandParent, indirectCommission, "referral_commission_l2");
+                }
             }
         }
     }

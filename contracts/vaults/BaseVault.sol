@@ -33,6 +33,11 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
     uint256 public depositFee = 10;         // 0.1%
     uint256 public constant BASIS_POINTS = 10000;
     
+    // Maximum fee limits (basis points) to prevent malicious admin actions
+    uint256 public constant MAX_DEPOSIT_FEE = 1000;      // 10% maximum
+    uint256 public constant MAX_WITHDRAWAL_FEE = 1000;   // 10% maximum  
+    uint256 public constant MAX_PERFORMANCE_FEE = 3000;  // 30% maximum
+    
     // Tier-based minimum deposits (in USDC, 6 decimals)
     uint256 public constant MIN_DEPOSIT_NOVICE = 500e6;    // $500
     uint256 public constant MIN_DEPOSIT_FOREST = 2000e6;   // $2,000
@@ -51,6 +56,8 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
     event Withdrawn(address indexed user, uint256 assets, uint256 shares, uint256 fee);
     event Harvested(uint256 yield, uint256 timestamp);
     event FeesCollected(uint256 amount);
+    event DepositFeeUpdated(uint256 oldFee, uint256 newFee);
+    event WithdrawalFeeUpdated(uint256 oldFee, uint256 newFee);
 
     constructor(
         string memory name,
@@ -253,10 +260,13 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
 
     /**
      * @notice Admin: Update deposit fee.
+     * @param _fee New deposit fee in basis points
      */
     function setDepositFee(uint256 _fee) external onlyRole(FEE_ADMIN_ROLE) {
-        require(_fee <= 100, "Fee too high"); // Max 1%
+        require(_fee <= MAX_DEPOSIT_FEE, "Fee exceeds maximum");
+        uint256 oldFee = depositFee;
         depositFee = _fee;
+        emit DepositFeeUpdated(oldFee, _fee);
     }
 
     /**

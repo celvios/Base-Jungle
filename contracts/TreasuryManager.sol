@@ -49,6 +49,7 @@ contract TreasuryManager is AccessControl, Pausable, ReentrancyGuard {
     mapping(address => Fund) public funds; // per stablecoin
     mapping(uint256 => WithdrawalRequest) public withdrawalRequests;
     mapping(uint256 => mapping(address => bool)) public hasApproved;
+    mapping(uint256 => bool) public cancelledRequests; // M-5 FIX: Track cancelled requests
     uint256 public nextRequestId;
 
     event FundsReceived(
@@ -76,6 +77,11 @@ contract TreasuryManager is AccessControl, Pausable, ReentrancyGuard {
         uint256 indexed requestId,
         address indexed recipient,
         uint256 amount
+    );
+    
+    event WithdrawalCancelled(
+        uint256 indexed requestId,
+        address indexed canceller
     );
 
     constructor() {
@@ -171,12 +177,31 @@ contract TreasuryManager is AccessControl, Pausable, ReentrancyGuard {
         WithdrawalRequest storage request = withdrawalRequests[requestId];
         require(request.id == requestId, "Request does not exist");
         require(!request.executed, "Already executed");
+        require(!cancelledRequests[requestId], "Request cancelled");
         require(!hasApproved[requestId][msg.sender], "Already approved");
 
         hasApproved[requestId][msg.sender] = true;
         request.approvals++;
 
         emit WithdrawalApproved(requestId, msg.sender);
+    }
+    
+    /**
+     * @notice Cancel a withdrawal request before execution.
+     * @dev M-5 FIX: Allows multi-sig to cancel suspicious requests
+     */
+    function cancelWithdrawal(uint256 requestId)
+        external
+        onlyRole(WITHDRAWAL_APPROVER_ROLE)
+    {
+        WithdrawalRequest storage request = withdrawalRequests[requestId];
+        require(request.id == requestId, "Request does not exist");
+        require(!request.executed, "Already executed");
+        require(!cancelledRequests[requestId], "Already cancelled");
+        
+        cancelledRequests[requestId] = true;
+        
+        emit WithdrawalCancelled(requestId, msg.sender);
     }
 
     /**
@@ -186,6 +211,7 @@ contract TreasuryManager is AccessControl, Pausable, ReentrancyGuard {
         WithdrawalRequest storage request = withdrawalRequests[requestId];
         require(request.id == requestId, "Request does not exist");
         require(!request.executed, "Already executed");
+        require(!cancelledRequests[requestId], "Request cancelled");
         require(request.approvals >= MIN_APPROVALS, "Insufficient approvals");
         require(
             block.timestamp >= request.requestTime + TIMELOCK_PERIOD,

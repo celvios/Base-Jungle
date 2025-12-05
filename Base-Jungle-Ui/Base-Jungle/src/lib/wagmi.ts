@@ -18,7 +18,7 @@ export const wagmiAdapter = new WagmiAdapter({
     ssr: false,
 });
 
-// 3. Create modal
+// 3. Create modal with proper mobile support
 export const modal = createAppKit({
     adapters: [wagmiAdapter],
     networks: [baseSepolia],
@@ -30,25 +30,19 @@ export const modal = createAppKit({
         icons: [`${typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app'}/favicon.png`],
     },
     features: {
-        analytics: true, // Event tracking
-        email: true, // Email login
-        socials: ['google', 'x', 'discord', 'farcaster'], // Social logins
-        onramp: true, // Buy crypto with fiat
-        swaps: true, // Token swaps within modal
-        allWallets: 'SHOW', // Show all available wallets (important for mobile)
+        analytics: true,
+        email: true,
+        socials: ['google', 'x', 'discord', 'farcaster'],
+        onramp: true,
+        swaps: true,
     },
-    // Enable mobile wallet detection
-    enableWalletConnect: true,
-    enableInjected: true,
-    enableCoinbase: true,
-    // Mobile-specific settings
-    mobileWallets: 'SHOW', // Show mobile wallets
-    desktopWallets: 'SHOW', // Show desktop wallets
-    walletImages: {}, // Custom wallet images if needed
+    // Theme configuration
     themeMode: 'dark',
     themeVariables: {
-        '--w3m-accent': '#10b981', // Green accent to match Base Jungle theme
+        '--w3m-accent': '#10b981',
     },
+    // CRITICAL: Enable all wallets for mobile
+    allWallets: 'SHOW',
 });
 
 export const queryClient = new QueryClient();

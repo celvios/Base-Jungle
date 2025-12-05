@@ -27,6 +27,9 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
 
     // Max loop iterations to prevent gas issues
     uint256 public constant MAX_LOOPS = 10;
+    
+    // Maximum leverage allowed (10x = 100000 basis points)
+    uint256 public constant MAX_LEVERAGE = 100000; // 10x maximum
 
     struct LeveragePosition {
         address user;
@@ -83,6 +86,7 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
     ) external nonReentrant {
         require(initialAmount > 0, "Amount zero");
         require(targetLeverage > 10000, "Leverage too low");
+        require(targetLeverage <= MAX_LEVERAGE, "Leverage exceeds maximum");
 
         // Check user's tier and max leverage
         ReferralManager.Tier tier = referralManager.getUserTier(msg.sender);
@@ -301,4 +305,73 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
         uint256 hf = getHealthFactor(user);
         return hf < MIN_HEALTH_FACTOR;
     }
+
+    /**
+     * @notice Get user's total debt.
+     * @param user User address
+     * @return Total borrowed amount
+     */
+    function getUserDebt(address user) external view returns (uint256) {
+        return positions[user].totalBorrowed;
+    }
+
+    /**
+     * @notice Get user's total collateral.
+     * @param user User address
+     * @return Total deposited amount
+     */
+    function getUserCollateral(address user) external view returns (uint256) {
+        return positions[user].totalDeposited;
+    }
+
+    /**
+     * @notice Liquidate an underwater position.
+     * @param user User to liquidate
+     * @param liquidator Address receiving liquidation bonus
+     * @return debtRepaid Amount of debt repaid
+     * @return collateralSeized Amount of collateral seized
+     */
+    function liquidate(
+        address user,
+        address liquidator
+    ) external onlyRole(STRATEGY_ROLE) nonReentrant returns (uint256 debtRepaid, uint256 collateralSeized) {
+        require(user != address(0), "Invalid user");
+        require(liquidator != address(0), "Invalid liquidator");
+        
+        LeveragePosition storage position = positions[user];
+        require(position.totalBorrowed > 0, "No position");
+        
+        // Check health factor
+        uint256 hf = getHealthFactor(user);
+        require(hf < MIN_HEALTH_FACTOR, "Position healthy");
+        
+        // Calculate liquidation amounts (max 50% of debt)
+        debtRepaid = position.totalBorrowed / 2;
+        
+        // Calculate collateral needed with 10% liquidation bonus
+        collateralSeized = (debtRepaid * 11000) / 10000; // 110%
+        
+        require(collateralSeized <= position.totalDeposited, "Insufficient collateral");
+        
+        // Withdraw collateral from Moonwell
+        address asset = moonwellAdapter.asset();
+        moonwellAdapter.withdraw(collateralSeized);
+        
+        // Transfer to liquidator
+        IERC20(asset).safeTransfer(liquidator, collateralSeized);
+        
+        // Update position
+        position.totalBorrowed -= debtRepaid;
+        position.totalDeposited -= collateralSeized;
+        position.lastUpdate = block.timestamp;
+        
+        emit LiquidationExecuted(user, liquidator, debtRepaid, collateralSeized);
+    }
+
+    event LiquidationExecuted(
+        address indexed user,
+        address indexed liquidator,
+        uint256 debtRepaid,
+        uint256 collateralSeized
+    );
 }

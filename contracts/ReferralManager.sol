@@ -32,12 +32,16 @@ contract ReferralManager is AccessControl {
 
     // Activity expiry window (30 days)
     uint256 public constant ACTIVITY_WINDOW = 30 days;
+    
+    // Maximum referral depth for circular detection (reduced from 10 to 5 for gas efficiency)
+    uint256 public constant MAX_REFERRAL_DEPTH = 5;
 
     event ReferralRegistered(address indexed user, address indexed referrer);
     event CodeRegistered(address indexed user, bytes32 code);
     event UserActivated(address indexed user);
     event UserDeactivated(address indexed user);
     event TierUpgraded(address indexed user, Tier newTier);
+    event ActivityExpired(address indexed user, uint256 lastActivity);
 
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -60,6 +64,7 @@ contract ReferralManager is AccessControl {
 
     /**
      * @notice Registers a user with a referrer.
+     * @dev M-4 FIX: Enhanced circular referral detection (checks 10 levels deep)
      */
     function registerReferral(address user, bytes32 code) external {
         require(!referralInfo[user].registered, "Already registered");
@@ -68,7 +73,14 @@ contract ReferralManager is AccessControl {
         address referrer = codeOwners[code];
         require(referrer != address(0), "Invalid code");
         require(referrer != user, "Cannot refer self");
-        require(referralInfo[referrer].referrer != user, "Circular referral");
+        
+        // Enhanced circular referral detection - check up to 5 levels deep (reduced for gas efficiency)
+        address current = referrer;
+        for (uint256 i = 0; i < MAX_REFERRAL_DEPTH; i++) {
+            if (current == address(0)) break;
+            require(current != user, "Circular referral detected");
+            current = referralInfo[current].referrer;
+        }
 
         referralInfo[user].referrer = referrer;
         referralInfo[user].registered = true;

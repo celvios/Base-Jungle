@@ -19,7 +19,7 @@ async function main() {
     }
 
     // Configuration
-    const USDC_SEPOLIA = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+    const USDC_SEPOLIA = process.env.USDC_ADDRESS || "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
     const addresses = {};
     const startTime = Date.now();
 

@@ -31,7 +31,9 @@ abstract contract BaobabVaultBase is ERC4626, AccessControl, Pausable, Reentranc
     event StrategyChanged(address oldStrategy, address newStrategy);
     event Rebalanced(uint256 amount, address fromStrategy, address toStrategy);
     event EmergencyWithdrawal(address indexed user, uint256 amount);
+    event EarlyWithdrawalPenalty(address indexed user, uint256 penaltyAmount);
     event FeesUpdated(uint256 depositFee, uint256 withdrawalFee, uint256 performanceFee);
+
 
     constructor(IERC20 asset_, string memory name_, string memory symbol_, address _pointsTracker) ERC4626(asset_) ERC20(name_, symbol_) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
