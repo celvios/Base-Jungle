@@ -1,4 +1,4 @@
-import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useReadContract, usePublicClient } from 'wagmi';
 import { parseUnits, formatUnits, type Address } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -149,6 +149,7 @@ export function useVaultDeposit(vaultAddress: Address) {
     const queryClient = useQueryClient();
     const { writeContract, data: hash, isPending, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+    const publicClient = usePublicClient();
 
     // Invalidate queries on success
     useEffect(() => {
@@ -158,8 +159,34 @@ export function useVaultDeposit(vaultAddress: Address) {
         }
     }, [isSuccess, queryClient]);
 
-    const deposit = (assets: string, receiver: Address) => {
+    const deposit = async (assets: string, receiver: Address) => {
         const parsedAssets = parseUnits(assets, 6); // USDC has 6 decimals
+        
+        // Verify allowance before depositing using public client
+        if (publicClient) {
+            try {
+                const allowance = await publicClient.readContract({
+                    address: USDC_ADDRESS,
+                    abi: ERC20_ABI,
+                    functionName: 'allowance',
+                    args: [receiver, vaultAddress],
+                });
+                
+                console.log(`Allowance check: ${formatUSDC(allowance)} >= ${assets}`);
+                
+                if (allowance < parsedAssets) {
+                    throw new Error(`Insufficient allowance. Approved: ${formatUSDC(allowance)}, Required: ${assets}. Please wait a moment and try again.`);
+                }
+            } catch (error: any) {
+                // If it's an allowance error, throw it
+                if (error.message?.includes('allowance')) {
+                    throw error;
+                }
+                // Otherwise log but continue (might be a network issue)
+                console.warn("Could not verify allowance:", error);
+            }
+        }
+        
         writeContract({
             address: vaultAddress,
             abi: VAULT_ABI,

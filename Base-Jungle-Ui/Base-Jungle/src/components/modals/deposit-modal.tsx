@@ -326,21 +326,64 @@ export function DepositModal() {
                                     )}
                                 </div>
                                 <button
-                                    onClick={() => {
+                                    onClick={async () => {
+                                        if (!address) return;
+                                        
                                         setTxState("depositing");
                                         setError(null);
-                                        // Refetch allowance first
-                                        refetchAllowance().then(() => {
-                                            setTimeout(() => {
-                                                deposit(numAmount.toString(), address!);
-                                            }, 500);
-                                        });
+                                        
+                                        // Wait and verify allowance is sufficient before depositing
+                                        let allowanceVerified = false;
+                                        let attempts = 0;
+                                        const maxAttempts = 10; // 10 attempts over 5 seconds
+                                        
+                                        while (!allowanceVerified && attempts < maxAttempts) {
+                                            attempts++;
+                                            
+                                            // Refetch allowance
+                                            const { data: updatedAllowance } = await refetchAllowance();
+                                            const updatedAllowanceAmount = updatedAllowance ? Number(formatUSDC(updatedAllowance)) : 0;
+                                            
+                                            console.log(`Allowance check ${attempts}: ${updatedAllowanceAmount} >= ${numAmount}`);
+                                            
+                                            if (updatedAllowanceAmount >= numAmount) {
+                                                allowanceVerified = true;
+                                                console.log("Allowance verified, proceeding with deposit");
+                                                // Small delay to ensure state is synced
+                                                await new Promise(resolve => setTimeout(resolve, 500));
+                                                try {
+                                                    deposit(numAmount.toString(), address);
+                                                } catch (error: any) {
+                                                    console.error("Deposit call failed:", error);
+                                                    setTxState("input");
+                                                    setError(error?.message || "Failed to initiate deposit. Please try again.");
+                                                }
+                                                break;
+                                            }
+                                            
+                                            // Wait 500ms before next check
+                                            await new Promise(resolve => setTimeout(resolve, 500));
+                                        }
+                                        
+                                        if (!allowanceVerified) {
+                                            setTxState("input");
+                                            setError(`Allowance not updated after ${maxAttempts} attempts. Please wait a few seconds and click "Continue to Deposit" again.`);
+                                        }
                                     }}
-                                    disabled={!address || isDepositing}
+                                    disabled={!address || isDepositing || isDepositingConfirming}
                                     className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                                 >
-                                    <Plus className="w-5 h-5" />
-                                    Continue to Deposit ${numAmount.toLocaleString()}
+                                    {isDepositing || isDepositingConfirming ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Verifying allowance...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="w-5 h-5" />
+                                            Continue to Deposit ${numAmount.toLocaleString()}
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         )}
