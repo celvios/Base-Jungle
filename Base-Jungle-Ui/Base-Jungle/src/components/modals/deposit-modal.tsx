@@ -64,7 +64,7 @@ export function DepositModal() {
     const minDeposit = minDepositRaw ? Number(formatUSDC(minDepositRaw)) : 0;
 
     // Hooks for approval and deposit
-    const { approve, isPending: isApproving, isConfirming: isApprovingConfirming, isSuccess: isApprovalSuccess, hash: approvalHash } = useApproveUSDC(
+    const { approve, isPending: isApproving, isConfirming: isApprovingConfirming, isSuccess: isApprovalSuccess, hash: approvalHash, error: approvalError } = useApproveUSDC(
         targetVault.address
     );
 
@@ -121,23 +121,33 @@ export function DepositModal() {
         }
     };
 
+    // Handle approval errors
+    useEffect(() => {
+        if (approvalError && txState === "approving") {
+            console.error("Approval error:", approvalError);
+            setTxState("input");
+            setError(approvalError.message || "Approval failed. Please try again.");
+        }
+    }, [approvalError, txState]);
+
     // Handle approval success - automatically proceed to deposit
     useEffect(() => {
-        if (isApprovalSuccess && txState === "approving" && address && numAmount > 0) {
-            // Small delay to ensure approval is fully processed
+        if (isApprovalSuccess && txState === "approving" && address && numAmount > 0 && !depositHash) {
+            // Small delay to ensure approval is fully processed on-chain
             const timer = setTimeout(() => {
                 setTxState("depositing");
+                setError(null);
                 try {
                     deposit(numAmount.toString(), address);
                 } catch (error: any) {
-                    console.error("Deposit failed:", error);
+                    console.error("Deposit call failed:", error);
                     setTxState("input");
-                    setError(error?.message || "Deposit failed. Please try again.");
+                    setError(error?.message || "Failed to initiate deposit. Please try again.");
                 }
-            }, 500);
+            }, 1000); // Increased delay to ensure approval is confirmed
             return () => clearTimeout(timer);
         }
-    }, [isApprovalSuccess, txState, address, numAmount]);
+    }, [isApprovalSuccess, txState, address, numAmount, depositHash]);
 
     // Handle deposit success
     useEffect(() => {
@@ -154,7 +164,7 @@ export function DepositModal() {
         if (depositError && txState === "depositing") {
             console.error("Deposit error:", depositError);
             setTxState("input");
-            setError(depositError.message || "Deposit failed. Please try again.");
+            setError(depositError.message || "Deposit failed. Please check your balance and try again.");
         }
     }, [depositError, txState]);
 
@@ -276,20 +286,43 @@ export function DepositModal() {
                             {(txState === "approving" || isApproving || isApprovingConfirming) && (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    {isApproving ? "Confirm in wallet..." : isApprovingConfirming ? "Approving..." : `Approving ${getTokenDisplayName('USDC')}...`}
+                                    {isApproving ? "Confirm approval in wallet..." : isApprovingConfirming ? "Approving..." : `Approving ${getTokenDisplayName('USDC')}...`}
                                 </>
                             )}
                             {(txState === "depositing" || isDepositing || isDepositingConfirming) && (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    {isDepositing ? "Confirm in wallet..." : isDepositingConfirming ? "Depositing..." : "Depositing..."}
+                                    {isDepositing ? "Confirm deposit in wallet..." : isDepositingConfirming ? "Processing deposit..." : "Preparing deposit..."}
                                 </>
                             )}
-                            {txState === "input" && !isApproving && !isDepositing && (
+                            {txState === "input" && !isApproving && !isDepositing && !isApprovingConfirming && !isDepositingConfirming && (
                                 <>
                                     <Plus className="w-5 h-5" />
                                     Deposit {numAmount > 0 ? `$${numAmount.toLocaleString()}` : ""}
                                 </>
+                            )}
+                            {/* Show transaction hashes for debugging */}
+                            {approvalHash && (
+                                <a
+                                    href={`https://sepolia.basescan.org/tx/${approvalHash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-400/60 hover:text-blue-400 mt-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    View Approval TX
+                                </a>
+                            )}
+                            {depositHash && (
+                                <a
+                                    href={`https://sepolia.basescan.org/tx/${depositHash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-400/60 hover:text-blue-400 mt-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    View Deposit TX
+                                </a>
                             )}
                         </button>
 
