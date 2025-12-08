@@ -109,7 +109,7 @@ export function useUSDCBalance(address: Address | undefined) {
 
 // Hook: Approve USDC
 export function useApproveUSDC(vaultAddress: Address) {
-    const { writeContract, data: hash, isPending } = useWriteContract();
+    const { writeContract, data: hash, isPending, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
     const approve = (amount: string) => {
@@ -122,12 +122,25 @@ export function useApproveUSDC(vaultAddress: Address) {
         });
     };
 
+    // Approve max amount (2^256 - 1)
+    const approveMax = () => {
+        const maxAmount = BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');
+        writeContract({
+            address: USDC_ADDRESS,
+            abi: ERC20_ABI,
+            functionName: 'approve',
+            args: [vaultAddress, maxAmount],
+        });
+    };
+
     return {
         approve,
+        approveMax,
         isPending,
         isConfirming,
         isSuccess,
         hash,
+        error,
     };
 }
 

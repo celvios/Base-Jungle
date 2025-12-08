@@ -3,7 +3,7 @@ import { Plus, Loader2, CheckCircle2, ArrowDownToLine, AlertCircle } from "lucid
 import { ModalContainer } from "./modal-container";
 import { useModal } from "@/contexts/modal-context";
 import { useWallet } from "@/contexts/wallet-context";
-import { useApproveUSDC, useVaultDeposit, useUSDCBalance, useVaultMinimumDeposit, formatUSDC } from "@/hooks/use-vault";
+import { useApproveUSDC, useVaultDeposit, useUSDCBalance, useVaultMinimumDeposit, useUSDCAllowance, formatUSDC } from "@/hooks/use-vault";
 import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
 import { getTokenDisplayName } from "@/constants/tokens";
@@ -63,8 +63,13 @@ export function DepositModal() {
     const { data: minDepositRaw } = useVaultMinimumDeposit(targetVault.address, address);
     const minDeposit = minDepositRaw ? Number(formatUSDC(minDepositRaw)) : 0;
 
+    // Check current allowance
+    const { data: currentAllowance } = useUSDCAllowance(address, targetVault.address);
+    const allowanceAmount = currentAllowance ? Number(formatUSDC(currentAllowance)) : 0;
+    const needsApproval = numAmount > allowanceAmount;
+
     // Hooks for approval and deposit
-    const { approve, isPending: isApproving, isConfirming: isApprovingConfirming, isSuccess: isApprovalSuccess, hash: approvalHash, error: approvalError } = useApproveUSDC(
+    const { approve, approveMax, isPending: isApproving, isConfirming: isApprovingConfirming, isSuccess: isApprovalSuccess, hash: approvalHash, error: approvalError } = useApproveUSDC(
         targetVault.address
     );
 
@@ -109,15 +114,30 @@ export function DepositModal() {
             return;
         }
 
-        // Step 1: Approve USDC
-        setTxState("approving");
-        setError(null);
-        try {
-            approve(numAmount.toString());
-        } catch (error: any) {
-            console.error("Approval failed:", error);
-            setTxState("input");
-            setError(error?.message || "Approval failed. Please try again.");
+        // Check if approval is needed
+        if (needsApproval) {
+            // Step 1: Approve USDC (approve max to avoid future approval issues)
+            setTxState("approving");
+            setError(null);
+            try {
+                // Use max approval to avoid allowance issues
+                approveMax();
+            } catch (error: any) {
+                console.error("Approval failed:", error);
+                setTxState("input");
+                setError(error?.message || "Approval failed. Please try again.");
+            }
+        } else {
+            // Already approved, go straight to deposit
+            setTxState("depositing");
+            setError(null);
+            try {
+                deposit(numAmount.toString(), address);
+            } catch (error: any) {
+                console.error("Deposit call failed:", error);
+                setTxState("input");
+                setError(error?.message || "Failed to initiate deposit. Please try again.");
+            }
         }
     };
 
@@ -133,7 +153,7 @@ export function DepositModal() {
     // Handle approval success - automatically proceed to deposit
     useEffect(() => {
         if (isApprovalSuccess && txState === "approving" && address && numAmount > 0 && !depositHash) {
-            // Small delay to ensure approval is fully processed on-chain
+            // Wait for allowance to update on-chain (wait for next block)
             const timer = setTimeout(() => {
                 setTxState("depositing");
                 setError(null);
@@ -144,10 +164,10 @@ export function DepositModal() {
                     setTxState("input");
                     setError(error?.message || "Failed to initiate deposit. Please try again.");
                 }
-            }, 1000); // Increased delay to ensure approval is confirmed
+            }, 2000); // Increased delay to ensure approval is confirmed and allowance updated
             return () => clearTimeout(timer);
         }
-    }, [isApprovalSuccess, txState, address, numAmount, depositHash]);
+    }, [isApprovalSuccess, txState, address, numAmount, depositHash, deposit]);
 
     // Handle deposit success
     useEffect(() => {
@@ -274,6 +294,17 @@ export function DepositModal() {
                                         ${(numAmount * targetVault.apy / 100).toFixed(2)}
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Allowance Info */}
+                        {numAmount > 0 && (
+                            <div className="text-xs text-gray-500 text-center">
+                                {needsApproval ? (
+                                    <span>Approval needed: ${numAmount.toFixed(2)} {getTokenDisplayName('USDC')}</span>
+                                ) : (
+                                    <span className="text-green-400">✓ Already approved</span>
+                                )}
                             </div>
                         )}
 
