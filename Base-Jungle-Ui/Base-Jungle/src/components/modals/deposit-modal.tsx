@@ -201,18 +201,28 @@ export function DepositModal() {
     // AUTO-PROCEED: When approval is confirmed, wait a bit then deposit
     useEffect(() => {
         if (isApproveSuccess && approveReceipt && step === "approving" && !depositCalledRef.current) {
-            console.log("✅ Approval confirmed! Waiting 5 seconds before depositing...");
+            console.log("✅ Approval confirmed!");
+            console.log("📋 Approval TX:", approveHash);
+            console.log("🏦 Vault address:", targetVault.address);
+            console.log("💰 USDC address:", USDC_ADDRESS);
+            console.log("💵 Amount:", numAmount, "parsed:", parsedAmount.toString());
+            console.log("👤 User address:", address);
+            
             setStep("approved");
             
-            // Wait 5 seconds for state propagation, then deposit
+            // Wait 10 seconds for state propagation across all RPC nodes
             const timer = setTimeout(async () => {
                 if (depositCalledRef.current) return;
                 depositCalledRef.current = true;
                 
-                console.log("⏳ Refetching allowance...");
-                await refetchAllowance();
+                console.log("⏳ Refetching allowance after 10s wait...");
+                const { data: newAllowance } = await refetchAllowance();
+                console.log("📊 New allowance:", newAllowance?.toString());
                 
-                console.log("🚀 Starting deposit...");
+                console.log("🚀 Starting deposit to vault:", targetVault.address);
+                console.log("🚀 Deposit amount:", parsedAmount.toString());
+                console.log("🚀 Receiver:", address);
+                
                 setStep("depositing");
                 
                 writeDeposit({
@@ -221,7 +231,7 @@ export function DepositModal() {
                     functionName: 'deposit',
                     args: [parsedAmount, address!],
                 });
-            }, 5000);
+            }, 10000);
 
             return () => clearTimeout(timer);
         }
@@ -431,14 +441,10 @@ export function DepositModal() {
                             </div>
                         )}
 
-                        {/* Allowance Info */}
-                        {numAmount > 0 && (
+                        {/* Allowance Info - only show if approval needed */}
+                        {numAmount > 0 && !hasEnoughAllowance && (
                             <div className="text-xs text-gray-500 text-center">
-                                {hasEnoughAllowance ? (
-                                    <span className="text-green-400">✓ Already approved</span>
-                                ) : (
-                                    <span>Approval needed for {getTokenDisplayName('USDC')}</span>
-                                )}
+                                <span>Approval needed for {getTokenDisplayName('USDC')}</span>
                             </div>
                         )}
 
@@ -457,7 +463,7 @@ export function DepositModal() {
                                 </div>
                                 <p className="text-xs text-gray-400">
                                     {step === "approved" 
-                                        ? "Waiting 5 seconds for blockchain sync, then depositing automatically..."
+                                        ? "Waiting 10 seconds for blockchain sync, then depositing automatically..."
                                         : "Please confirm the approval transaction in your wallet."}
                                 </p>
                                 {approveHash && (
