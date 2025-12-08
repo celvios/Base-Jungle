@@ -13,7 +13,6 @@ import WhitepaperPage from "@/pages/whitepaper";
 import AnalyticsPage from "@/pages/analytics";
 import GovernancePage from "@/pages/governance";
 import SecurityPage from "@/pages/security";
-import SecurityPage from "@/pages/security";
 import StrategiesPage from "@/pages/strategies";
 import RewardsPage from "@/pages/rewards";
 import NotFound from "@/pages/not-found";
@@ -27,7 +26,6 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/contexts/theme-context";
 import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark, Shield, Layers } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
-import { MobileWalletGuide } from "@/components/mobile-wallet-guide";
 
 function Router() {
   return (
@@ -149,7 +147,6 @@ function App() {
               <SidebarProvider style={style as React.CSSProperties}>
                 <ModalRenderer />
                 <Toaster />
-                <MobileWalletGuide />
                 <AppContent />
               </SidebarProvider>
             </TooltipProvider>

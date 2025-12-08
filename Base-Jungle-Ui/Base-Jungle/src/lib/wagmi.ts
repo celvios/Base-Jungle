@@ -54,10 +54,8 @@ export const modal = createAppKit({
     themeVariables: {
         '--w3m-accent': '#10b981',
     },
-    // Show ALL wallets - WalletConnect connector appears automatically
+    // Show ALL wallets - WalletConnect connector appears automatically via WagmiAdapter
     allWallets: 'SHOW',
-    // Mobile-specific: Ensure WalletConnect is prominent for mobile users
-    // WalletConnect is automatically available through WagmiAdapter
 });
 
 export const queryClient = new QueryClient();
