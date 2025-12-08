@@ -130,7 +130,15 @@ export function DepositModal() {
 
     // Handle approve click
     const handleApprove = () => {
-        if (!address || !targetVault.address) return;
+        console.log("🔵 handleApprove called");
+        console.log("🔵 Address:", address);
+        console.log("🔵 Target vault:", targetVault.address);
+        console.log("🔵 USDC Address:", USDC_ADDRESS);
+        
+        if (!address || !targetVault.address) {
+            console.log("❌ Missing address or vault");
+            return;
+        }
         
         setError(null);
         setStep("approving");
@@ -139,12 +147,16 @@ export function DepositModal() {
         // Approve max uint256
         const maxAmount = BigInt("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
         
+        console.log("🔵 Calling writeApprove with max amount...");
+        
         writeApprove({
             address: USDC_ADDRESS,
             abi: ERC20_ABI,
             functionName: 'approve',
             args: [targetVault.address, maxAmount],
         });
+        
+        console.log("🔵 writeApprove called");
     };
 
     // Handle deposit click
@@ -164,6 +176,11 @@ export function DepositModal() {
 
     // Handle main button click
     const handleMainAction = () => {
+        console.log("🟢 handleMainAction called");
+        console.log("🟢 hasEnoughAllowance:", hasEnoughAllowance);
+        console.log("🟢 Current allowance:", currentAllowance?.toString());
+        console.log("🟢 Parsed amount:", parsedAmount.toString());
+        
         if (!address) {
             setError("Please connect your wallet");
             return;
@@ -191,12 +208,27 @@ export function DepositModal() {
 
         // If we need approval, do that first
         if (!hasEnoughAllowance) {
+            console.log("🟢 Needs approval, calling handleApprove");
             handleApprove();
         } else {
             // Already approved, deposit directly
+            console.log("🟢 Already approved, calling handleDeposit");
             handleDeposit();
         }
     };
+
+    // Log approval state changes
+    useEffect(() => {
+        console.log("🟡 Approval state:", {
+            isApprovePending,
+            isApproveConfirming,
+            isApproveSuccess,
+            approveHash,
+            approveReceipt: approveReceipt ? "received" : "none",
+            approveError: approveError?.message || "none",
+            step
+        });
+    }, [isApprovePending, isApproveConfirming, isApproveSuccess, approveHash, approveReceipt, approveError, step]);
 
     // AUTO-PROCEED: When approval is confirmed, wait a bit then deposit
     useEffect(() => {
