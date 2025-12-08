@@ -101,6 +101,20 @@ export function DepositModal() {
         targetVault.address
     );
 
+    // Add a timeout to reset state if deposit gets stuck
+    useEffect(() => {
+        if (txState === "depositing" && !isDepositing && !isDepositingConfirming && !depositHash) {
+            // If we're in depositing state but no transaction was initiated after 10 seconds, reset
+            const timeout = setTimeout(() => {
+                console.warn("Deposit state timeout - resetting");
+                setTxState("input");
+                setError("Deposit transaction was not initiated. Please try again.");
+            }, 10000);
+            
+            return () => clearTimeout(timeout);
+        }
+    }, [txState, isDepositing, isDepositingConfirming, depositHash]);
+
     const handleMaxClick = () => {
         setAmount(balance.toString());
         setError(null);
@@ -227,7 +241,34 @@ export function DepositModal() {
 
                                 setTxState("depositing");
                                 setError(null);
-                                await deposit(numAmount.toString(), address);
+                                
+                                // Call deposit - it will trigger writeContract which opens wallet popup
+                                // Don't await it since writeContract doesn't return a promise
+                                try {
+                                    deposit(numAmount.toString(), address);
+                                    
+                                    // Wait a bit to see if transaction was initiated
+                                    // If isPending doesn't become true within 5 seconds, something went wrong
+                                    let transactionInitiated = false;
+                                    for (let i = 0; i < 10; i++) {
+                                        await new Promise(resolve => setTimeout(resolve, 500));
+                                        if (isDepositing) {
+                                            transactionInitiated = true;
+                                            console.log("✅ Deposit transaction initiated, waiting for user confirmation...");
+                                            break;
+                                        }
+                                    }
+                                    
+                                    if (!transactionInitiated) {
+                                        console.error("❌ Deposit transaction was not initiated");
+                                        setTxState("input");
+                                        setError("Failed to initiate deposit. Please try again.");
+                                    }
+                                } catch (error: any) {
+                                    console.error("Deposit call failed:", error);
+                                    setTxState("input");
+                                    setError(error?.message || "Failed to initiate deposit. Please try again.");
+                                }
                                 break;
                             }
                         } catch (error: any) {
