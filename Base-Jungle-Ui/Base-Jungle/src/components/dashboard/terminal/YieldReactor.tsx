@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { RefreshCw, TrendingUp, DollarSign } from 'lucide-react';
+import { getTokenDisplayName } from '@/constants/tokens';
 
 interface YieldReactorProps {
   principal: number;
@@ -118,7 +119,7 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
           className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 transition-all h-12 font-mono tracking-wider text-sm"
         >
           <DollarSign className="w-4 h-4 mr-2" />
-          HARVEST USDC (${harvestableYield.toFixed(2)})
+          HARVEST {getTokenDisplayName('USDC')} (${harvestableYield.toFixed(2)})
         </Button>
       </div>
 

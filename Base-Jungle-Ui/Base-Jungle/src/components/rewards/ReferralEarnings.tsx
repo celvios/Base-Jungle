@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, DollarSign, ArrowRight } from "lucide-react";
+import { getTokenDisplayName } from "@/constants/tokens";
 
 export function ReferralEarnings() {
     return (
@@ -25,7 +26,7 @@ export function ReferralEarnings() {
             <CardContent className="space-y-6">
                 <div className="flex items-center justify-between bg-black/20 rounded-lg p-4 border border-white/5">
                     <div>
-                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Unclaimed USDC</div>
+                        <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Unclaimed {getTokenDisplayName('USDC')}</div>
                         <div className="text-2xl font-bold text-white">$124.50</div>
                     </div>
                     <Button className="bg-green-600 hover:bg-green-700 text-white font-bold">

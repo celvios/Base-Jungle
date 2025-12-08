@@ -6,6 +6,7 @@ import { useWallet } from "@/contexts/wallet-context";
 import { useApproveUSDC, useVaultDeposit, useUSDCBalance, useVaultMinimumDeposit, formatUSDC } from "@/hooks/use-vault";
 import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
+import { getTokenDisplayName } from "@/constants/tokens";
 
 type TransactionState = "input" | "approving" | "depositing" | "success";
 
@@ -175,7 +176,7 @@ export function DepositModal() {
                                     disabled={txState !== "input"}
                                 />
                                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                                    <span className="text-gray-400 text-sm">USDC</span>
+                                    <span className="text-gray-400 text-sm">{getTokenDisplayName('USDC')}</span>
                                     <button
                                         onClick={handleMaxClick}
                                         className="px-2 py-1 bg-blue-500/20 hover:bg-blue-500/30 rounded text-xs text-blue-400 font-bold transition-colors"
@@ -196,7 +197,7 @@ export function DepositModal() {
 
                             <div className="flex items-center justify-between mt-2 text-xs">
                                 <span className="text-gray-500">
-                                    Balance: {balance.toLocaleString()} USDC
+                                    Balance: {balance.toLocaleString()} {getTokenDisplayName('USDC')}
                                 </span>
                                 {numAmount > 0 && (
                                     <span className="text-green-400">
@@ -233,7 +234,7 @@ export function DepositModal() {
                             {txState === "approving" && (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Approving USDC...
+                                    Approving {getTokenDisplayName('USDC')}...
                                 </>
                             )}
                             {txState === "depositing" && (
@@ -253,7 +254,7 @@ export function DepositModal() {
                         {/* Info */}
                         <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
                             <p className="text-xs text-yellow-300">
-                                <strong>Note:</strong> This is a 2-step process. First approve USDC, then deposit.
+                                <strong>Note:</strong> This is a 2-step process. First approve {getTokenDisplayName('USDC')}, then deposit.
                                 Gas fees apply to both transactions.
                             </p>
                         </div>

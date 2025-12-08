@@ -2,6 +2,7 @@ import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 
 import { parseUnits, formatUnits, type Address } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { USDC_ADDRESS } from '@/constants/tokens';
 
 // ERC20 ABI for USDC approval
 const ERC20_ABI = [
@@ -75,7 +76,7 @@ const VAULT_ABI = [
 ] as const;
 
 // Contract addresses from environment
-const USDC_ADDRESS = (import.meta.env.VITE_USDC_ADDRESS as Address) || '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'; // Base Mainnet USDC
+// USDC_ADDRESS is now imported from constants/tokens.ts (uses Mock USDC)
 const BASE_VAULT_ADDRESS = import.meta.env.VITE_BASE_VAULT_ADDRESS as Address;
 const CONSERVATIVE_VAULT_ADDRESS = import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address;
 const AGGRESSIVE_VAULT_ADDRESS = import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS as Address;
