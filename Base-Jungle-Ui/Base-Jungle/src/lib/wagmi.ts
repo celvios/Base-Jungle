@@ -21,12 +21,12 @@ export const wagmiAdapter = new WagmiAdapter({
 // Get wagmi config to add injected connector
 export const config = wagmiAdapter.wagmiConfig;
 
-// Define metadata strictly to ensure deep links work on mobile
+// Define metadata dynamically to ensure deep links work on mobile (any domain)
 const metadata = {
     name: 'Base Jungle',
     description: 'DeFi Yield Optimization Protocol on Base',
-    url: 'https://base-jungle.vercel.app',
-    icons: ['https://base-jungle.vercel.app/favicon.png']
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app',
+    icons: [typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : 'https://base-jungle.vercel.app/favicon.png']
 };
 
 // 3. Create modal with WalletConnect featured for mobile

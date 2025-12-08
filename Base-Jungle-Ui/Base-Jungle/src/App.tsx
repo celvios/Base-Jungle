@@ -27,6 +27,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/contexts/theme-context";
 import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark, Shield, Layers } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
+import { MobileWalletGuide } from "@/components/mobile-wallet-guide";
 
 function Router() {
   return (
@@ -148,6 +149,7 @@ function App() {
               <SidebarProvider style={style as React.CSSProperties}>
                 <ModalRenderer />
                 <Toaster />
+                <MobileWalletGuide />
                 <AppContent />
               </SidebarProvider>
             </TooltipProvider>
