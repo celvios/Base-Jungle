@@ -38,31 +38,31 @@ export function MobileWalletGuide() {
                         </div>
 
                         <div className="space-y-2">
-                            {/* Option 1: In-App Browser */}
+                            {/* Option 1: WalletConnect - PRIMARY for mobile */}
+                            <div className="bg-black/20 rounded p-3 space-y-1 border border-blue-500/30">
+                                <div className="flex items-center gap-2">
+                                    <QrCode className="w-4 h-4 text-blue-400" />
+                                    <span className="text-xs font-medium text-blue-400">Best for Mobile</span>
+                                </div>
+                                <p className="text-xs text-white/90">
+                                    Tap <strong>"Connect Wallet"</strong> → Look for <strong>"WalletConnect"</strong> option
+                                </p>
+                                <p className="text-xs text-white/60">
+                                    It will show a QR code or open your wallet app directly
+                                </p>
+                            </div>
+
+                            {/* Option 2: In-App Browser */}
                             <div className="bg-black/20 rounded p-3 space-y-1">
                                 <div className="flex items-center gap-2">
                                     <Smartphone className="w-4 h-4 text-green-400" />
-                                    <span className="text-xs font-medium text-green-400">Recommended</span>
+                                    <span className="text-xs font-medium text-green-400">Alternative</span>
                                 </div>
                                 <p className="text-xs text-white/90">
                                     Open this site in <strong>MetaMask's browser</strong>
                                 </p>
                                 <p className="text-xs text-white/60">
                                     MetaMask app → Browser tab → Enter URL
-                                </p>
-                            </div>
-
-                            {/* Option 2: WalletConnect */}
-                            <div className="bg-black/20 rounded p-3 space-y-1">
-                                <div className="flex items-center gap-2">
-                                    <QrCode className="w-4 h-4 text-blue-400" />
-                                    <span className="text-xs font-medium text-blue-400">Alternative</span>
-                                </div>
-                                <p className="text-xs text-white/90">
-                                    Use <strong>WalletConnect</strong> from this browser
-                                </p>
-                                <p className="text-xs text-white/60">
-                                    Connect → WalletConnect → Approve in app
                                 </p>
                             </div>
 
