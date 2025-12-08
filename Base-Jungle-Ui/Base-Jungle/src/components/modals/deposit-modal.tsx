@@ -161,17 +161,35 @@ export function DepositModal() {
 
     // Handle deposit click
     const handleDeposit = () => {
-        if (!address || !targetVault.address || numAmount <= 0) return;
+        console.log("🟣 handleDeposit called");
+        console.log("🟣 Address:", address);
+        console.log("🟣 Target vault:", targetVault.address);
+        console.log("🟣 numAmount:", numAmount);
+        console.log("🟣 parsedAmount:", parsedAmount.toString());
+        
+        if (!address || !targetVault.address || numAmount <= 0) {
+            console.log("❌ handleDeposit validation failed:", { address, vault: targetVault.address, numAmount });
+            return;
+        }
         
         setError(null);
         setStep("depositing");
         
-        writeDeposit({
-            address: targetVault.address,
-            abi: VAULT_ABI,
-            functionName: 'deposit',
-            args: [parsedAmount, address],
-        });
+        console.log("🟣 Calling writeDeposit...");
+        console.log("🟣 Vault address:", targetVault.address);
+        console.log("🟣 Args:", [parsedAmount.toString(), address]);
+        
+        try {
+            writeDeposit({
+                address: targetVault.address,
+                abi: VAULT_ABI,
+                functionName: 'deposit',
+                args: [parsedAmount, address],
+            });
+            console.log("🟣 writeDeposit called successfully");
+        } catch (err) {
+            console.error("🟣 writeDeposit threw error:", err);
+        }
     };
 
     // Handle main button click
@@ -229,6 +247,18 @@ export function DepositModal() {
             step
         });
     }, [isApprovePending, isApproveConfirming, isApproveSuccess, approveHash, approveReceipt, approveError, step]);
+
+    // Log deposit state changes
+    useEffect(() => {
+        console.log("🟠 Deposit state:", {
+            isDepositPending,
+            isDepositConfirming,
+            isDepositSuccess,
+            depositHash,
+            depositError: depositError?.message || "none",
+            step
+        });
+    }, [isDepositPending, isDepositConfirming, isDepositSuccess, depositHash, depositError, step]);
 
     // AUTO-PROCEED: When approval is confirmed, wait a bit then deposit
     useEffect(() => {
