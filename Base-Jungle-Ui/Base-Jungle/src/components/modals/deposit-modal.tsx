@@ -85,6 +85,17 @@ export function DepositModal() {
     const numAmount = parseFloat(amount) || 0;
     const parsedAmount = numAmount > 0 ? parseUnits(numAmount.toString(), 6) : BigInt(0);
 
+    // DEBUG: Log environment variables on mount
+    useEffect(() => {
+        console.log("🔴 ENV CHECK - Vault addresses from environment:");
+        console.log("🔴 VITE_CONSERVATIVE_VAULT_ADDRESS:", import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS);
+        console.log("🔴 VITE_AGGRESSIVE_VAULT_ADDRESS:", import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS);
+        console.log("🔴 VITE_USDC_ADDRESS:", import.meta.env.VITE_USDC_ADDRESS);
+        console.log("🔴 Target vault being used:", targetVault.address);
+        console.log("🔴 Expected Conservative:", "0xf1390Ba2304e0764A92c8bAdbAEFBA2b24e841E9");
+        console.log("🔴 Expected Aggressive:", "0x534028D42C6750340e32c2006Ed7e20ea8C993Ee");
+    }, [targetVault.address]);
+
     // Get minimum deposit for this user
     const { data: minDepositRaw } = useVaultMinimumDeposit(targetVault.address, address);
     const minDeposit = minDepositRaw ? Number(formatUSDC(minDepositRaw)) : 0;
