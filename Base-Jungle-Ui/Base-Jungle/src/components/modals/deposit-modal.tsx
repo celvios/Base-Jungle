@@ -80,7 +80,7 @@ export function DepositModal() {
 
     // Check current allowance (refetch frequently when approving)
     const { data: currentAllowance, refetch: refetchAllowance } = useUSDCAllowance(
-        address, 
+        address,
         targetVault.address
     );
     const allowanceAmount = currentAllowance ? Number(formatUSDC(currentAllowance)) : 0;
@@ -168,16 +168,63 @@ export function DepositModal() {
         }
     }, [approvalError, txState]);
 
-    // Refetch allowance when approval succeeds (for UI display)
+    // Auto-proceed to deposit after approval is confirmed
     useEffect(() => {
-        if (isApprovalSuccess && txState === "approving") {
-            // Refetch allowance to update UI
-            const timer = setTimeout(() => {
-                refetchAllowance();
-            }, 2000);
-            return () => clearTimeout(timer);
+        if (isApprovalSuccess && txState === "approving" && address && publicClient) {
+            const proceedToDeposit = async () => {
+                try {
+                    const parsedAmount = parseUnits(numAmount.toString(), 6);
+
+                    // Wait and verify allowance before depositing
+                    let allowanceVerified = false;
+                    let attempts = 0;
+                    const maxAttempts = 20;
+
+                    while (!allowanceVerified && attempts < maxAttempts) {
+                        attempts++;
+
+                        try {
+                            const allowance = await publicClient.readContract({
+                                address: USDC_ADDRESS,
+                                abi: ERC20_ABI,
+                                functionName: 'allowance',
+                                args: [address, targetVault.address],
+                            });
+
+                            console.log(`Allowance check ${attempts}: ${formatUSDC(allowance)} >= ${numAmount}`);
+
+                            if (allowance >= parsedAmount) {
+                                allowanceVerified = true;
+                                console.log("Allowance verified, proceeding with deposit");
+
+                                await new Promise(resolve => setTimeout(resolve, 500));
+
+                                setTxState("depositing");
+                                setError(null);
+                                await deposit(numAmount.toString(), address);
+                                break;
+                            }
+                        } catch (error: any) {
+                            console.error(`Allowance check ${attempts} failed:`, error);
+                        }
+
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                    if (!allowanceVerified) {
+                        setTxState("input");
+                        setError(`Allowance verification timed out. Please try depositing again.`);
+                    }
+                } catch (error: any) {
+                    console.error("Auto-deposit failed:", error);
+                    setTxState("input");
+                    setError(error?.message || "Failed to proceed with deposit. Please try again.");
+                }
+            };
+
+            proceedToDeposit();
         }
-    }, [isApprovalSuccess, txState, refetchAllowance]);
+    }, [isApprovalSuccess, txState, address, publicClient, numAmount, targetVault.address, deposit]);
 
     // Handle deposit success
     useEffect(() => {
@@ -318,113 +365,31 @@ export function DepositModal() {
                             </div>
                         )}
 
-                        {/* Show approval success state with continue button */}
-                        {isApprovalSuccess && txState === "approving" && !depositHash && (
-                            <div className="space-y-3">
-                                <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <CheckCircle2 className="w-5 h-5 text-green-400" />
-                                        <span className="text-sm font-medium text-green-400">Approval Successful!</span>
-                                    </div>
-                                    <p className="text-xs text-gray-400">
-                                        Your {getTokenDisplayName('USDC')} has been approved. Click below to complete the deposit.
-                                    </p>
-                                    {approvalHash && (
-                                        <a
-                                            href={`https://sepolia.basescan.org/tx/${approvalHash}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-xs text-blue-400/60 hover:text-blue-400 mt-2 inline-block"
-                                        >
-                                            View Approval Transaction →
-                                        </a>
-                                    )}
+                        {/* Show approval success state - auto-proceeding */}
+                        {isApprovalSuccess && txState === "approving" && (
+                            <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Loader2 className="w-5 h-5 animate-spin text-green-400" />
+                                    <span className="text-sm font-medium text-green-400">Approval Confirmed!</span>
                                 </div>
-                                <button
-                                    onClick={async () => {
-                                        if (!address || !publicClient || !targetVault.address) {
-                                            setError("Missing required data. Please try again.");
-                                            return;
-                                        }
-                                        
-                                        setTxState("depositing");
-                                        setError(null);
-                                        
-                                        const parsedAmount = parseUnits(numAmount.toString(), 6);
-                                        
-                                        // Wait and verify allowance is sufficient before depositing
-                                        // Use public client to read directly from blockchain
-                                        let allowanceVerified = false;
-                                        let attempts = 0;
-                                        const maxAttempts = 15; // 15 attempts over 7.5 seconds
-                                        
-                                        while (!allowanceVerified && attempts < maxAttempts) {
-                                            attempts++;
-                                            
-                                            try {
-                                                // Read allowance directly from blockchain using public client
-                                                const allowance = await publicClient.readContract({
-                                                    address: USDC_ADDRESS,
-                                                    abi: ERC20_ABI,
-                                                    functionName: 'allowance',
-                                                    args: [address, targetVault.address],
-                                                });
-                                                
-                                                const allowanceAmount = Number(formatUSDC(allowance));
-                                                console.log(`Allowance check ${attempts}: ${allowanceAmount} >= ${numAmount} (raw: ${allowance.toString()} >= ${parsedAmount.toString()})`);
-                                                
-                                                // Check if allowance is sufficient (compare bigints)
-                                                if (allowance >= parsedAmount) {
-                                                    allowanceVerified = true;
-                                                    console.log("Allowance verified, proceeding with deposit");
-                                                    
-                                                    // Small delay to ensure state is synced
-                                                    await new Promise(resolve => setTimeout(resolve, 300));
-                                                    
-                                                    try {
-                                                        await deposit(numAmount.toString(), address);
-                                                    } catch (error: any) {
-                                                        console.error("Deposit call failed:", error);
-                                                        setTxState("input");
-                                                        setError(error?.message || "Failed to initiate deposit. Please try again.");
-                                                        return;
-                                                    }
-                                                    break;
-                                                }
-                                            } catch (error: any) {
-                                                console.error(`Allowance check ${attempts} failed:`, error);
-                                                // Continue to next attempt
-                                            }
-                                            
-                                            // Wait 500ms before next check
-                                            await new Promise(resolve => setTimeout(resolve, 500));
-                                        }
-                                        
-                                        if (!allowanceVerified) {
-                                            setTxState("input");
-                                            setError(`Allowance not updated after ${maxAttempts} attempts. The approval transaction may still be processing. Please wait a few more seconds and click "Continue to Deposit" again.`);
-                                        }
-                                    }}
-                                    disabled={!address || isDepositing || isDepositingConfirming || !publicClient}
-                                    className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
-                                >
-                                    {isDepositing || isDepositingConfirming ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            {isDepositing ? "Confirm deposit in wallet..." : "Verifying allowance..."}
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="w-5 h-5" />
-                                            Continue to Deposit ${numAmount.toLocaleString()}
-                                        </>
-                                    )}
-                                </button>
+                                <p className="text-xs text-gray-400">
+                                    Verifying allowance and proceeding with deposit automatically...
+                                </p>
+                                {approvalHash && (
+                                    <a
+                                        href={`https://sepolia.basescan.org/tx/${approvalHash}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-400/60 hover:text-blue-400 mt-2 inline-block"
+                                    >
+                                        View Approval Transaction →
+                                    </a>
+                                )}
                             </div>
                         )}
 
                         {/* Action Button - Show when not in approval success state */}
-                        {!(isApprovalSuccess && txState === "approving" && !depositHash) && (
+                        {!(isApprovalSuccess && txState === "approving") && (
                             <button
                                 onClick={handleDeposit}
                                 disabled={!numAmount || numAmount > balance || numAmount < minDeposit || txState !== "input" || isApproving || isDepositing || !address}
