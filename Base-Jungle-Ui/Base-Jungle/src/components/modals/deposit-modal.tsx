@@ -63,8 +63,11 @@ export function DepositModal() {
     const { data: minDepositRaw } = useVaultMinimumDeposit(targetVault.address, address);
     const minDeposit = minDepositRaw ? Number(formatUSDC(minDepositRaw)) : 0;
 
-    // Check current allowance
-    const { data: currentAllowance } = useUSDCAllowance(address, targetVault.address);
+    // Check current allowance (refetch frequently when approving)
+    const { data: currentAllowance, refetch: refetchAllowance } = useUSDCAllowance(
+        address, 
+        targetVault.address
+    );
     const allowanceAmount = currentAllowance ? Number(formatUSDC(currentAllowance)) : 0;
     const needsApproval = numAmount > allowanceAmount;
 
@@ -150,24 +153,16 @@ export function DepositModal() {
         }
     }, [approvalError, txState]);
 
-    // Handle approval success - automatically proceed to deposit
+    // Refetch allowance when approval succeeds (for UI display)
     useEffect(() => {
-        if (isApprovalSuccess && txState === "approving" && address && numAmount > 0 && !depositHash) {
-            // Wait for allowance to update on-chain (wait for next block)
+        if (isApprovalSuccess && txState === "approving") {
+            // Refetch allowance to update UI
             const timer = setTimeout(() => {
-                setTxState("depositing");
-                setError(null);
-                try {
-                    deposit(numAmount.toString(), address);
-                } catch (error: any) {
-                    console.error("Deposit call failed:", error);
-                    setTxState("input");
-                    setError(error?.message || "Failed to initiate deposit. Please try again.");
-                }
-            }, 2000); // Increased delay to ensure approval is confirmed and allowance updated
+                refetchAllowance();
+            }, 2000);
             return () => clearTimeout(timer);
         }
-    }, [isApprovalSuccess, txState, address, numAmount, depositHash, deposit]);
+    }, [isApprovalSuccess, txState, refetchAllowance]);
 
     // Handle deposit success
     useEffect(() => {
@@ -308,54 +303,87 @@ export function DepositModal() {
                             </div>
                         )}
 
-                        {/* Action Button */}
-                        <button
-                            onClick={handleDeposit}
-                            disabled={!numAmount || numAmount > balance || numAmount < minDeposit || txState !== "input" || isApproving || isDepositing || !address}
-                            className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
-                        >
-                            {(txState === "approving" || isApproving || isApprovingConfirming) && (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    {isApproving ? "Confirm approval in wallet..." : isApprovingConfirming ? "Approving..." : `Approving ${getTokenDisplayName('USDC')}...`}
-                                </>
-                            )}
-                            {(txState === "depositing" || isDepositing || isDepositingConfirming) && (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    {isDepositing ? "Confirm deposit in wallet..." : isDepositingConfirming ? "Processing deposit..." : "Preparing deposit..."}
-                                </>
-                            )}
-                            {txState === "input" && !isApproving && !isDepositing && !isApprovingConfirming && !isDepositingConfirming && (
-                                <>
+                        {/* Show approval success state with continue button */}
+                        {isApprovalSuccess && txState === "approving" && !depositHash && (
+                            <div className="space-y-3">
+                                <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <CheckCircle2 className="w-5 h-5 text-green-400" />
+                                        <span className="text-sm font-medium text-green-400">Approval Successful!</span>
+                                    </div>
+                                    <p className="text-xs text-gray-400">
+                                        Your {getTokenDisplayName('USDC')} has been approved. Click below to complete the deposit.
+                                    </p>
+                                    {approvalHash && (
+                                        <a
+                                            href={`https://sepolia.basescan.org/tx/${approvalHash}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-xs text-blue-400/60 hover:text-blue-400 mt-2 inline-block"
+                                        >
+                                            View Approval Transaction →
+                                        </a>
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setTxState("depositing");
+                                        setError(null);
+                                        // Refetch allowance first
+                                        refetchAllowance().then(() => {
+                                            setTimeout(() => {
+                                                deposit(numAmount.toString(), address!);
+                                            }, 500);
+                                        });
+                                    }}
+                                    disabled={!address || isDepositing}
+                                    className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                                >
                                     <Plus className="w-5 h-5" />
-                                    Deposit {numAmount > 0 ? `$${numAmount.toLocaleString()}` : ""}
-                                </>
-                            )}
-                            {/* Show transaction hashes for debugging */}
-                            {approvalHash && (
-                                <a
-                                    href={`https://sepolia.basescan.org/tx/${approvalHash}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-blue-400/60 hover:text-blue-400 mt-2"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    View Approval TX
-                                </a>
-                            )}
-                            {depositHash && (
-                                <a
-                                    href={`https://sepolia.basescan.org/tx/${depositHash}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-xs text-blue-400/60 hover:text-blue-400 mt-2"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
-                                    View Deposit TX
-                                </a>
-                            )}
-                        </button>
+                                    Continue to Deposit ${numAmount.toLocaleString()}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Action Button - Show when not in approval success state */}
+                        {!(isApprovalSuccess && txState === "approving" && !depositHash) && (
+                            <button
+                                onClick={handleDeposit}
+                                disabled={!numAmount || numAmount > balance || numAmount < minDeposit || txState !== "input" || isApproving || isDepositing || !address}
+                                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                            >
+                                {(txState === "approving" || isApproving || isApprovingConfirming) && (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        {isApproving ? "Confirm approval in wallet..." : isApprovingConfirming ? "Approving..." : `Approving ${getTokenDisplayName('USDC')}...`}
+                                    </>
+                                )}
+                                {(txState === "depositing" || isDepositing || isDepositingConfirming) && (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                        {isDepositing ? "Confirm deposit in wallet..." : isDepositingConfirming ? "Processing deposit..." : "Preparing deposit..."}
+                                    </>
+                                )}
+                                {txState === "input" && !isApproving && !isDepositing && !isApprovingConfirming && !isDepositingConfirming && (
+                                    <>
+                                        <Plus className="w-5 h-5" />
+                                        {needsApproval ? `Approve & Deposit ${numAmount > 0 ? `$${numAmount.toLocaleString()}` : ""}` : `Deposit ${numAmount > 0 ? `$${numAmount.toLocaleString()}` : ""}`}
+                                    </>
+                                )}
+                            </button>
+                        )}
+
+                        {/* Show transaction hashes */}
+                        {depositHash && (
+                            <a
+                                href={`https://sepolia.basescan.org/tx/${depositHash}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-400/60 hover:text-blue-400 text-center block"
+                            >
+                                View Deposit Transaction →
+                            </a>
+                        )}
 
                         {/* Info */}
                         <div className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
