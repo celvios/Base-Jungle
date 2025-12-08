@@ -47,6 +47,7 @@ module.exports = {
         : [],
       gas: 'auto',
       gasPrice: 'auto',
+      timeout: 120000, // 2 minute timeout
     },
     // Base Mainnet (for future)
     base: {

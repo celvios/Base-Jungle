@@ -7,6 +7,7 @@ import type { Address } from 'viem';
 
 // Mock USDC address (Base Sepolia)
 // This is the deployed MockERC20 contract address
+// VERIFIED: This matches the vault's asset() - DO NOT CHANGE
 export const MOCK_USDC_ADDRESS: Address = 
   (import.meta.env.VITE_USDC_ADDRESS as Address) || 
   '0x634c1cf5129fC7bd49736b9684375E112e4000E1'; // Deployed mock USDC
