@@ -163,6 +163,7 @@ export function useVaultDeposit(vaultAddress: Address) {
         const parsedAssets = parseUnits(assets, 6); // USDC has 6 decimals
         
         // Verify allowance before depositing using public client
+        // This is a double-check - the UI should already verify, but this ensures we don't waste gas
         if (publicClient) {
             try {
                 const allowance = await publicClient.readContract({
@@ -172,21 +173,25 @@ export function useVaultDeposit(vaultAddress: Address) {
                     args: [receiver, vaultAddress],
                 });
                 
-                console.log(`Allowance check: ${formatUSDC(allowance)} >= ${assets}`);
+                console.log(`Final allowance check before deposit: ${formatUSDC(allowance)} >= ${assets} (${allowance.toString()} >= ${parsedAssets.toString()})`);
                 
+                // Compare bigints directly
                 if (allowance < parsedAssets) {
-                    throw new Error(`Insufficient allowance. Approved: ${formatUSDC(allowance)}, Required: ${assets}. Please wait a moment and try again.`);
+                    const errorMsg = `Insufficient allowance. Approved: ${formatUSDC(allowance)}, Required: ${assets}. Please wait a moment and try again.`;
+                    console.error(errorMsg);
+                    throw new Error(errorMsg);
                 }
             } catch (error: any) {
-                // If it's an allowance error, throw it
-                if (error.message?.includes('allowance')) {
+                // If it's an allowance error, throw it so the UI can display it
+                if (error.message?.includes('allowance') || error.message?.includes('Insufficient')) {
                     throw error;
                 }
-                // Otherwise log but continue (might be a network issue)
-                console.warn("Could not verify allowance:", error);
+                // Otherwise log but continue (might be a network issue, but we'll try anyway)
+                console.warn("Could not verify allowance (proceeding anyway):", error);
             }
         }
         
+        // Call writeContract - this will trigger the wallet popup
         writeContract({
             address: vaultAddress,
             abi: VAULT_ABI,

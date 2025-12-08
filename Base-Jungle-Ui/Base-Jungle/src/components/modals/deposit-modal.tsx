@@ -7,12 +7,27 @@ import { useApproveUSDC, useVaultDeposit, useUSDCBalance, useVaultMinimumDeposit
 import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
 import { getTokenDisplayName } from "@/constants/tokens";
+import { usePublicClient } from "wagmi";
+import { parseUnits } from "viem";
+import { USDC_ADDRESS } from "@/constants/tokens";
 
 type TransactionState = "input" | "approving" | "depositing" | "success";
+
+// ERC20 ABI for allowance check
+const ERC20_ABI = [
+    {
+        inputs: [{ name: 'owner', type: 'address' }, { name: 'spender', type: 'address' }],
+        name: 'allowance',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+] as const;
 
 export function DepositModal() {
     const { closeModal } = useModal();
     const { address } = useWallet();
+    const publicClient = usePublicClient();
     const [amount, setAmount] = useState("");
     const [txState, setTxState] = useState<TransactionState>("input");
     const [error, setError] = useState<string | null>(null);
@@ -327,38 +342,58 @@ export function DepositModal() {
                                 </div>
                                 <button
                                     onClick={async () => {
-                                        if (!address) return;
+                                        if (!address || !publicClient || !targetVault.address) {
+                                            setError("Missing required data. Please try again.");
+                                            return;
+                                        }
                                         
                                         setTxState("depositing");
                                         setError(null);
                                         
+                                        const parsedAmount = parseUnits(numAmount.toString(), 6);
+                                        
                                         // Wait and verify allowance is sufficient before depositing
+                                        // Use public client to read directly from blockchain
                                         let allowanceVerified = false;
                                         let attempts = 0;
-                                        const maxAttempts = 10; // 10 attempts over 5 seconds
+                                        const maxAttempts = 15; // 15 attempts over 7.5 seconds
                                         
                                         while (!allowanceVerified && attempts < maxAttempts) {
                                             attempts++;
                                             
-                                            // Refetch allowance
-                                            const { data: updatedAllowance } = await refetchAllowance();
-                                            const updatedAllowanceAmount = updatedAllowance ? Number(formatUSDC(updatedAllowance)) : 0;
-                                            
-                                            console.log(`Allowance check ${attempts}: ${updatedAllowanceAmount} >= ${numAmount}`);
-                                            
-                                            if (updatedAllowanceAmount >= numAmount) {
-                                                allowanceVerified = true;
-                                                console.log("Allowance verified, proceeding with deposit");
-                                                // Small delay to ensure state is synced
-                                                await new Promise(resolve => setTimeout(resolve, 500));
-                                                try {
-                                                    deposit(numAmount.toString(), address);
-                                                } catch (error: any) {
-                                                    console.error("Deposit call failed:", error);
-                                                    setTxState("input");
-                                                    setError(error?.message || "Failed to initiate deposit. Please try again.");
+                                            try {
+                                                // Read allowance directly from blockchain using public client
+                                                const allowance = await publicClient.readContract({
+                                                    address: USDC_ADDRESS,
+                                                    abi: ERC20_ABI,
+                                                    functionName: 'allowance',
+                                                    args: [address, targetVault.address],
+                                                });
+                                                
+                                                const allowanceAmount = Number(formatUSDC(allowance));
+                                                console.log(`Allowance check ${attempts}: ${allowanceAmount} >= ${numAmount} (raw: ${allowance.toString()} >= ${parsedAmount.toString()})`);
+                                                
+                                                // Check if allowance is sufficient (compare bigints)
+                                                if (allowance >= parsedAmount) {
+                                                    allowanceVerified = true;
+                                                    console.log("Allowance verified, proceeding with deposit");
+                                                    
+                                                    // Small delay to ensure state is synced
+                                                    await new Promise(resolve => setTimeout(resolve, 300));
+                                                    
+                                                    try {
+                                                        await deposit(numAmount.toString(), address);
+                                                    } catch (error: any) {
+                                                        console.error("Deposit call failed:", error);
+                                                        setTxState("input");
+                                                        setError(error?.message || "Failed to initiate deposit. Please try again.");
+                                                        return;
+                                                    }
+                                                    break;
                                                 }
-                                                break;
+                                            } catch (error: any) {
+                                                console.error(`Allowance check ${attempts} failed:`, error);
+                                                // Continue to next attempt
                                             }
                                             
                                             // Wait 500ms before next check
@@ -367,16 +402,16 @@ export function DepositModal() {
                                         
                                         if (!allowanceVerified) {
                                             setTxState("input");
-                                            setError(`Allowance not updated after ${maxAttempts} attempts. Please wait a few seconds and click "Continue to Deposit" again.`);
+                                            setError(`Allowance not updated after ${maxAttempts} attempts. The approval transaction may still be processing. Please wait a few more seconds and click "Continue to Deposit" again.`);
                                         }
                                     }}
-                                    disabled={!address || isDepositing || isDepositingConfirming}
+                                    disabled={!address || isDepositing || isDepositingConfirming || !publicClient}
                                     className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                                 >
                                     {isDepositing || isDepositingConfirming ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            Verifying allowance...
+                                            {isDepositing ? "Confirm deposit in wallet..." : "Verifying allowance..."}
                                         </>
                                     ) : (
                                         <>
