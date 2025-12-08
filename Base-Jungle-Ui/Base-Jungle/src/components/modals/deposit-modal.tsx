@@ -64,12 +64,11 @@ export function DepositModal() {
     const minDeposit = minDepositRaw ? Number(formatUSDC(minDepositRaw)) : 0;
 
     // Hooks for approval and deposit
-    const { write: approve, isLoading: isApproving } = useApproveUSDC(
-        targetVault.address,
-        numAmount.toString()
+    const { approve, isPending: isApproving, isConfirming: isApprovingConfirming, isSuccess: isApprovalSuccess, hash: approvalHash } = useApproveUSDC(
+        targetVault.address
     );
 
-    const { write: deposit, isLoading: isDepositing } = useVaultDeposit(
+    const { deposit, isPending: isDepositing, isConfirming: isDepositingConfirming, isSuccess: isDepositSuccess, error: depositError, hash: depositHash } = useVaultDeposit(
         targetVault.address
     );
 
@@ -83,38 +82,81 @@ export function DepositModal() {
         setError(null);
     };
 
-    const handleDeposit = async () => {
-        if (!approve || !deposit) return;
+    const handleDeposit = () => {
+        if (!approve || !deposit || !address) {
+            setError("Please connect your wallet");
+            return;
+        }
+
+        if (!targetVault.address) {
+            setError("Vault address not configured");
+            return;
+        }
 
         // Validation
-        if (numAmount < minDeposit) {
+        if (numAmount <= 0) {
+            setError("Please enter a valid amount");
+            return;
+        }
+
+        if (numAmount > balance) {
+            setError("Insufficient balance");
+            return;
+        }
+
+        if (minDeposit > 0 && numAmount < minDeposit) {
             setError(`Minimum deposit is $${minDeposit} for your tier`);
             return;
         }
 
+        // Step 1: Approve USDC
+        setTxState("approving");
+        setError(null);
         try {
-            // Step 1: Approve USDC
-            setTxState("approving");
-            await approve(numAmount.toString());
+            approve(numAmount.toString());
+        } catch (error: any) {
+            console.error("Approval failed:", error);
+            setTxState("input");
+            setError(error?.message || "Approval failed. Please try again.");
+        }
+    };
 
-            // Wait a bit for approval to confirm
-            await new Promise(resolve => setTimeout(resolve, 2000));
+    // Handle approval success - automatically proceed to deposit
+    useEffect(() => {
+        if (isApprovalSuccess && txState === "approving" && address && numAmount > 0) {
+            // Small delay to ensure approval is fully processed
+            const timer = setTimeout(() => {
+                setTxState("depositing");
+                try {
+                    deposit(numAmount.toString(), address);
+                } catch (error: any) {
+                    console.error("Deposit failed:", error);
+                    setTxState("input");
+                    setError(error?.message || "Deposit failed. Please try again.");
+                }
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isApprovalSuccess, txState, address, numAmount]);
 
-            // Step 2: Deposit
-            setTxState("depositing");
-            await deposit(numAmount.toString(), address!);
-
-            // Success
+    // Handle deposit success
+    useEffect(() => {
+        if (isDepositSuccess && txState === "depositing") {
             setTxState("success");
             setTimeout(() => {
                 closeModal();
             }, 2000);
-        } catch (error) {
-            console.error("Deposit failed:", error);
-            setTxState("input");
-            setError("Transaction failed. Please try again.");
         }
-    };
+    }, [isDepositSuccess, txState, closeModal]);
+
+    // Handle deposit errors
+    useEffect(() => {
+        if (depositError && txState === "depositing") {
+            console.error("Deposit error:", depositError);
+            setTxState("input");
+            setError(depositError.message || "Deposit failed. Please try again.");
+        }
+    }, [depositError, txState]);
 
     const getEstimatedYield = () => {
         return ((numAmount * targetVault.apy) / 100 / 365).toFixed(2);
@@ -228,22 +270,22 @@ export function DepositModal() {
                         {/* Action Button */}
                         <button
                             onClick={handleDeposit}
-                            disabled={!numAmount || numAmount > balance || txState !== "input" || !!error}
+                            disabled={!numAmount || numAmount > balance || numAmount < minDeposit || txState !== "input" || isApproving || isDepositing || !address}
                             className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                         >
-                            {txState === "approving" && (
+                            {(txState === "approving" || isApproving || isApprovingConfirming) && (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Approving {getTokenDisplayName('USDC')}...
+                                    {isApproving ? "Confirm in wallet..." : isApprovingConfirming ? "Approving..." : `Approving ${getTokenDisplayName('USDC')}...`}
                                 </>
                             )}
-                            {txState === "depositing" && (
+                            {(txState === "depositing" || isDepositing || isDepositingConfirming) && (
                                 <>
                                     <Loader2 className="w-5 h-5 animate-spin" />
-                                    Depositing...
+                                    {isDepositing ? "Confirm in wallet..." : isDepositingConfirming ? "Depositing..." : "Depositing..."}
                                 </>
                             )}
-                            {txState === "input" && (
+                            {txState === "input" && !isApproving && !isDepositing && (
                                 <>
                                     <Plus className="w-5 h-5" />
                                     Deposit {numAmount > 0 ? `$${numAmount.toLocaleString()}` : ""}
