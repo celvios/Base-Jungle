@@ -7,7 +7,7 @@ import { useApproveUSDC, useVaultDeposit, useUSDCBalance, useVaultMinimumDeposit
 import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
 import { getTokenDisplayName } from "@/constants/tokens";
-import { usePublicClient } from "wagmi";
+import { usePublicClient, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits } from "viem";
 import { USDC_ADDRESS } from "@/constants/tokens";
 
@@ -91,6 +91,12 @@ export function DepositModal() {
         targetVault.address
     );
 
+    // Wait for approval transaction receipt to ensure it's fully confirmed
+    const { data: approvalReceipt, isLoading: isWaitingForApprovalReceipt } = useWaitForTransactionReceipt({
+        hash: approvalHash,
+        confirmations: 2, // Wait for 2 confirmations to ensure state is propagated
+    });
+
     const { deposit, isPending: isDepositing, isConfirming: isDepositingConfirming, isSuccess: isDepositSuccess, error: depositError, hash: depositHash } = useVaultDeposit(
         targetVault.address
     );
@@ -168,17 +174,36 @@ export function DepositModal() {
         }
     }, [approvalError, txState]);
 
-    // Auto-proceed to deposit after approval is confirmed
+    // Auto-proceed to deposit after approval is confirmed AND receipt is received
     useEffect(() => {
-        if (isApprovalSuccess && txState === "approving" && address && publicClient) {
+        // Only proceed if:
+        // 1. Approval transaction was successful
+        // 2. We have the transaction receipt (with 2 confirmations)
+        // 3. Receipt status is success
+        // 4. We're in the approving state
+        if (
+            isApprovalSuccess && 
+            approvalReceipt && 
+            approvalReceipt.status === 'success' &&
+            txState === "approving" && 
+            address && 
+            publicClient &&
+            !isWaitingForApprovalReceipt
+        ) {
             const proceedToDeposit = async () => {
                 try {
                     const parsedAmount = parseUnits(numAmount.toString(), 6);
 
-                    // Wait and verify allowance before depositing
+                    // CRITICAL: Wait 3 seconds after receipt to ensure state propagation across all RPC nodes
+                    console.log("Approval receipt confirmed, waiting 3 seconds for state propagation...");
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+
+                    // Now verify allowance before depositing
                     let allowanceVerified = false;
                     let attempts = 0;
-                    const maxAttempts = 20;
+                    const maxAttempts = 30; // 30 attempts over 15 seconds
+
+                    console.log(`Starting allowance verification (max ${maxAttempts} attempts)...`);
 
                     while (!allowanceVerified && attempts < maxAttempts) {
                         attempts++;
@@ -191,12 +216,13 @@ export function DepositModal() {
                                 args: [address, targetVault.address],
                             });
 
-                            console.log(`Allowance check ${attempts}: ${formatUSDC(allowance)} >= ${numAmount}`);
+                            console.log(`Allowance check ${attempts}/${maxAttempts}: ${formatUSDC(allowance)} >= ${numAmount} (${allowance.toString()} >= ${parsedAmount.toString()})`);
 
                             if (allowance >= parsedAmount) {
                                 allowanceVerified = true;
-                                console.log("Allowance verified, proceeding with deposit");
+                                console.log("✅ Allowance verified! Proceeding with deposit...");
 
+                                // One more small delay to be safe
                                 await new Promise(resolve => setTimeout(resolve, 500));
 
                                 setTxState("depositing");
@@ -208,12 +234,14 @@ export function DepositModal() {
                             console.error(`Allowance check ${attempts} failed:`, error);
                         }
 
+                        // Wait 500ms before next check
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
 
                     if (!allowanceVerified) {
+                        console.error("❌ Allowance verification failed after all attempts");
                         setTxState("input");
-                        setError(`Allowance verification timed out. Please try depositing again.`);
+                        setError(`Allowance not updated after ${maxAttempts} attempts. The approval may still be processing. Please wait 10-15 seconds and try depositing manually.`);
                     }
                 } catch (error: any) {
                     console.error("Auto-deposit failed:", error);
@@ -224,7 +252,7 @@ export function DepositModal() {
 
             proceedToDeposit();
         }
-    }, [isApprovalSuccess, txState, address, publicClient, numAmount, targetVault.address, deposit]);
+    }, [isApprovalSuccess, approvalReceipt, txState, address, publicClient, numAmount, targetVault.address, deposit, isWaitingForApprovalReceipt]);
 
     // Handle deposit success
     useEffect(() => {
@@ -369,11 +397,21 @@ export function DepositModal() {
                         {isApprovalSuccess && txState === "approving" && (
                             <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/30">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Loader2 className="w-5 h-5 animate-spin text-green-400" />
-                                    <span className="text-sm font-medium text-green-400">Approval Confirmed!</span>
+                                    {isWaitingForApprovalReceipt || !approvalReceipt ? (
+                                        <Loader2 className="w-5 h-5 animate-spin text-green-400" />
+                                    ) : (
+                                        <CheckCircle2 className="w-5 h-5 text-green-400" />
+                                    )}
+                                    <span className="text-sm font-medium text-green-400">
+                                        {isWaitingForApprovalReceipt || !approvalReceipt 
+                                            ? "Waiting for confirmations..." 
+                                            : "Approval Confirmed!"}
+                                    </span>
                                 </div>
                                 <p className="text-xs text-gray-400">
-                                    Verifying allowance and proceeding with deposit automatically...
+                                    {isWaitingForApprovalReceipt || !approvalReceipt
+                                        ? "Waiting for transaction confirmations to ensure state is synced..."
+                                        : "Verifying allowance and proceeding with deposit automatically..."}
                                 </p>
                                 {approvalHash && (
                                     <a
