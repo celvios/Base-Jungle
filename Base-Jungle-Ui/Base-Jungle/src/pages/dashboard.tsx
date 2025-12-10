@@ -64,11 +64,17 @@ export default function Dashboard() {
   const { data: contractSettings } = useUserSettingsContract(address as Address);
   const { isUnlocked: leverageUnlocked } = useLeverageManager(address as Address);
 
-  // Calculate Net Worth
-  const netWorth = (
-    (conservativeBalance ? Number(conservativeBalance) / 1e6 : 0) +
-    (aggressiveBalance ? Number(aggressiveBalance) / 1e6 : 0)
-  );
+  // Calculate Net Worth (avoid double-counting if same vault)
+  const conservativeAddr = import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS?.toLowerCase();
+  const aggressiveAddr = import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS?.toLowerCase();
+  const isSameVault = conservativeAddr === aggressiveAddr;
+
+  const netWorth = isSameVault
+    ? (conservativeBalance ? Number(conservativeBalance) / 1e6 : 0) // Only count once if same vault
+    : (
+        (conservativeBalance ? Number(conservativeBalance) / 1e6 : 0) +
+        (aggressiveBalance ? Number(aggressiveBalance) / 1e6 : 0)
+      );
 
   const referralCount = (referralData?.directCount || 0) + (referralData?.tierTwoCount || 0);
   const currentTier = referralData?.tier || "Novice";
