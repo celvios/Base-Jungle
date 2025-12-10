@@ -295,20 +295,12 @@ export function formatShares(shares: bigint): string {
 
 // Hook: Get vault balance in USDC (converts shares to assets)
 export function useVaultBalance(vaultAddress: Address | undefined, userAddress: Address | undefined) {
-    const { data: shares, isLoading: loadingShares } = useVaultShareBalance(vaultAddress!, userAddress);
-    
-    // For SimpleTestVault: shares use 18 decimals, USDC uses 6 decimals
-    // Manually convert: divide by 10^12
-    if (shares && shares > 0n) {
-        const usdcBalance = shares / BigInt(1e12);
-        return {
-            data: usdcBalance,
-            isLoading: loadingShares,
-            error: undefined,
-        };
-    }
+    const { data: shares } = useVaultShareBalance(vaultAddress!, userAddress);
 
-    // Fallback to old method if no shares
+    // For SimpleTestVault: manually calculate USDC from shares
+    // shares use 18 decimals, USDC uses 6 decimals, so divide by 10^12
+    const calculatedBalance = shares && shares > 0n ? shares / 1000000000000n : undefined;
+
     return useReadContract({
         address: vaultAddress,
         abi: VAULT_ABI,
@@ -317,6 +309,8 @@ export function useVaultBalance(vaultAddress: Address | undefined, userAddress: 
         query: {
             enabled: !!vaultAddress && !!shares && shares > 0n,
             refetchInterval: 10000,
+            // Use manual calculation as fallback/override
+            select: (data) => calculatedBalance || data,
         },
     });
 }
