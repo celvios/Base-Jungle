@@ -1,6 +1,6 @@
 # Mock USDC Configuration
 
-## Overview
+image.png## Overview
 The application now uses **Mock USDC** for all payments and yields until mainnet deployment. This allows for testing without real funds.
 
 ## Configuration

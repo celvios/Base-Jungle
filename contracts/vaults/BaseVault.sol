@@ -117,7 +117,7 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
         _mint(receiver, shares);
 
         // Allocate to strategies
-        asset.approve(address(strategyController), assetsAfterFee);
+        asset.safeTransfer(address(strategyController), assetsAfterFee);
         strategyController.allocate(receiver, assetsAfterFee);
 
         // Award points

@@ -1,7 +1,7 @@
 {
   "network": "baseSepolia",
   "chainId": 84532,
-  "deployedAt": "2025-12-08T22:53:07.760Z",
+  "deployedAt": "2025-12-09T10:15:00.000Z",
   "deployer": "0x72377a60870E3d2493F871FA5792a1160518fcc6",
   "usdcAddress": "0x634c1cf5129fC7bd49736b9684375E112e4000E1",
   "contracts": {
@@ -9,11 +9,13 @@
     "governanceToken": "0x1D3b7e7a2F4727136bfb838518b2961f10077853",
     "referralManager": "0xc8A84e0BF9a4C213564e858A89c8f14738aD0f15",
     "pointsTracker": "0x3dEDE79F6aD12973e723e67071F17e5C42A93173",
-    "strategyController": "0x65CD6764A4f574c1F6154518519925277C6CFF81",
-    "conservativeVault": "0xf1390Ba2304e0764A92c8bAdbAEFBA2b24e841E9",
-    "aggressiveVault": "0x534028D42C6750340e32c2006Ed7e20ea8C993Ee",
-    "masterVault": "0x534028D42C6750340e32c2006Ed7e20ea8C993Ee",
+    "strategyController": "0x7a5F8a5CFcAe4ebFE003B97a97A1d7f1aAD60d66",
+    "conservativeVault": "0x3942d923E5Ad84763cdCfe531c8B33031a3a81C3",
+    "aggressiveVault": "0x5925DafD21A1d2BFFe1331bc211274fA1C8b679f",
+    "masterVault": "0x5925DafD21A1d2BFFe1331bc211274fA1C8b679f",
     "leverageController": "0x0000000000000000000000000000000000000000",
-    "tokenSale": "0xf809b18B34A4065693d70593f5c59B13A73f2229"
+    "tokenSale": "0xf809b18B34A4065693d70593f5c59B13A73f2229",
+    "lendingStrategy": "0x3F1fE8d4AfCf1351176207e6641438dF69f14634",
+    "beefyStrategy": "0xA5e0Ba0e48FcB99125B5c98d82ed8820f54ad5d2"
   }
 }

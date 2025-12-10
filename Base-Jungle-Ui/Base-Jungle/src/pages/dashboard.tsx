@@ -219,7 +219,12 @@ export default function Dashboard() {
               nextTierRequirement={isMaxTier ? "None" : `${nextTierReferrals} Active Refs`}
               healthFactor={healthFactor}
               liquidationPrice={liquidationPrice}
-              onLeverageChange={() => openModal('leverage-control')}
+              onLeverageChange={() => {
+                // Only open modal if leverage is unlocked
+                if (leverageUnlocked) {
+                  openModal('leverage-control');
+                }
+              }}
             />
 
             {/* Rewards Module: Accumulator */}
