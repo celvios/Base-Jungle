@@ -22,20 +22,25 @@ export function useYieldMetrics(
     return useMemo(() => {
         const conservativeVal = conservativeBal ? Number(conservativeBal) / 1e6 : 0;
         const aggressiveVal = aggressiveBal ? Number(aggressiveBal) / 1e6 : 0;
-        const totalBalance = conservativeVal + aggressiveVal;
+        
+        // Avoid double-counting if same vault
+        const isSameVault = conservativeVaultAddress?.toLowerCase() === aggressiveVaultAddress?.toLowerCase();
+        const totalBalance = isSameVault 
+            ? conservativeVal // Only count once
+            : conservativeVal + aggressiveVal;
 
-        // TODO: Replace with real "Total Deposited" from Indexer/Backend
-        // For now, we assume 90% is principal and 10% is yield for demonstration if balance > 0
-        // This prevents "0 Yield" display for new users with deposits
-        const estimatedPrincipal = totalBalance > 0 ? totalBalance * 0.9 : 0;
-        const estimatedYield = totalBalance > 0 ? totalBalance * 0.1 : 0;
+        // For SimpleTestVault: No real yield generation yet
+        // Show principal as total balance, yield as 0
+        const principal = totalBalance;
+        const totalYield = 0;
+        const harvestableYield = 0;
 
         return {
-            principal: estimatedPrincipal,
-            totalYield: estimatedYield,
-            harvestableYield: estimatedYield * 0.5, // Assume 50% is claimable
-            dailyPnL: 1.2, // Mock 24h change
+            principal,
+            totalYield,
+            harvestableYield,
+            dailyPnL: 0, // No yield = no daily change
             isLoading: loadingConservative || loadingAggressive,
         };
-    }, [conservativeBal, aggressiveBal, loadingConservative, loadingAggressive]);
+    }, [conservativeBal, aggressiveBal, loadingConservative, loadingAggressive, conservativeVaultAddress, aggressiveVaultAddress]);
 }
