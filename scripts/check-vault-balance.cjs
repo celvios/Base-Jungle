@@ -4,7 +4,7 @@ require("dotenv").config({ path: ".env.deployment" });
 async function main() {
     console.log("\n🔍 Checking Vault Balance...\n");
 
-    const VAULT = "0xE5C6c43be0ce921a751C8aC705E2D3b95A24C06d";
+    const VAULT = "0xE5C6c43be0ce921a751C8aC705E2D3b95A24C06d"; // Checking NEW vault
     const USER = "0x72377a60870E3d2493F871FA5792a1160518fcc6";
     const MOCK_USDC = "0x634c1cf5129fC7bd49736b9684375E112e4000E1";
 

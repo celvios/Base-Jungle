@@ -296,9 +296,20 @@ export function formatShares(shares: bigint): string {
 // Hook: Get vault balance in USDC (converts shares to assets)
 export function useVaultBalance(vaultAddress: Address | undefined, userAddress: Address | undefined) {
     const { data: shares, isLoading: loadingShares } = useVaultShareBalance(vaultAddress!, userAddress);
-    const { data: totalAssets, isLoading: loadingAssets } = useVaultTVL(vaultAddress!);
+    
+    // For SimpleTestVault: shares use 18 decimals, USDC uses 6 decimals
+    // Manually convert: divide by 10^12
+    if (shares && shares > 0n) {
+        const usdcBalance = shares / BigInt(1e12);
+        return {
+            data: usdcBalance,
+            isLoading: loadingShares,
+            error: undefined,
+        };
+    }
 
-    const convertToAssetsResult = useReadContract({
+    // Fallback to old method if no shares
+    return useReadContract({
         address: vaultAddress,
         abi: VAULT_ABI,
         functionName: 'convertToAssets',
@@ -308,17 +319,4 @@ export function useVaultBalance(vaultAddress: Address | undefined, userAddress: 
             refetchInterval: 10000,
         },
     });
-
-    // Fallback: If convertToAssets fails, manually convert (shares have 18 decimals, USDC has 6)
-    if (convertToAssetsResult.error && shares) {
-        // For SimpleTestVault: divide by 10^12 to convert 18 decimals to 6 decimals
-        const manualConversion = shares / BigInt(1e12);
-        return {
-            ...convertToAssetsResult,
-            data: manualConversion,
-            error: undefined,
-        };
-    }
-
-    return convertToAssetsResult;
 }
