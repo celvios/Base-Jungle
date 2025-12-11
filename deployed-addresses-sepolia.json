@@ -9,13 +9,13 @@
     "governanceToken": "0x1D3b7e7a2F4727136bfb838518b2961f10077853",
     "referralManager": "0xc8A84e0BF9a4C213564e858A89c8f14738aD0f15",
     "pointsTracker": "0x3dEDE79F6aD12973e723e67071F17e5C42A93173",
-    "strategyController": "0x7a5F8a5CFcAe4ebFE003B97a97A1d7f1aAD60d66",
-    "conservativeVault": "0x3942d923E5Ad84763cdCfe531c8B33031a3a81C3",
-    "aggressiveVault": "0x5925DafD21A1d2BFFe1331bc211274fA1C8b679f",
-    "masterVault": "0x5925DafD21A1d2BFFe1331bc211274fA1C8b679f",
+    "strategyController": "0xC638Af3D088323AD13c5A0131Bb6fd89a4bf6273",
+    "conservativeVault": "0xDffCeFEE4C9005bbe3bd2Ffc1c3b1Bb0a0A68387",
+    "aggressiveVault": "0x8F4D75ec29D5456fd48857a10Dca987c65779dE3",
+    "masterVault": "0x8F4D75ec29D5456fd48857a10Dca987c65779dE3",
     "leverageController": "0x0000000000000000000000000000000000000000",
     "tokenSale": "0xf809b18B34A4065693d70593f5c59B13A73f2229",
-    "lendingStrategy": "0x3F1fE8d4AfCf1351176207e6641438dF69f14634",
-    "beefyStrategy": "0xA5e0Ba0e48FcB99125B5c98d82ed8820f54ad5d2"
+    "lendingStrategy": "0xf90F6b189189c8F664759f7b6a10B5422B0C5BB9",
+    "beefyStrategy": "0xDaFa96B2038Ef0c712f34b37d6a39B5aF4ffE8da"
   }
 }

@@ -173,9 +173,10 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
      * @notice Get total assets under management.
      */
     function totalAssets() public view virtual returns (uint256) {
-        // Get value from strategy controller
-        // Simplified: return asset balance
-        return asset.balanceOf(address(this));
+        // Get total from strategy controller + any assets held locally
+        uint256 localBalance = asset.balanceOf(address(this));
+        uint256 allocatedBalance = strategyController.getTotalAllocated();
+        return localBalance + allocatedBalance;
     }
 
     /**

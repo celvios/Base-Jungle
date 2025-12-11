@@ -2,7 +2,7 @@ const hre = require("hardhat");
 require("dotenv").config({ path: ".env.deployment" });
 
 async function main() {
-    const txHash = "0x3f1ad03ef3436fc928e781f7865a0ff8a5c4588d7977ef44a8117cd060397dae";
+    const txHash = "0x88343f9c2e6da91df9444665f7e0bba65426f4c14a34aab5dadd16565f971478";
     
     console.log("\n🔍 Analyzing Transaction...\n");
 

@@ -6,8 +6,8 @@ async function main() {
     console.log("═══════════════════════════════════════════════════════\n");
 
     const MOCK_USDC = "0x634c1cf5129fC7bd49736b9684375E112e4000E1";
-    const CONSERVATIVE_VAULT = "0x3942d923E5Ad84763cdCfe531c8B33031a3a81C3";
-    const STRATEGY_CONTROLLER = "0x7a5F8a5CFcAe4ebFE003B97a97A1d7f1aAD60d66";
+    const CONSERVATIVE_VAULT = "0x7916Ea0bA5F9638fA3dD3BCD4DBD2b60f716cbFa";
+    const STRATEGY_CONTROLLER = "0xa412EB221364Cc0891ad9215be7353cE0a1a2486";
     const USER = "0x72377a60870E3d2493F871FA5792a1160518fcc6";
 
     // Check Vault

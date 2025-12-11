@@ -18,6 +18,7 @@ contract StrategyController is AccessControl, ReentrancyGuard {
 
     bytes32 public constant KEEPER_ROLE = keccak256("KEEPER_ROLE");
     bytes32 public constant STRATEGY_ADMIN_ROLE = keccak256("STRATEGY_ADMIN_ROLE");
+    bytes32 public constant VAULT_ROLE = keccak256("VAULT_ROLE");
 
     ReferralManager public referralManager;
 
@@ -139,7 +140,7 @@ contract StrategyController is AccessControl, ReentrancyGuard {
     /**
      * @notice Allocate user funds to strategies based on their tier.
      */
-    function allocate(address user, uint256 totalAmount) external nonReentrant {
+    function allocate(address user, uint256 totalAmount) external onlyRole(VAULT_ROLE) nonReentrant {
         require(totalAmount > 0, "Amount zero");
 
         // Get user tier
@@ -267,6 +268,28 @@ contract StrategyController is AccessControl, ReentrancyGuard {
     }
 
 
+
+    /**
+     * @notice Get total allocated across all strategies.
+     */
+    function getTotalAllocated() external view returns (uint256) {
+        uint256 total = 0;
+        for (uint256 i = 0; i < strategyCount; i++) {
+            total += strategies[i].totalAllocated;
+        }
+        return total;
+    }
+
+    /**
+     * @notice Get user's total allocation across all strategies.
+     */
+    function getUserTotalAllocated(address user) external view returns (uint256) {
+        uint256 total = 0;
+        for (uint256 i = 0; i < strategyCount; i++) {
+            total += userAllocations[user][i];
+        }
+        return total;
+    }
 
     /**
      * @notice Internal: Find strategy by type and tier.
