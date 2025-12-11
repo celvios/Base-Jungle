@@ -13,7 +13,7 @@ const LawsOfJungle: React.FC = () => {
         {
             id: 2,
             title: 'Points System',
-            desc: 'Every on-chain action earns points. Points convert 1:1 to BAOBAB tokens at the Token Generation Event.',
+            desc: 'Every on-chain action earns points. Points convert 1:1 to JUNGLE tokens at the Token Generation Event.',
             icon: Star,
             color: 'text-yellow-400'
         },

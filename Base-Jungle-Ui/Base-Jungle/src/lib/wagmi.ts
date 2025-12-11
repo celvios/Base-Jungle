@@ -29,33 +29,44 @@ const metadata = {
     icons: [typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : 'https://base-jungle.vercel.app/favicon.png']
 };
 
-// 3. Create modal with WalletConnect prominently featured for mobile
+// 3. Create modal with mobile wallet deep linking enabled
 export const modal = createAppKit({
     adapters: [wagmiAdapter],
     networks: [baseSepolia],
     projectId,
     metadata,
-    // Feature WalletConnect-friendly wallets first (especially for mobile)
+
+    // Feature mobile-friendly wallets first
     featuredWalletIds: [
         'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
-        '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet (great for mobile)
+        '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
         '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369', // Rainbow
         'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa', // Coinbase Wallet
     ],
+
+    // Enable features
     features: {
         analytics: true,
         email: true,
         socials: ['google', 'x', 'discord', 'farcaster'],
         onramp: true,
         swaps: true,
+        // Prioritize wallet apps over QR codes on mobile for direct deep linking
+        connectMethodsOrder: ['wallet', 'email', 'social'],
     },
+
     // Theme configuration
     themeMode: 'dark',
     themeVariables: {
         '--w3m-accent': '#10b981',
     },
-    // Show ALL wallets - WalletConnect connector appears automatically via WagmiAdapter
+
+    // Show all wallets on mobile to enable direct wallet app opening
+    // When user taps a wallet logo, it will attempt to deep link to that app
     allWallets: 'SHOW',
+
+    // Enable Coinbase Smart Wallet with all options (EOA + Smart Wallet)
+    coinbasePreference: 'all',
 });
 
 export const queryClient = new QueryClient();
