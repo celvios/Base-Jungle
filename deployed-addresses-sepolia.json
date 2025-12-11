@@ -15,7 +15,7 @@
     "masterVault": "0x8F4D75ec29D5456fd48857a10Dca987c65779dE3",
     "leverageController": "0x0000000000000000000000000000000000000000",
     "tokenSale": "0xf809b18B34A4065693d70593f5c59B13A73f2229",
-    "lendingStrategy": "0xf90F6b189189c8F664759f7b6a10B5422B0C5BB9",
-    "beefyStrategy": "0xDaFa96B2038Ef0c712f34b37d6a39B5aF4ffE8da"
+    "lendingStrategy": "0xEB2F81CaC3c13F7Df8D967478b7441621f4773Dd",
+    "beefyStrategy": "0xEb6c71f2b05cfDC1872E4548A5b9dB10533A3fAa"
   }
 }
