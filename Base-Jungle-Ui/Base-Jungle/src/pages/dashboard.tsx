@@ -10,7 +10,6 @@ import { useLeverageManager } from "@/hooks/use-leverage";
 import { useUserRank } from "@/hooks/use-leaderboard";
 import { type Address } from "viem";
 import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
-import ProfileMenu from "@/components/dashboard/ProfileMenu";
 
 // Terminal Components
 import TerminalLayout from "@/components/dashboard/terminal/TerminalLayout";
@@ -27,7 +26,6 @@ import { useHistoricalData } from "@/hooks/use-historical-data";
 import { useModal } from "@/contexts/modal-context";
 import { useAccumulatorData } from "@/hooks/use-accumulator-data";
 import { useYieldEvents } from "@/hooks/use-yield-events";
-import NotificationBell from "@/components/dashboard/NotificationBell";
 import YieldNotifications from "@/components/dashboard/terminal/YieldNotifications";
 import { useScheduledNotifications } from "@/hooks/use-scheduled-notifications";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
@@ -247,10 +245,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
       {/* Header with Profile Menu and Notifications */}
-      <div className="fixed top-6 right-6 z-50 flex flex-row items-center gap-4 flex-shrink-0">
-        <NotificationBell unreadCount={unreadCount} />
-        <ProfileMenu />
-      </div>
+
 
       {/* Header: Status Manifold */}
       <StatusManifold

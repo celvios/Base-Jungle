@@ -26,6 +26,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useTheme } from "@/contexts/theme-context";
 import { Home as HomeIcon, LayoutDashboard, Users, Trophy, Landmark, Shield, Layers } from "lucide-react";
 import { ProtectedRoute } from "@/components/protected-route";
+import ProfileMenu from "@/components/dashboard/ProfileMenu";
+import NotificationBell from "@/components/dashboard/NotificationBell";
+import { useYieldEvents } from "@/hooks/use-yield-events";
+import { useWallet } from "@/contexts/wallet-context";
 
 function Router() {
   return (
@@ -99,6 +103,8 @@ function MobileBottomNav() {
 function AppContent() {
   const [location] = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { address } = useWallet();
+  const { unreadCount } = useYieldEvents(address);
   const isDashboardRoute = location === "/dashboard" || location === "/referrals" || location === "/leaderboard";
 
   if (!isDashboardRoute) {
@@ -120,15 +126,19 @@ function AppContent() {
             <SidebarTrigger data-testid="button-sidebar-toggle" />
           </div>
           <div className="md:hidden" />
-          <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          <div className="flex items-center gap-2">
+            <NotificationBell unreadCount={unreadCount} />
+            <ProfileMenu />
+            <ThemeToggle theme={theme} onToggle={toggleTheme} />
+          </div>
         </header>
         <main className="flex-1 overflow-auto pb-16 md:pb-0">
           <Router />
         </main>
-      </div>
+      </div >
       {/* Mobile bottom navigation */}
-      <MobileBottomNav />
-    </div>
+      < MobileBottomNav />
+    </div >
   );
 }
 
