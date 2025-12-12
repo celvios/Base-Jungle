@@ -27,7 +27,7 @@ const ProfileMenu: React.FC = () => {
         : '';
 
     return (
-        <div className="relative">
+        <div className="relative inline-block flex-shrink-0">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-10 h-10 bg-white/5 backdrop-blur-md border border-white/10 rounded-full hover:bg-white/10 transition-all flex items-center justify-center"

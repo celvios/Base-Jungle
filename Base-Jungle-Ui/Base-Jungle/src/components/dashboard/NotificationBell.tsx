@@ -24,7 +24,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ unreadCount = 0 }) 
     };
 
     return (
-        <div className="relative">
+        <div className="relative inline-block flex-shrink-0">
             {/* Bell Button */}
             <button
                 onClick={handleBellClick}
