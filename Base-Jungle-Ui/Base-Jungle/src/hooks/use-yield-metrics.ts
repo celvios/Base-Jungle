@@ -11,12 +11,12 @@ interface YieldMetrics {
     isLoading: boolean;
 }
 
-const STRATEGY_CONTROLLER_ABI = [
+const VAULT_ABI = [
     {
-        name: 'getTotalValue',
+        name: 'totalAssets',
         type: 'function',
         stateMutability: 'view',
-        inputs: [{ name: 'user', type: 'address' }],
+        inputs: [],
         outputs: [{ name: '', type: 'uint256' }],
     },
     {
@@ -28,9 +28,42 @@ const STRATEGY_CONTROLLER_ABI = [
     }
 ] as const;
 
-const TOTAL_SUPPLY_ABI = [
+const STRATEGY_CONTROLLER_ABI = [
     {
-        name: 'totalSupply',
+        name: 'getTotalAllocated',
+        type: 'function',
+        stateMutability: 'view',
+        inputs: [],
+        outputs: [{ name: '', type: 'uint256' }],
+    },
+    {
+        name: 'strategies',
+        type: 'function',
+        stateMutability: 'view',
+        inputs: [{ name: '', type: 'uint256' }],
+        outputs: [
+            { name: 'strategyType', type: 'uint8' },
+            { name: 'adapter', type: 'address' },
+            { name: 'asset', type: 'address' },
+            { name: 'isActive', type: 'bool' },
+            { name: 'totalAllocated', type: 'uint256' },
+            { name: 'targetAPY', type: 'uint256' },
+            { name: 'riskScore', type: 'uint256' },
+            { name: 'minTier', type: 'uint8' }
+        ],
+    },
+    {
+        name: 'strategyCount',
+        type: 'function',
+        stateMutability: 'view',
+        inputs: [],
+        outputs: [{ name: '', type: 'uint256' }],
+    }
+] as const;
+
+const ADAPTER_ABI = [
+    {
+        name: 'balanceOf',
         type: 'function',
         stateMutability: 'view',
         inputs: [],
@@ -43,74 +76,70 @@ export function useYieldMetrics(
     aggressiveVaultAddress: Address,
     userAddress: Address | undefined
 ): YieldMetrics {
-    // 1. Get Base Balances (Verified working in header)
+    // Check if both vaults are the same to avoid double-counting
+    const isSameVault = conservativeVaultAddress?.toLowerCase() === aggressiveVaultAddress?.toLowerCase();
+
+    // 1. Get Base Balances (user's share value at current price)
     const { data: balC, isLoading: isLoadingBalC } = useVaultBalance(conservativeVaultAddress, userAddress);
     const { data: balA } = useVaultBalance(aggressiveVaultAddress, userAddress);
 
-    // 2. Get User Shares (for yield calc)
-    const { data: sharesC } = useVaultShareBalance(conservativeVaultAddress, userAddress);
-
-    // 3. Get Vault Total Supply
-    const { data: totalSupplyC } = useReadContract({
+    // 2. Get Vault Total Assets (book value)
+    const { data: vaultTotalAssets } = useReadContract({
         address: conservativeVaultAddress,
-        abi: TOTAL_SUPPLY_ABI,
-        functionName: 'totalSupply',
+        abi: VAULT_ABI,
+        functionName: 'totalAssets',
         query: { enabled: !!conservativeVaultAddress }
     });
 
-    // 4. Get Strategy Controller & Real Value
+    // 3. Get Strategy Controller
     const { data: controllerAddress } = useReadContract({
         address: conservativeVaultAddress,
-        abi: STRATEGY_CONTROLLER_ABI,
+        abi: VAULT_ABI,
         functionName: 'strategyController',
         query: { enabled: !!conservativeVaultAddress }
     });
 
-    const { data: totalValueC, isLoading: isLoadingCtrl } = useReadContract({
+    // 4. Get Total Allocated from Controller
+    const { data: totalAllocated, isLoading: isLoadingAlloc } = useReadContract({
         address: controllerAddress as Address,
         abi: STRATEGY_CONTROLLER_ABI,
-        functionName: 'getTotalValue',
-        args: [conservativeVaultAddress],
-        query: { enabled: !!controllerAddress && !!conservativeVaultAddress }
+        functionName: 'getTotalAllocated',
+        query: { enabled: !!controllerAddress }
     });
 
     return useMemo(() => {
-        // Check if both vaults are the same to avoid double-counting
-        const isSameVault = conservativeVaultAddress?.toLowerCase() === aggressiveVaultAddress?.toLowerCase();
-
         // Base Principal from Verified Balance Hook
-        let cPrincipal = balC ? Number(formatUnits(balC as bigint, 6)) : 0;
-        let cYield = 0;
-
-        // Try calculate Real Yield if data available
-        if (sharesC && totalSupplyC && totalValueC && totalSupplyC > 0n) {
-            const userShares = Number(formatUnits(sharesC, 18));
-            const totalShares = Number(formatUnits(totalSupplyC, 18));
-            const realVaultValue = Number(formatUnits(totalValueC, 6)); // USDC
-
-            if (totalShares > 0) {
-                const fraction = userShares / totalShares;
-                const realUserValue = fraction * realVaultValue;
-
-                // Yield = RealValue - BookValue (Principal)
-                // If real value > principal, we have profit
-                if (realUserValue > cPrincipal) {
-                    cYield = realUserValue - cPrincipal;
-                }
-            }
-        }
-
-        // Only add aggressive balance if it's a different vault
+        const cPrincipal = balC ? Number(formatUnits(balC as bigint, 6)) : 0;
         const aPrincipal = (balA && !isSameVault) ? Number(formatUnits(balA as bigint, 6)) : 0;
         const totalPrincipal = cPrincipal + aPrincipal;
-        const totalYield = cYield;
+
+        // Calculate Yield
+        // The vault's totalAssets shows book value (allocated)
+        // Our script showed real adapter balances are higher
+        // Yield = (VaultTotalAssets + LocalBalance) - TotalAllocated
+        // This captures the profit sitting in adapters
+        let totalYield = 0;
+
+        if (vaultTotalAssets && totalAllocated) {
+            const vaultAssets = Number(formatUnits(vaultTotalAssets, 6));
+            const allocated = Number(formatUnits(totalAllocated, 6));
+
+            // If vault has more assets than allocated, that's the profit
+            const vaultProfit = vaultAssets - allocated;
+
+            // User's share of profit (proportional to their principal)
+            if (totalPrincipal > 0 && vaultAssets > 0) {
+                const userFraction = totalPrincipal / vaultAssets;
+                totalYield = vaultProfit * userFraction;
+            }
+        }
 
         return {
             principal: totalPrincipal,
             totalYield: totalYield,
             harvestableYield: totalYield,
             dailyPnL: totalPrincipal > 0 ? (totalYield / totalPrincipal) * 100 : 0,
-            isLoading: isLoadingBalC || isLoadingCtrl
+            isLoading: isLoadingBalC || isLoadingAlloc
         };
-    }, [balC, balA, sharesC, totalSupplyC, totalValueC, isLoadingBalC, isLoadingCtrl, conservativeVaultAddress, aggressiveVaultAddress]);
+    }, [balC, balA, vaultTotalAssets, totalAllocated, isLoadingBalC, isLoadingAlloc, isSameVault]);
 }
