@@ -115,6 +115,43 @@ class NotificationService {
     const hoursSinceLastNotification = (Date.now() - lastNotificationTime) / (1000 * 60 * 60);
     return hoursSinceLastNotification >= minIntervalHours;
   }
+
+  // Schedule background notification via service worker
+  async scheduleBackgroundNotification(
+    address: string,
+    balance: number,
+    points: number,
+    harvestable: number
+  ): Promise<void> {
+    if (!this.swRegistration?.active) return;
+
+    this.swRegistration.active.postMessage({
+      type: 'SCHEDULE_NOTIFICATION',
+      address,
+      balance,
+      points,
+      harvestable
+    });
+    console.log('Background notification scheduled');
+  }
+
+  // Send immediate notification via service worker
+  async sendViaServiceWorker(
+    title: string,
+    body: string,
+    usdcAmount: number,
+    pointsAmount: number
+  ): Promise<void> {
+    if (!this.swRegistration?.active) return;
+
+    this.swRegistration.active.postMessage({
+      type: 'SEND_NOTIFICATION',
+      title,
+      body,
+      usdcAmount,
+      pointsAmount
+    });
+  }
 }
 
 export const notificationService = NotificationService.getInstance();
