@@ -294,8 +294,6 @@ export default function Dashboard() {
               harvestableYield={harvestableYield}
               dailyPnL={dailyPnL}
               data={chartData}
-              activities={activities}
-              isLoadingActivities={isLoadingActivities}
               onHarvest={() => openModal('harvest', {
                 vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
                 vaultName: 'Conservative Vault'
@@ -338,6 +336,8 @@ export default function Dashboard() {
               currentBalance={netWorth}
               lastVisitBalance={lastVisitBalance}
               events={yieldEvents}
+              activities={activities}
+              isLoadingActivities={isLoadingActivities}
               onDismiss={(id) => console.log('Dismiss notification:', id)}
             />
           </div>

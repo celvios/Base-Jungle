@@ -126,19 +126,8 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Activity Feed Section */}
-      <div className="mb-6 shrink-0 relative z-10">
-        <div className="flex items-center gap-2 mb-3">
-          <Activity className="w-4 h-4 text-blue-400" />
-          <h4 className="text-sm font-mono text-gray-400 uppercase tracking-wider">Live Activity</h4>
-        </div>
-        <div className="glass-card p-4 rounded-lg max-h-[300px]">
-          <ActivityFeed activities={activities} isLoading={isLoadingActivities} />
-        </div>
-      </div>
-
       {/* Action */}
-      <div className="shrink-0 relative z-10">
+      <div className="mt-6 shrink-0 relative z-10">
         <Button
           onClick={onHarvest}
           className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 transition-all h-12 font-mono tracking-wider text-sm"
