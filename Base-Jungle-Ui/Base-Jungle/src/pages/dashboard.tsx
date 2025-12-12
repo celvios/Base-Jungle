@@ -29,6 +29,8 @@ import { useAccumulatorData } from "@/hooks/use-accumulator-data";
 import { useYieldEvents } from "@/hooks/use-yield-events";
 import NotificationBell from "@/components/dashboard/NotificationBell";
 import YieldNotifications from "@/components/dashboard/terminal/YieldNotifications";
+import { useScheduledNotifications } from "@/hooks/use-scheduled-notifications";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
@@ -135,6 +137,28 @@ export default function Dashboard() {
   // ✅ Real Accumulator Data
   const { points, multiplier, velocity, globalTVL, avgAPY } = useAccumulatorData(address as Address);
 
+  // ✅ Push Notifications (24-hour background alerts)
+  const { requestPermission, isPermissionGranted, isSupported } = usePushNotifications(address?.toString());
+
+  // ✅ Scheduled 24-hour notifications
+  useScheduledNotifications(
+    address as Address,
+    netWorth,
+    points,
+    harvestableYield
+  );
+
+  // ✅ Request notification permission on first visit
+  useEffect(() => {
+    if (isConnected && isSupported && !isPermissionGranted) {
+      // Auto-request after 5 seconds (can also be triggered by user action)
+      const timer = setTimeout(() => {
+        requestPermission();
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isConnected, isSupported, isPermissionGranted, requestPermission]);
+
   // ✅ Monitor yield changes and create notification events
   useEffect(() => {
     if (!address || !harvestableYield) return;
@@ -223,7 +247,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
       {/* Header with Profile Menu and Notifications */}
-      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+      <div className="fixed top-6 right-6 z-50 flex flex-row items-center gap-4">
         <NotificationBell unreadCount={unreadCount} />
         <ProfileMenu />
       </div>
