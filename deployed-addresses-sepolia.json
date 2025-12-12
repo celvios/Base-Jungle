@@ -1,7 +1,7 @@
 {
   "network": "baseSepolia",
   "chainId": 84532,
-  "deployedAt": "2025-12-09T10:15:00.000Z",
+  "deployedAt": "2025-12-12T21:51:00.000Z",
   "deployer": "0x72377a60870E3d2493F871FA5792a1160518fcc6",
   "usdcAddress": "0x634c1cf5129fC7bd49736b9684375E112e4000E1",
   "contracts": {
@@ -10,7 +10,7 @@
     "referralManager": "0xc8A84e0BF9a4C213564e858A89c8f14738aD0f15",
     "pointsTracker": "0x3dEDE79F6aD12973e723e67071F17e5C42A93173",
     "strategyController": "0x528E6f54360C197292dDD3C5aDC0095FbAAC2b07",
-    "conservativeVault": "0x0fFc833fBaa8f567695a0cd640BD4009FF3dC841",
+    "conservativeVault": "0xF104C159456258C2B0A95d28259724ed9E572b00",
     "aggressiveVault": "0x0fFc833fBaa8f567695a0cd640BD4009FF3dC841",
     "masterVault": "0x8F4D75ec29D5456fd48857a10Dca987c65779dE3",
     "leverageController": "0x0000000000000000000000000000000000000000",
