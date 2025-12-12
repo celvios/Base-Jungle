@@ -298,6 +298,11 @@ export default function Dashboard() {
                 vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
                 vaultName: 'Conservative Vault'
               })}
+              onWithdraw={() => openModal('withdraw', {
+                vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
+                vaultName: 'Conservative Vault',
+                totalAmount: principal
+              })}
             />
           </div>
 

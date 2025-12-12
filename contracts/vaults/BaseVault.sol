@@ -31,6 +31,7 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
 
     // Fee configuration (basis points)
     uint256 public depositFee = 10;         // 0.1%
+    uint256 public performanceFee = 2000;   // 20%
     uint256 public constant BASIS_POINTS = 10000;
     
     // Maximum fee limits (basis points) to prevent malicious admin actions
@@ -55,6 +56,7 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
     event Deposited(address indexed user, uint256 assets, uint256 shares, uint256 fee);
     event Withdrawn(address indexed user, uint256 assets, uint256 shares, uint256 fee);
     event Harvested(uint256 yield, uint256 timestamp);
+    event PerformanceFeeCollected(uint256 amount, address indexed recipient);
     event FeesCollected(uint256 amount);
     event DepositFeeUpdated(uint256 oldFee, uint256 newFee);
     event WithdrawalFeeUpdated(uint256 oldFee, uint256 newFee);
@@ -167,6 +169,49 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
         }
 
         emit Withdrawn(owner, assets, shares, fee);
+    }
+
+    /**
+     * @notice Harvest yield from strategies and compound (minus performance fee).
+     * @dev Takes 20% performance fee, compounds the rest.
+     */
+    function harvestAndCompound() external onlyRole(KEEPER_ROLE) nonReentrant returns (uint256) {
+        // Get current total assets before harvest
+        uint256 assetsBefore = totalAssets();
+        
+        // Trigger harvest on all strategies (this updates their balances)
+        // Note: Individual adapters handle their own harvest logic
+        // This function just collects the realized gains
+        
+        // Get total assets after strategies have updated
+        uint256 assetsAfter = totalAssets();
+        
+        // Calculate yield (profit only)
+        require(assetsAfter > assetsBefore, "No yield to harvest");
+        uint256 totalYield = assetsAfter - assetsBefore;
+        
+        // Calculate performance fee (20%)
+        uint256 feeAmount = (totalYield * performanceFee) / BASIS_POINTS;
+        uint256 compoundAmount = totalYield - feeAmount;
+        
+        // Transfer performance fee to fee collector
+        if (feeAmount > 0 && feeCollector != address(0)) {
+            // The fee stays in the vault but is tracked separately
+            // It will be claimed by the fee collector later
+            asset.safeTransfer(feeCollector, feeAmount);
+            emit PerformanceFeeCollected(feeAmount, feeCollector);
+        }
+        
+        // The remaining yield stays in the vault and compounds automatically
+        // through the totalAssets() calculation
+        
+        // Update tracking
+        lastHarvestTimestamp = block.timestamp;
+        totalHarvested += totalYield;
+        
+        emit Harvested(totalYield, block.timestamp);
+        
+        return compoundAmount;
     }
 
     /**

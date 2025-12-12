@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { RefreshCw, TrendingUp, DollarSign, Activity } from 'lucide-react';
+import { RefreshCw, TrendingUp, DollarSign, Activity, ArrowUpRight } from 'lucide-react';
 import { getTokenDisplayName } from '@/constants/tokens';
 import { ActivityFeed } from '../ActivityFeed';
 
@@ -23,6 +23,7 @@ interface YieldReactorProps {
   activities?: ActivityEvent[];
   isLoadingActivities?: boolean;
   onHarvest: () => void;
+  onWithdraw: () => void;
 }
 
 const YieldReactor: React.FC<YieldReactorProps> = ({
@@ -33,7 +34,8 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
   data,
   activities = [],
   isLoadingActivities = false,
-  onHarvest
+  onHarvest,
+  onWithdraw
 }) => {
   return (
     <div className="glass-card rounded-xl p-6 h-full relative overflow-hidden group flex flex-col">
@@ -126,14 +128,26 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
         </ResponsiveContainer>
       </div>
 
-      {/* Action */}
-      <div className="mt-6 shrink-0 relative z-10">
+      {/* Actions */}
+      <div className="mt-6 shrink-0 relative z-10 space-y-3">
+        {/* Harvest Button - Compounds with 20% fee */}
         <Button
           onClick={onHarvest}
-          className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 transition-all h-12 font-mono tracking-wider text-sm"
+          disabled={harvestableYield <= 0}
+          className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 transition-all h-12 font-mono tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <DollarSign className="w-4 h-4 mr-2" />
-          HARVEST {getTokenDisplayName('USDC')} (${harvestableYield.toFixed(2)})
+          HARVEST & COMPOUND (${harvestableYield.toFixed(2)})
+        </Button>
+
+        {/* Withdraw Button - Full exit */}
+        <Button
+          onClick={onWithdraw}
+          disabled={principal <= 0}
+          className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 transition-all h-12 font-mono tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ArrowUpRight className="w-4 h-4 mr-2" />
+          WITHDRAW ALL (${principal.toFixed(2)})
         </Button>
       </div>
 

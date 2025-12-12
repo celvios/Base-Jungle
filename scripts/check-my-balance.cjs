@@ -4,7 +4,7 @@ require("dotenv").config({ path: ".env.deployment" });
 async function main() {
     console.log("\n💰 Checking Your Balance...\n");
 
-    const VAULT = "0xDffCeFEE4C9005bbe3bd2Ffc1c3b1Bb0a0A68387";
+    const VAULT = "0x0fFc833fBaa8f567695a0cd640BD4009FF3dC841";
     const USER = "0x72377a60870E3d2493F871FA5792a1160518fcc6";
     const MOCK_USDC = "0x634c1cf5129fC7bd49736b9684375E112e4000E1";
 
@@ -31,13 +31,24 @@ async function main() {
     const STRATEGY_CONTROLLER = deploymentData.contracts.strategyController;
     const sc = await hre.ethers.getContractAt("StrategyController", STRATEGY_CONTROLLER);
     
-    const alloc0 = await sc.userAllocations(USER, 0);
-    const alloc1 = await sc.userAllocations(USER, 1);
+    // Check ALL 6 strategy allocations
+    const STRATEGY_NAMES = ["LENDING", "LP_STABLE", "LP_VOLATILE", "LEVERAGED_LP", "VAULT_BEEFY", "ARBITRAGE"];
     
     console.log("\n📊 Strategy Allocations:");
-    console.log("   LENDING (70%):", hre.ethers.formatUnits(alloc0, 6), "USDC");
-    console.log("   BEEFY (30%):", hre.ethers.formatUnits(alloc1, 6), "USDC");
-    console.log("   Total:", hre.ethers.formatUnits(alloc0 + alloc1, 6), "USDC");
+    let totalAlloc = 0n;
+    
+    for (let i = 0; i < 6; i++) {
+        const alloc = await sc.userAllocations(USER, i);
+        const allocNum = Number(hre.ethers.formatUnits(alloc, 6));
+        totalAlloc += alloc;
+        
+        if (alloc > 0n) {
+            console.log(`   ${STRATEGY_NAMES[i]}: $${allocNum.toFixed(2)} USDC`);
+        }
+    }
+    
+    console.log("   ─────────────────");
+    console.log("   Total Allocated:", hre.ethers.formatUnits(totalAlloc, 6), "USDC");
 
     // Check remaining USDC
     const usdc = await hre.ethers.getContractAt(
