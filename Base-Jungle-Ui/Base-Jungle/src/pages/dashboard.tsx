@@ -247,7 +247,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
       {/* Header with Profile Menu and Notifications */}
-      <div className="fixed top-6 right-6 z-50 flex flex-row items-center gap-4">
+      <div className="fixed top-6 right-6 z-50 flex flex-row items-center gap-4 flex-shrink-0">
         <NotificationBell unreadCount={unreadCount} />
         <ProfileMenu />
       </div>
