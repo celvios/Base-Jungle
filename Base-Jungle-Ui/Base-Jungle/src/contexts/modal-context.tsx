@@ -4,6 +4,7 @@ export type ModalType =
   | "airlock"
   | "seeding"
   | "harvest"
+  | "withdraw"
   | "deposit"
   | "strategyChange"
   | "leverage-control"
