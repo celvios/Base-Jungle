@@ -9,6 +9,7 @@ import { useUserSettingsContract } from "@/hooks/use-settings";
 import { useLeverageManager } from "@/hooks/use-leverage";
 import { useUserRank } from "@/hooks/use-leaderboard";
 import { type Address } from "viem";
+import { useReadContract } from "wagmi";
 import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
 
 // Terminal Components
