@@ -104,7 +104,7 @@ function AppContent() {
   const [location] = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { address } = useWallet();
-  const { unreadCount } = useYieldEvents(address);
+  const { unreadCount } = useYieldEvents(address ?? undefined);
   const isDashboardRoute = location === "/dashboard" || location === "/referrals" || location === "/leaderboard";
 
   if (!isDashboardRoute) {
