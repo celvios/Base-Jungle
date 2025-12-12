@@ -26,11 +26,17 @@ import { useReferralMetadata } from "@/hooks/use-referral-metadata";
 import { useHistoricalData } from "@/hooks/use-historical-data";
 import { useModal } from "@/contexts/modal-context";
 import { useAccumulatorData } from "@/hooks/use-accumulator-data";
+import { useYieldEvents } from "@/hooks/use-yield-events";
+import NotificationBell from "@/components/dashboard/NotificationBell";
+import YieldNotifications from "@/components/dashboard/terminal/YieldNotifications";
 
 export default function Dashboard() {
   const { isConnected, connect, address } = useWallet();
   const { openModal } = useModal();
   const [loading, setLoading] = useState(true);
+
+  // ✅ Yield event tracking for notifications
+  const { events: yieldEvents, unreadCount, lastVisitBalance, addEvent } = useYieldEvents(address);
 
   useEffect(() => {
     if (isConnected) {
@@ -72,9 +78,9 @@ export default function Dashboard() {
   const netWorth = isSameVault
     ? (conservativeBalance ? Number(conservativeBalance) / 1e6 : 0) // Only count once if same vault
     : (
-        (conservativeBalance ? Number(conservativeBalance) / 1e6 : 0) +
-        (aggressiveBalance ? Number(aggressiveBalance) / 1e6 : 0)
-      );
+      (conservativeBalance ? Number(conservativeBalance) / 1e6 : 0) +
+      (aggressiveBalance ? Number(aggressiveBalance) / 1e6 : 0)
+    );
 
   const referralCount = (referralData?.directCount || 0) + (referralData?.tierTwoCount || 0);
   const currentTier = referralData?.tier || "Novice";
@@ -129,6 +135,46 @@ export default function Dashboard() {
   // ✅ Real Accumulator Data
   const { points, multiplier, velocity, globalTVL, avgAPY } = useAccumulatorData(address as Address);
 
+  // ✅ Monitor yield changes and create notification events
+  useEffect(() => {
+    if (!address || !harvestableYield) return;
+
+    // Check if harvestable yield exceeds $5 threshold
+    const harvestThreshold = 5;
+    if (harvestableYield > harvestThreshold) {
+      // Check if we already have a recent harvest notification
+      const recentHarvestEvent = yieldEvents.find(
+        (e) => e.type === 'harvest' && Date.now() - e.timestamp.getTime() < 24 * 60 * 60 * 1000
+      );
+
+      if (!recentHarvestEvent) {
+        addEvent('harvest', harvestableYield, `Ready to harvest $${harvestableYield.toFixed(2)}!`);
+      }
+    }
+  }, [harvestableYield, address]);
+
+  // ✅ Track balance increases and create yield events
+  useEffect(() => {
+    if (!address || netWorth === 0) return;
+
+    // Store previous balance for comparison
+    const prevBalanceKey = `prev_balance_${address}`;
+    const storedPrevBalance = sessionStorage.getItem(prevBalanceKey);
+
+    if (storedPrevBalance) {
+      const prevBalance = parseFloat(storedPrevBalance);
+      const increase = netWorth - prevBalance;
+
+      // If balance increased by more than $1, create yield event
+      if (increase > 1) {
+        addEvent('compound', increase, `Auto-compound: +$${increase.toFixed(2)} USDC`);
+      }
+    }
+
+    // Update stored balance
+    sessionStorage.setItem(prevBalanceKey, netWorth.toString());
+  }, [netWorth, address]);
+
   // Show connect wallet modal if not connected
   if (!isConnected) {
     return (
@@ -176,7 +222,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white overflow-x-hidden pb-20">
-      <div className="fixed top-6 right-6 z-50">
+      {/* Header with Profile Menu and Notifications */}
+      <div className="fixed top-6 right-6 z-50 flex items-center gap-3">
+        <NotificationBell unreadCount={unreadCount} />
         <ProfileMenu />
       </div>
 
@@ -234,16 +282,22 @@ export default function Dashboard() {
             />
 
             {/* Rewards Module: Accumulator */}
-            <div className="flex-1">
-              <Accumulator
-                points={points}
-                multiplier={multiplier}
-                velocity={velocity}
-                globalTVL={globalTVL}
-                avgAPY={avgAPY}
-                onViewRewards={() => window.location.href = '/rewards'}
-              />
-            </div>
+            <Accumulator
+              points={points}
+              multiplier={multiplier}
+              velocity={velocity}
+              globalTVL={globalTVL}
+              avgAPY={avgAPY}
+              onViewRewards={() => window.location.href = '/rewards'}
+            />
+
+            {/* Yield Notifications Module */}
+            <YieldNotifications
+              currentBalance={netWorth}
+              lastVisitBalance={lastVisitBalance}
+              events={yieldEvents}
+              onDismiss={(id) => console.log('Dismiss notification:', id)}
+            />
           </div>
 
           {/* Bottom Row: Signal List - Spans full width */}
