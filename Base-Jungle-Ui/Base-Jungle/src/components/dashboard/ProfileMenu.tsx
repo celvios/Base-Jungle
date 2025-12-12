@@ -30,12 +30,11 @@ const ProfileMenu: React.FC = () => {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full hover:bg-white/10 transition-all"
+                className="w-10 h-10 bg-white/5 backdrop-blur-md border border-white/10 rounded-full hover:bg-white/10 transition-all flex items-center justify-center"
             >
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-sm font-mono text-gray-300 hidden md:block">{shortAddress}</span>
             </button>
 
             {isOpen && (

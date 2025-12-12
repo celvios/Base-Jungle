@@ -28,10 +28,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ unreadCount = 0 }) 
             {/* Bell Button */}
             <button
                 onClick={handleBellClick}
-                className="relative p-2 rounded-full bg-gray-800/50 border border-gray-700 hover:border-gray-600 hover:bg-gray-800 transition-all group"
+                className="relative w-10 h-10 rounded-full bg-white/5 backdrop-blur-md border border-white/10 hover:bg-white/10 transition-all flex items-center justify-center group"
                 aria-label="Notifications"
             >
-                <Bell className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                <Bell className="w-5 h-5 text-gray-300 group-hover:text-white transition-colors" />
 
                 {/* Badge for unread notifications */}
                 {unreadCount > 0 && (
