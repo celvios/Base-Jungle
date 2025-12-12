@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useVaultShareBalance } from './use-vault';
+import { useVaultBalance, useVaultShareBalance } from './use-vault';
 import { useReadContract } from 'wagmi';
 import { type Address, formatUnits } from 'viem';
 
@@ -43,11 +43,14 @@ export function useYieldMetrics(
     aggressiveVaultAddress: Address,
     userAddress: Address | undefined
 ): YieldMetrics {
-    // 1. Get User Shares
-    const { data: sharesC } = useVaultShareBalance(conservativeVaultAddress, userAddress);
-    const { data: sharesA } = useVaultShareBalance(aggressiveVaultAddress, userAddress);
+    // 1. Get Base Balances (Verified working in header)
+    const { data: balC, isLoading: isLoadingBalC } = useVaultBalance(conservativeVaultAddress, userAddress);
+    const { data: balA } = useVaultBalance(aggressiveVaultAddress, userAddress);
 
-    // 2. Get Vault Total Supply
+    // 2. Get User Shares (for yield calc)
+    const { data: sharesC } = useVaultShareBalance(conservativeVaultAddress, userAddress);
+
+    // 3. Get Vault Total Supply
     const { data: totalSupplyC } = useReadContract({
         address: conservativeVaultAddress,
         abi: TOTAL_SUPPLY_ABI,
@@ -55,7 +58,7 @@ export function useYieldMetrics(
         query: { enabled: !!conservativeVaultAddress }
     });
 
-    // 3. Get Strategy Controller Address
+    // 4. Get Strategy Controller & Real Value
     const { data: controllerAddress } = useReadContract({
         address: conservativeVaultAddress,
         abi: STRATEGY_CONTROLLER_ABI,
@@ -63,8 +66,7 @@ export function useYieldMetrics(
         query: { enabled: !!conservativeVaultAddress }
     });
 
-    // 4. Get Real Total Value from Strategy Controller
-    const { data: totalValueC, isLoading: isLoadingC } = useReadContract({
+    const { data: totalValueC, isLoading: isLoadingCtrl } = useReadContract({
         address: controllerAddress as Address,
         abi: STRATEGY_CONTROLLER_ABI,
         functionName: 'getTotalValue',
@@ -73,46 +75,29 @@ export function useYieldMetrics(
     });
 
     return useMemo(() => {
-        let cPrincipal = 0;
-        let cRealValue = 0;
+        // Base Principal from Verified Balance Hook
+        let cPrincipal = balC ? Number(formatUnits(balC as bigint, 6)) : 0;
         let cYield = 0;
 
-        // Helper to format shares (18 decimals)
-        const formatShares = (v: bigint) => Number(formatUnits(v, 18));
-        // Helper to format values (6 decimals for USDC)
-        const formatValue = (v: bigint) => Number(formatUnits(v, 6));
-
-        // Logic for Conservative Vault
+        // Try calculate Real Yield if data available
         if (sharesC && totalSupplyC && totalValueC && totalSupplyC > 0n) {
-            const userShares = formatShares(sharesC);
-            const totalShares = formatShares(totalSupplyC);
-            const vaultParams = formatValue(totalValueC);
+            const userShares = Number(formatUnits(sharesC, 18));
+            const totalShares = Number(formatUnits(totalSupplyC, 18));
+            const realVaultValue = Number(formatUnits(totalValueC, 6)); // USDC
 
-            // User Fraction
-            const fraction = userShares / totalShares;
+            if (totalShares > 0) {
+                const fraction = userShares / totalShares;
+                const realUserValue = fraction * realVaultValue;
 
-            // Real Value
-            cRealValue = fraction * vaultParams;
-
-            // Principal Estimate (assuming 1 Share = 1 USDC initially)
-            // Shares are 1e18, but prices are 1e6 usually. 
-            // Logic: 1 share = 1 * 10^18 units.
-            // 1 USDC = 1 * 10^6 units.
-            // If 1 Share was minted for 1 USDC:
-            // userShares (normalized to 1.0) * 1.0 = Principal in USDC.
-            cPrincipal = userShares;
-
-            cYield = cRealValue - cPrincipal;
-
-        } else if (sharesC) {
-            // Fallback: Just show shares as principal 
-            cPrincipal = formatShares(sharesC);
-            cRealValue = cPrincipal;
+                // Yield = RealValue - BookValue (Principal)
+                // If real value > principal, we have profit
+                if (realUserValue > cPrincipal) {
+                    cYield = realUserValue - cPrincipal;
+                }
+            }
         }
 
-        // Logic for Aggressive Vault (Placeholder)
-        const aPrincipal = sharesA ? formatShares(sharesA) : 0;
-
+        const aPrincipal = balA ? Number(formatUnits(balA as bigint, 6)) : 0;
         const totalPrincipal = cPrincipal + aPrincipal;
         const totalYield = cYield;
 
@@ -121,7 +106,7 @@ export function useYieldMetrics(
             totalYield: totalYield,
             harvestableYield: totalYield,
             dailyPnL: totalPrincipal > 0 ? (totalYield / totalPrincipal) * 100 : 0,
-            isLoading: isLoadingC
+            isLoading: isLoadingBalC || isLoadingCtrl
         };
-    }, [sharesC, sharesA, totalSupplyC, totalValueC, isLoadingC]);
+    }, [balC, balA, sharesC, totalSupplyC, totalValueC, isLoadingBalC, isLoadingCtrl]);
 }
