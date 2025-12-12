@@ -15,6 +15,7 @@ import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
 import TerminalLayout from "@/components/dashboard/terminal/TerminalLayout";
 import StatusManifold from "@/components/dashboard/terminal/StatusManifold";
 import YieldReactor from "@/components/dashboard/terminal/YieldReactor";
+import { useStrategyActivity } from "@/hooks/use-strategy-activity";
 import PressureGauge from "@/components/dashboard/terminal/PressureGauge";
 import SignalList from "@/components/dashboard/terminal/SignalList";
 import Accumulator from "@/components/dashboard/terminal/Accumulator";
@@ -129,6 +130,25 @@ export default function Dashboard() {
   const { chartData } = useHistoricalData(
     import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address,
     import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS as Address,
+    address as Address
+  );
+
+  // ✅ Strategy Activity Feed
+  const { data: controllerAddress } = useReadContract({
+    address: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address,
+    abi: [{
+      name: 'strategyController',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [],
+      outputs: [{ name: '', type: 'address' }],
+    }] as const,
+    functionName: 'strategyController',
+  });
+
+  const { activities, isLoading: isLoadingActivities } = useStrategyActivity(
+    import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS as Address,
+    controllerAddress as Address,
     address as Address
   );
 
@@ -273,6 +293,8 @@ export default function Dashboard() {
               harvestableYield={harvestableYield}
               dailyPnL={dailyPnL}
               data={chartData}
+              activities={activities}
+              isLoadingActivities={isLoadingActivities}
               onHarvest={() => openModal('harvest', {
                 vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
                 vaultName: 'Conservative Vault'
