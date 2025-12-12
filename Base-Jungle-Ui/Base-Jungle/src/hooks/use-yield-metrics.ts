@@ -75,6 +75,9 @@ export function useYieldMetrics(
     });
 
     return useMemo(() => {
+        // Check if both vaults are the same to avoid double-counting
+        const isSameVault = conservativeVaultAddress?.toLowerCase() === aggressiveVaultAddress?.toLowerCase();
+
         // Base Principal from Verified Balance Hook
         let cPrincipal = balC ? Number(formatUnits(balC as bigint, 6)) : 0;
         let cYield = 0;
@@ -97,7 +100,8 @@ export function useYieldMetrics(
             }
         }
 
-        const aPrincipal = balA ? Number(formatUnits(balA as bigint, 6)) : 0;
+        // Only add aggressive balance if it's a different vault
+        const aPrincipal = (balA && !isSameVault) ? Number(formatUnits(balA as bigint, 6)) : 0;
         const totalPrincipal = cPrincipal + aPrincipal;
         const totalYield = cYield;
 
@@ -108,5 +112,5 @@ export function useYieldMetrics(
             dailyPnL: totalPrincipal > 0 ? (totalYield / totalPrincipal) * 100 : 0,
             isLoading: isLoadingBalC || isLoadingCtrl
         };
-    }, [balC, balA, sharesC, totalSupplyC, totalValueC, isLoadingBalC, isLoadingCtrl]);
+    }, [balC, balA, sharesC, totalSupplyC, totalValueC, isLoadingBalC, isLoadingCtrl, conservativeVaultAddress, aggressiveVaultAddress]);
 }
