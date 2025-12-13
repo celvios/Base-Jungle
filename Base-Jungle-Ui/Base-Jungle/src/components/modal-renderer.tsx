@@ -4,6 +4,7 @@ import {
   SeedingModal,
   HarvestModal,
   DepositModal,
+  WithdrawModal,
   StrategyChangeModal,
   LeverageControlModal,
 } from "./modals";
@@ -19,6 +20,7 @@ export function ModalRenderer() {
       {activeModal === "seeding" && <SeedingModal />}
       {activeModal === "harvest" && <HarvestModal />}
       {activeModal === "deposit" && <DepositModal />}
+      {activeModal === "withdraw" && <WithdrawModal />}
       {activeModal === "strategyChange" && <StrategyChangeModal />}
       {activeModal === "leverage-control" && <LeverageControlModal />}
     </>
