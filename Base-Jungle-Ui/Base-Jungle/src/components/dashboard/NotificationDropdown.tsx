@@ -67,7 +67,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-full mt-2 w-96 z-50"
             >
-                <div className="glass-card rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
+                <div className="bg-gray-900/95 backdrop-blur-xl rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-gray-800">
                         <div className="flex items-center gap-2">
