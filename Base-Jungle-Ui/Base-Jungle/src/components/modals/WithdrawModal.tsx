@@ -5,13 +5,12 @@ import { AlertTriangle, ArrowUpRight, Clock, DollarSign } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useReadContract } from 'wagmi';
 import { type Address } from 'viem';
+import { useModal } from '@/contexts/modal-context';
 
 interface WithdrawModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    vaultAddress: Address;
-    vaultName: string;
-    totalAmount: number;
+    vaultAddress?: Address;
+    vaultName?: string;
+    totalAmount?: number;
 }
 
 const VAULT_ABI = [
@@ -34,12 +33,12 @@ const VAULT_ABI = [
 const SIXTY_DAYS = 60 * 24 * 60 * 60; // 60 days in seconds
 
 export const WithdrawModal: React.FC<WithdrawModalProps> = ({
-    isOpen,
-    onClose,
     vaultAddress,
-    vaultName,
-    totalAmount
+    vaultName = 'Vault',
+    totalAmount = 0
 }) => {
+    const { activeModal, closeModal } = useModal();
+    const isOpen = activeModal === 'withdraw';
     const { address } = useAccount();
 
     // Get user's deposit timestamp
@@ -97,11 +96,11 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
     const handleWithdraw = () => {
         // TODO: Implement actual withdrawal transaction
         console.log('Withdrawing:', withdrawalInfo.finalAmount);
-        onClose();
+        closeModal();
     };
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={closeModal}>
             <DialogContent className="bg-gray-900 border-gray-800 max-w-md">
                 <DialogHeader>
                     <DialogTitle className="text-white flex items-center gap-2">
@@ -171,7 +170,7 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                     {/* Action Buttons */}
                     <div className="flex gap-3 mt-6">
                         <Button
-                            onClick={onClose}
+                            onClick={closeModal}
                             variant="outline"
                             className="flex-1 border-gray-700 hover:bg-gray-800"
                         >
@@ -180,8 +179,8 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
                         <Button
                             onClick={handleWithdraw}
                             className={`flex-1 ${withdrawalInfo.isEarlyWithdrawal
-                                    ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/40'
-                                    : 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/40'
+                                ? 'bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/40'
+                                : 'bg-green-500/20 hover:bg-green-500/30 text-green-400 border border-green-500/40'
                                 }`}
                         >
                             <DollarSign className="w-4 h-4 mr-2" />

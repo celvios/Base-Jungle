@@ -10,7 +10,7 @@ import {
 } from "./modals";
 
 export function ModalRenderer() {
-  const { activeModal } = useModal();
+  const { activeModal, modalData } = useModal();
 
   if (!activeModal) return null;
 
@@ -18,10 +18,10 @@ export function ModalRenderer() {
     <>
       {activeModal === "airlock" && <AirlockModal />}
       {activeModal === "seeding" && <SeedingModal />}
-      {activeModal === "harvest" && <HarvestModal />}
+      {activeModal === "harvest" && <HarvestModal {...(modalData as any)} />}
       {activeModal === "deposit" && <DepositModal />}
-      {activeModal === "withdraw" && <WithdrawModal />}
-      {activeModal === "strategyChange" && <StrategyChangeModal />}
+      {activeModal === "withdraw" && <WithdrawModal {...(modalData as any)} />}
+      {activeModal === "strategyChange" && <StrategyChangeModal {...(modalData as any)} />}
       {activeModal === "leverage-control" && <LeverageControlModal />}
     </>
   );
