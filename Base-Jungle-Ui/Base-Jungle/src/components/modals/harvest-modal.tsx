@@ -93,15 +93,25 @@ export function HarvestModal({
   const amountAfterPenalty = isMature ? totalReturn : (estimatedPrincipal - earlyPenalty);
 
   // Calculate yield shares for partial withdrawal
-  const yieldRatio = balance > 0 ? estimatedYield / balance : 0;
-  // Use BigInt math for precision: shares * (yield * 1e18 / balance) / 1e18
-  // Since we have yieldRatio as number, we can estimate:
-  const yieldShares = shares > 0n && yieldRatio > 0
-    ? BigInt(Math.floor(Number(shares) * yieldRatio))
+  // Use BigInt math to prevent precision loss with large share numbers
+  const yieldShares = shares > 0n && balance > 0 && estimatedYield > 0
+    ? (shares * BigInt(Math.floor((estimatedYield / balance) * 1e18))) / 1000000000000000000n
     : 0n;
 
   const handleSlideComplete = async () => {
-    if (slideProgress === 100 && address && yieldShares > 0n) {
+    if (slideProgress === 100) {
+      if (!address || yieldShares <= 0n) {
+        console.error("Harvest blocked:", {
+          hasAddress: !!address,
+          yieldShares: yieldShares.toString(),
+          shares: shares.toString(),
+          balance,
+          estimatedYield
+        });
+        setSlideProgress(0); // Reset UI if invalid
+        return;
+      }
+
       setWithdrawalState("processing");
 
       try {
