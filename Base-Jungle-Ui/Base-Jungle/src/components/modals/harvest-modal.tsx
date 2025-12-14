@@ -114,9 +114,7 @@ export function HarvestModal({
 
       setWithdrawalState("processing");
 
-      import { type Address, formatUnits } from "viem";
 
-      // ... inside HarvestModal ...
 
       try {
         // Withdraw ONLY the yield shares
