@@ -92,13 +92,21 @@ export function HarvestModal({
   const earlyPenalty = !isMature ? calculateEarlyWithdrawalPenalty(estimatedPrincipal, false) : 0;
   const amountAfterPenalty = isMature ? totalReturn : (estimatedPrincipal - earlyPenalty);
 
+  // Calculate yield shares for partial withdrawal
+  const yieldRatio = balance > 0 ? estimatedYield / balance : 0;
+  // Use BigInt math for precision: shares * (yield * 1e18 / balance) / 1e18
+  // Since we have yieldRatio as number, we can estimate:
+  const yieldShares = shares > 0n && yieldRatio > 0
+    ? BigInt(Math.floor(Number(shares) * yieldRatio))
+    : 0n;
+
   const handleSlideComplete = async () => {
-    if (slideProgress === 100 && address && shares > 0n) {
+    if (slideProgress === 100 && address && yieldShares > 0n) {
       setWithdrawalState("processing");
 
       try {
-        // Use actual share balance for withdrawal
-        await withdraw(shares.toString(), address, address);
+        // Withdraw ONLY the yield shares
+        await withdraw(yieldShares.toString(), address, address);
       } catch (err) {
         console.error("Withdrawal failed:", err);
         setWithdrawalState("preview");
@@ -123,9 +131,9 @@ export function HarvestModal({
           <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
             <AlertTriangle className="w-10 h-10 text-red-500" />
           </div>
-          <h3 className="text-2xl font-bold text-red-400">WITHDRAWAL FAILED</h3>
+          <h3 className="text-2xl font-bold text-red-400">HARVEST FAILED</h3>
           <p className="text-blue-300/70 text-center max-w-md">
-            {error.message || "Failed to withdraw funds. Please try again."}
+            {error.message || "Failed to harvest yield. Please try again."}
           </p>
           <button
             onClick={() => {
@@ -156,7 +164,7 @@ export function HarvestModal({
 
           <div className="text-center space-y-2">
             <p className="text-blue-300/70">
-              ${amountAfterPenalty.toLocaleString()} transferred to your wallet
+              ${estimatedYield.toFixed(2)} yield transferred to your wallet
             </p>
             {hash && (
               <a
@@ -183,11 +191,11 @@ export function HarvestModal({
         <div className="flex flex-col items-center justify-center py-12 space-y-6">
           <RefreshCw className="w-16 h-16 text-blue-500 animate-spin" />
           <h3 className="text-xl font-bold text-blue-300">
-            {isPending ? "CONFIRM IN WALLET" : "EXECUTING WITHDRAWAL"}
+            {isPending ? "CONFIRM IN WALLET" : "HARVESTING YIELD"}
           </h3>
           <p className="text-blue-300/70 text-center max-w-md">
             {isPending
-              ? "Confirm the transaction in your wallet to complete the harvest"
+              ? "Confirm the transaction in your wallet to claim your rewards"
               : "Transaction submitted. Waiting for confirmation..."
             }
           </p>
@@ -240,186 +248,74 @@ export function HarvestModal({
     );
   }
 
-  // MATURE STATE - Ready to harvest
-  if (isMature) {
-    return (
-      <ModalContainer onClose={closeModal} title="HARVEST">
-        <div className="space-y-6">
-          {/* Success Header */}
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 mb-3">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-medium text-green-400">MATURE • READY TO HARVEST</span>
-            </div>
-            <h3 className="text-3xl font-bold text-blue-300 mb-1">
-              CYCLE COMPLETE
-            </h3>
-            <p className="text-blue-300/60">Your capital has fully matured</p>
-          </div>
-
-          {/* Performance Stats */}
-          <div className="grid grid-cols-2 gap-3 p-4 rounded border border-blue-500/20 bg-blue-500/5">
-            <div>
-              <div className="text-xs text-blue-400/60 mb-1">ROI</div>
-              <div className="flex items-center gap-1">
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                <span className="font-mono font-bold text-green-400">+{roi}%</span>
-              </div>
-            </div>
-            <div>
-              <div className="text-xs text-blue-400/60 mb-1">Duration</div>
-              <div className="font-mono font-bold text-blue-300">{daysStaked} days</div>
-            </div>
-          </div>
-
-          {/* Breakdown */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 rounded border border-blue-500/20 bg-blue-500/5">
-              <span className="text-blue-300">Principal</span>
-              <span className="font-mono font-bold text-blue-200">${estimatedPrincipal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center p-3 rounded border border-green-500/20 bg-green-500/5">
-              <span className="text-blue-300">Yield Generated</span>
-              <span className="font-mono font-bold text-green-400">
-                +${estimatedYield.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between items-center p-4 rounded border-2 border-blue-500/40 bg-gradient-to-r from-blue-500/10 to-transparent">
-              <span className="text-blue-200 font-medium">Total Return</span>
-              <span className="font-mono font-bold text-xl text-blue-300">
-                ${totalReturn.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
-          {/* Transaction Info */}
-          <div className="flex items-center justify-between text-xs text-blue-400/60">
-            <span>Network: Base Sepolia</span>
-            <span>Estimated APY: {estimatedAPY}%</span>
-          </div>
-
-          {/* Slide-to-Claim */}
-          <div className="relative mt-8">
-            <div className="relative h-14 rounded border border-blue-500/40 bg-gradient-to-r from-blue-500/10 to-transparent overflow-hidden">
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={slideProgress}
-                onChange={(e) => {
-                  const value = Number(e.target.value);
-                  setSlideProgress(value);
-                  if (value === 100) {
-                    handleSlideComplete();
-                  }
-                }}
-                className="absolute inset-0 w-full cursor-pointer opacity-0 z-10"
-                disabled={!address}
-              />
-
-              <div
-                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-100"
-                style={{ width: `${slideProgress}%` }}
-              />
-
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-white font-bold">
-                  {slideProgress < 100 ? "SLIDE TO CLAIM →" : "PROCESSING..."}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ModalContainer>
-    );
-  }
-
-  // IMMATURE STATE - Early withdrawal with penalty
+  // UNIFIED HARVEST STATE (Maturity warning removed as requested)
   return (
-    <ModalContainer onClose={closeModal} title="STABILITY ALERT">
+    <ModalContainer onClose={closeModal} title="HARVEST YIELD">
       <div className="space-y-6">
-        {/* Warning Header */}
-        <div className="text-center animate-glitch">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/30 mb-3">
-            <AlertTriangle className="w-4 h-4 text-red-400" />
-            <span className="text-sm font-medium text-red-400">IMMATURE WITHDRAWAL</span>
+        {/* Header */}
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 mb-3">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-sm font-medium text-green-400">YIELD AVAILABLE</span>
           </div>
-          <h3 className="text-2xl font-bold text-white mb-1">
-            ECOSYSTEM IMMATURE
+          <h3 className="text-3xl font-bold text-blue-300 mb-1">
+            ${estimatedYield.toFixed(2)}
           </h3>
-          <p className="text-white/70">Early withdrawal penalties apply</p>
+          <p className="text-blue-300/60">Harvestable Profit</p>
         </div>
 
-        {/* Time Remaining */}
-        <div className="p-4 rounded border border-yellow-500/30 bg-yellow-500/5 text-center">
-          <div className="text-xs text-yellow-400/60 mb-1">TIME UNTIL MATURITY</div>
-          <div className="font-mono font-bold text-xl text-yellow-400">
-            {daysRemaining} days
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3 p-4 rounded border border-blue-500/20 bg-blue-500/5">
+          <div>
+            <div className="text-xs text-blue-400/60 mb-1">ROI</div>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="w-4 h-4 text-green-400" />
+              <span className="font-mono font-bold text-green-400">+{roi}%</span>
+            </div>
           </div>
-          <div className="text-xs text-yellow-400/60 mt-1">60-day hold period required for full rewards</div>
-        </div>
-
-        {/* Penalty Breakdown */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center p-3 rounded border border-white/20 bg-white/5">
-            <span className="text-white/80">Principal (Before Penalty)</span>
-            <span className="font-mono font-bold text-white">${estimatedPrincipal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center p-3 rounded border border-red-500/20 bg-red-500/5">
-            <span className="text-white/80">Early Withdrawal Fee (10%)</span>
-            <span className="font-mono font-bold text-red-400">
-              -${earlyPenalty.toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center p-3 rounded border border-red-500/20 bg-red-500/5">
-            <span className="text-white/80">Yield Forfeited</span>
-            <span className="font-mono font-bold text-red-400">-${estimatedYield.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center p-3 rounded border border-red-500/20 bg-red-500/5">
-            <span className="text-white/80">Bonus Points Lost</span>
-            <span className="font-mono font-bold text-red-400">
-              {bonusPoints > 0 ? `${bonusPoints.toFixed(0)} pts` : "ALL (holding bonuses)"}
-            </span>
-          </div>
-          <div className="flex justify-between items-center p-4 rounded border-2 border-white/20 bg-gradient-to-r from-white/5 to-transparent">
-            <span className="text-white font-medium">You Will Receive</span>
-            <span className="font-mono font-bold text-xl text-white">
-              ${amountAfterPenalty.toFixed(2)}
-            </span>
+          <div>
+            <div className="text-xs text-blue-400/60 mb-1">Duration</div>
+            <div className="font-mono font-bold text-blue-300">{daysStaked} days</div>
           </div>
         </div>
 
-        {/* Recommendation */}
-        <div className="p-4 rounded border border-blue-500/30 bg-blue-500/5">
-          <p className="text-sm text-blue-300/80 text-center">
-            <Lightbulb className="w-4 h-4 inline mr-1" /> Wait {daysRemaining} days to avoid ${earlyPenalty.toFixed(2)} penalty and receive full yield of ${estimatedYield.toFixed(2)}
+        {/* Action Info */}
+        <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <p className="text-xs text-gray-300 text-center">
+            <strong className="text-blue-400">Note:</strong> This checks out your profit (${estimatedYield.toFixed(2)}) while leaving your principal (${estimatedPrincipal.toFixed(2)}) invested to keep growing.
           </p>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={closeModal}
-            className="px-4 py-3 border border-blue-500/30 text-blue-300 font-medium rounded hover:bg-blue-500/10 transition-colors"
-          >
-            Keep Growing
-          </button>
-          <button
-            onClick={async () => {
-              if (!address || shares === 0n) return;
-              setWithdrawalState("processing");
-              try {
-                await withdraw(shares.toString(), address, address);
-              } catch (err) {
-                console.error("Withdrawal failed:", err);
-                setWithdrawalState("preview");
-              }
-            }}
-            disabled={isPending || isConfirming || shares === 0n}
-            className="px-4 py-3 border-2 border-red-500/50 text-red-400 font-bold rounded hover:bg-red-500/10 transition-colors disabled:opacity-50"
-          >
-            Withdraw Anyway
-          </button>
+        {/* Slide-to-Claim */}
+        <div className="relative mt-4">
+          <div className={`relative h-14 rounded border border-blue-500/40 bg-gradient-to-r from-blue-500/10 to-transparent overflow-hidden ${yieldShares <= 0n ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={slideProgress}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setSlideProgress(value);
+                if (value === 100) {
+                  handleSlideComplete();
+                }
+              }}
+              className="absolute inset-0 w-full cursor-pointer opacity-0 z-10"
+              disabled={!address || yieldShares <= 0n}
+            />
+
+            <div
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-100"
+              style={{ width: `${slideProgress}%` }}
+            />
+
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-white font-bold">
+                {yieldShares <= 0n ? "NO YIELD TO CLAIM" : (slideProgress < 100 ? "SLIDE TO HARVEST →" : "PROCESSING...")}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </ModalContainer>
