@@ -12,7 +12,7 @@ const __dirname = dirname(__filename);
 // Load environment variables from contracts/.env
 dotenv.config({ path: join(__dirname, '../contracts/.env') });
 
-const USDC_ADDRESS = process.env.USDC_ADDRESS || '0x036CbD53842c5426634e7929541eC2318f3dCF7e';
+const USDC_ADDRESS = process.env.USDC_ADDRESS || '0x634c1cf5129fC7bd49736b9684375E112e4000E1';
 const RPC_URL = process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 

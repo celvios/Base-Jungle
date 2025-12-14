@@ -145,8 +145,6 @@ contract AerodromeGaugeAdapter is AccessControl {
      * @notice Internal: Get LP token from gauge.
      */
     function _getLPToken(address gauge) internal view returns (address) {
-        // Aerodrome gauges typically have a stakingToken() or similar
-        // Simplified: would need actual interface
-        return address(0); // Placeholder
+        return IAerodromeGauge(gauge).stakingToken();
     }
 }

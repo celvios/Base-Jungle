@@ -62,7 +62,7 @@ module.exports = {
       url: process.env.BASE_FORK_URL || "http://127.0.0.1:8545",
       chainId: 31337, // Hardhat's default chain ID for forks
       forking: {
-        url: "https://mainnet.base.org", // Public Base RPC
+        url: process.env.ALCHEMY_BASE_URL || "https://base-mainnet.g.alchemy.com/v2/demo", // Alchemy public demo
         enabled: true,
       },
       accounts: {

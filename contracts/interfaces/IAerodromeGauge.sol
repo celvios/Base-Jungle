@@ -12,6 +12,7 @@ interface IAerodromeGauge {
     function balanceOf(address account) external view returns (uint256);
     function earned(address account) external view returns (uint256);
     function rewardToken() external view returns (address);
+    function stakingToken() external view returns (address);
 }
 
 /**

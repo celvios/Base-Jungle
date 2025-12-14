@@ -39,7 +39,7 @@ export function HarvestModal({
 
   // Get bonus points (if user has pending points)
   const { data: pointsData } = useUserPointsContract(address);
-  const bonusPoints = pointsData ? Number(formatPoints(pointsData[2])) : 0; // pendingDailyPoints
+  const bonusPoints = 0; // pendingDailyPoints no longer in contract return
 
   // Get real principal/yield from backend (if deposits tracked)
   const { data: vaultPosition } = useVaultPosition(vaultAddress, address, shareBalance, vaultBalanceData);
