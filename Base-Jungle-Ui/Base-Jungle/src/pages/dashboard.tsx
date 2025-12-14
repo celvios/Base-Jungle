@@ -294,15 +294,34 @@ export default function Dashboard() {
               harvestableYield={harvestableYield}
               dailyPnL={dailyPnL}
               data={chartData}
-              onHarvest={() => openModal('harvest', {
-                vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
-                vaultName: 'Conservative Vault'
-              })}
-              onWithdraw={() => openModal('withdraw', {
-                vaultAddress: import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
-                vaultName: 'Conservative Vault',
-                totalAmount: principal
-              })}
+              onHarvest={() => {
+                const cBal = conservativeBalance ? Number(conservativeBalance) : 0;
+                const aBal = aggressiveBalance ? Number(aggressiveBalance) : 0;
+
+                // Default to Aggressive if it has funds, otherwise Conservative
+                // (Or prioritize the one with larger balance)
+                const useAggressive = aBal > 0 && aBal >= cBal;
+
+                openModal('harvest', {
+                  vaultAddress: useAggressive
+                    ? import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS
+                    : import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
+                  vaultName: useAggressive ? 'Aggressive Vault' : 'Conservative Vault'
+                });
+              }}
+              onWithdraw={() => {
+                const cBal = conservativeBalance ? Number(conservativeBalance) : 0;
+                const aBal = aggressiveBalance ? Number(aggressiveBalance) : 0;
+                const useAggressive = aBal > 0 && aBal >= cBal;
+
+                openModal('withdraw', {
+                  vaultAddress: useAggressive
+                    ? import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS
+                    : import.meta.env.VITE_CONSERVATIVE_VAULT_ADDRESS,
+                  vaultName: useAggressive ? 'Aggressive Vault' : 'Conservative Vault',
+                  totalAmount: principal
+                });
+              }}
             />
           </div>
 
