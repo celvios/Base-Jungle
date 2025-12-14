@@ -7,7 +7,7 @@ import { useVaultWithdraw, useVaultBalance, useVaultShareBalance, formatUSDC } f
 import { useDepositMaturity, calculateEarlyWithdrawalPenalty } from "@/hooks/use-maturity";
 import { useUserPointsContract, formatPoints } from "@/hooks/use-points";
 import { useVaultPosition } from "@/hooks/use-vault-position";
-import { type Address } from "viem";
+import { type Address, formatUnits } from "viem";
 
 interface HarvestModalProps {
   vaultAddress: Address;
@@ -114,9 +114,15 @@ export function HarvestModal({
 
       setWithdrawalState("processing");
 
+      import { type Address, formatUnits } from "viem";
+
+      // ... inside HarvestModal ...
+
       try {
         // Withdraw ONLY the yield shares
-        await withdraw(yieldShares.toString(), address, address);
+        // IMPORTANT: withdraw hook expects human-formatted string (e.g. "1.5")
+        // yieldShares is in WEI (BigInt), so we must format it back to string
+        await withdraw(formatUnits(yieldShares, 18), address, address);
       } catch (err) {
         console.error("Withdrawal failed:", err);
         setWithdrawalState("preview");

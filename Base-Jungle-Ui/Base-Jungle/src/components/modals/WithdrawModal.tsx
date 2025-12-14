@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, ArrowUpRight, Clock, DollarSign } from 'lucide-react';
 import { useAccount } from 'wagmi';
 import { useReadContract } from 'wagmi';
-import { type Address } from 'viem';
+import { type Address, formatUnits } from 'viem';
 import { useModal } from '@/contexts/modal-context';
+import { useVaultWithdraw } from '@/hooks/use-vault';
 
 interface WithdrawModalProps {
     vaultAddress?: Address;
@@ -93,11 +94,37 @@ export const WithdrawModal: React.FC<WithdrawModalProps> = ({
         };
     }, [depositTimestamp, lockPeriod, totalAmount]);
 
-    const handleWithdraw = () => {
-        // TODO: Implement actual withdrawal transaction
-        console.log('Withdrawing:', withdrawalInfo.finalAmount);
-        closeModal();
+    // Withdrawal hook
+    const { withdraw, isPending, isConfirming, isSuccess, error } = useVaultWithdraw(vaultAddress || '0x');
+
+    // Get real share balance for full withdrawal
+    const { data: shares } = useReadContract({
+        address: vaultAddress,
+        abi: VAULT_ABI,
+        functionName: 'balanceOf',
+        args: address ? [address] : undefined,
+    });
+
+    const handleWithdraw = async () => {
+        if (!address || !shares || shares === 0n) return;
+
+        try {
+            // Withdraw full balance
+            // Hook expects HUMAN READABLE string, so we must format the raw BigInt shares
+            const formattedShares = formatUnits(shares, 18);
+            await withdraw(formattedShares, address, address);
+            // Modal will be closed via effect on success
+        } catch (err) {
+            console.error("Withdrawal failed:", err);
+        }
     };
+
+    // Close on success
+    useMemo(() => {
+        if (isSuccess) {
+            closeModal();
+        }
+    }, [isSuccess, closeModal]);
 
     return (
         <Dialog open={isOpen} onOpenChange={closeModal}>
