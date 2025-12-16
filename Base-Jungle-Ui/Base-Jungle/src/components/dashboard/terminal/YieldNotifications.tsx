@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, TrendingUp, Zap, Clock, ChevronRight, X, ArrowDownRight, ArrowUpRight, RefreshCw } from 'lucide-react';
+import { Bell, TrendingUp, Zap, Clock, ChevronRight, X, ArrowDownRight, ArrowUpRight, RefreshCw, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTradingLogs } from '@/hooks/use-trading-logs';
 
 interface YieldEvent {
   id: string;
@@ -37,6 +38,8 @@ const YieldNotifications: React.FC<YieldNotificationsProps> = ({
   onDismiss
 }) => {
   const [showWelcome, setShowWelcome] = useState(true);
+  const logs = useTradingLogs(6); // Show last 6 logs
+
   const earnedSinceLastVisit = lastVisitBalance !== null
     ? Math.max(0, currentBalance - lastVisitBalance)
     : 0;
@@ -102,27 +105,37 @@ const YieldNotifications: React.FC<YieldNotificationsProps> = ({
     }
   };
 
+  const getLogLevelColor = (level: string) => {
+    switch (level) {
+      case 'SCAN': return 'text-blue-400';
+      case 'INFO': return 'text-gray-400';
+      case 'SUCCESS': return 'text-green-400';
+      case 'WARNING': return 'text-yellow-400';
+      case 'ERROR': return 'text-red-400';
+      default: return 'text-gray-400';
+    }
+  };
+
   return (
-    <div className="glass-card rounded-xl p-4 relative overflow-hidden">
+    <div className="glass-card rounded-xl p-4 relative overflow-hidden flex flex-col h-full">
       {/* Scanline Effect */}
       <div className="absolute inset-0 pointer-events-none opacity-5">
         <div className="h-full w-full bg-[repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(0,255,0,0.03)_2px,rgba(0,255,0,0.03)_4px)]" />
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 shrink-0">
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Bell className="w-5 h-5 text-green-400" />
-            {activities.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            )}
+            <Activity className="w-5 h-5 text-green-400" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
           </div>
-          <h3 className="text-sm font-mono text-green-400 tracking-wider">YIELD_MONITOR</h3>
+          <h3 className="text-sm font-mono text-green-400 tracking-wider">LIVE_TRADING_LOGS</h3>
         </div>
-        <span className="text-[10px] font-mono text-gray-500">
-          [{new Date().toLocaleTimeString('en-US', { hour12: false })}]
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-mono text-green-400">ONLINE</span>
+        </div>
       </div>
 
       {/* Welcome Back Message */}
@@ -132,7 +145,7 @@ const YieldNotifications: React.FC<YieldNotificationsProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
-            className="mb-4 p-3 rounded-lg border border-green-500/30 bg-green-500/10 relative"
+            className="mb-4 p-3 rounded-lg border border-green-500/30 bg-green-500/10 relative shrink-0"
           >
             <button
               onClick={() => setShowWelcome(false)}
@@ -163,38 +176,46 @@ const YieldNotifications: React.FC<YieldNotificationsProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Terminal Output */}
-      <div className="space-y-2 font-mono text-xs">
-        <div className="text-gray-500">
-          {'>'} yield_tracker --status
-        </div>
-        <div className="text-green-400 pl-4">
-          [OK] Auto-compound: ACTIVE
-        </div>
-        <div className="text-green-400 pl-4">
-          [OK] Strategy allocation: 70/30
-        </div>
-        {activities.length > 0 ? (
-          <div className="text-blue-400 pl-4">
-            [ACTIVE: {activities.length}] AT_RISK: 0
-          </div>
-        ) : (
-          <div className="text-yellow-400 pl-4">
-            ACTIVE: 0  AT_RISK: 0
-          </div>
-        )}
+      {/* Terminal Output (Live Logs) */}
+      <div className="font-mono text-[10px] space-y-1 mb-4 overflow-hidden relative">
+        <div className="absolute top-0 left-0 w-full h-8 bg-gradient-to-b from-[#0a0a0a] to-transparent z-10 pointer-events-none opacity-50" />
+
+        {logs.map((log) => (
+          <motion.div
+            key={log.id}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex gap-2"
+          >
+            <span className="text-gray-600">
+              [{log.timestamp.toLocaleTimeString('en-US', { hour12: false })}]
+            </span>
+            <span className={`font-bold ${getLogLevelColor(log.level)}`}>
+              {log.level}
+            </span>
+            <span className="text-gray-400 truncate">
+              {log.message}
+            </span>
+          </motion.div>
+        ))}
+
+        <motion.div
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{ repeat: Infinity, duration: 0.8 }}
+          className="text-green-500 mt-1"
+        >
+          _
+        </motion.div>
       </div>
 
-      {/* Live Activity Feed */}
+      {/* Live Activity Feed (Transactions) */}
       {activities.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-800">
-          <p className="text-[10px] font-mono text-gray-500 mb-2 tracking-wider">LIVE_TRANSACTIONS</p>
-          <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
-            {activities.slice(0, 8).map((activity) => (
-              <motion.div
+        <div className="mt-auto pt-4 border-t border-gray-800">
+          <p className="text-[10px] font-mono text-gray-500 mb-2 tracking-wider">CONFIRMED_BLOCKS</p>
+          <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+            {activities.slice(0, 5).map((activity) => (
+              <div
                 key={activity.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
                 className={`flex items-center justify-between p-2 rounded border text-xs font-mono ${getActivityColor(activity.type)}`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -204,31 +225,9 @@ const YieldNotifications: React.FC<YieldNotificationsProps> = ({
                 <span className="text-[10px] text-gray-500 ml-2 shrink-0">
                   {formatTime(activity.timestamp)}
                 </span>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {isLoadingActivities && activities.length === 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-800 text-center py-4">
-          <p className="text-xs text-gray-500 font-mono flex items-center justify-center gap-2">
-            <RefreshCw className="w-3 h-3 animate-spin" />
-            {'>'} loading_activity...
-          </p>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoadingActivities && activities.length === 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-800 text-center py-4">
-          <p className="text-xs text-gray-500 font-mono">
-            {'>'} awaiting_transactions...
-          </p>
-          <p className="text-[10px] text-gray-600 mt-1">
-            Activity will appear as strategies execute
-          </p>
         </div>
       )}
     </div>
