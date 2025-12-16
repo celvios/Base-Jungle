@@ -25,7 +25,7 @@ const STRATEGY_CONFIG = [
     },
     {
         type: 1,
-        name: "LP_STABLE", 
+        name: "LP_STABLE",
         description: "Stable LP (USDC/DAI) - Low impermanent loss",
         apy: 1200,     // 12% APY
         risk: 20,      // 20% risk score
@@ -72,7 +72,7 @@ async function main() {
 
     STRATEGY_CONFIG.forEach(s => {
         console.log(`  ${s.type}. ${s.name}`);
-        console.log(`     APY: ${s.apy/100}% | Risk: ${s.risk}% | Min Tier: ${['Novice','Scout','Captain','Whale'][s.minTier]}`);
+        console.log(`     APY: ${s.apy / 100}% | Risk: ${s.risk}% | Min Tier: ${['Novice', 'Scout', 'Captain', 'Whale'][s.minTier]}`);
         console.log(`     ${s.description}\n`);
     });
 
@@ -116,8 +116,8 @@ async function main() {
     const deployedStrategies = {};
 
     for (const config of STRATEGY_CONFIG) {
-        console.log(`📈 Deploying ${config.name} (${config.apy/100}% APY)...`);
-        
+        console.log(`📈 Deploying ${config.name} (${config.apy / 100}% APY)...`);
+
         const strategy = await MockYieldStrategy.deploy(
             MOCK_USDC,
             config.apy,
@@ -125,7 +125,7 @@ async function main() {
         );
         await strategy.waitForDeployment();
         const address = await strategy.getAddress();
-        
+
         deployedStrategies[config.name] = address;
         console.log(`   ✅ ${config.name}: ${address}`);
 
@@ -139,7 +139,7 @@ async function main() {
 
     for (const config of STRATEGY_CONFIG) {
         console.log(`   Adding ${config.name}...`);
-        
+
         const tx = await strategyController.addStrategy(
             config.type,
             deployedStrategies[config.name],
@@ -189,6 +189,13 @@ async function main() {
     await grantTx2.wait();
     console.log("✅ UPDATER_ROLE granted to vault");
 
+    // Grant ACTIVITY_TRACKER_ROLE on ReferralManager (Critical for markActive)
+    const rm = await hre.ethers.getContractAt("ReferralManager", deploymentData.contracts.referralManager);
+    const ACTIVITY_TRACKER_ROLE = await rm.ACTIVITY_TRACKER_ROLE();
+    const grantTx3 = await rm.grantRole(ACTIVITY_TRACKER_ROLE, vaultAddress);
+    await grantTx3.wait();
+    console.log("✅ ACTIVITY_TRACKER_ROLE granted to vault");
+
     // ═══════════════════════════════════════════════════════
     // Step 6: Seed initial yield to strategies
     // ═══════════════════════════════════════════════════════
@@ -216,7 +223,7 @@ async function main() {
         const strategyAddress = deployedStrategies[name];
         const strategy = await hre.ethers.getContractAt("MockYieldStrategy", strategyAddress);
         const amountWei = hre.ethers.parseUnits(amount.toString(), 6);
-        
+
         if (balance >= amountWei) {
             await usdc.approve(strategyAddress, amountWei);
             await strategy.addYield(amountWei);
@@ -236,7 +243,7 @@ async function main() {
     console.log("│ Strategy        │ APY    │ Risk  │ Address                                    │");
     console.log("├─────────────────┼────────┼───────┼────────────────────────────────────────────┤");
     for (const config of STRATEGY_CONFIG) {
-        const apy = (config.apy/100).toString().padEnd(4);
+        const apy = (config.apy / 100).toString().padEnd(4);
         const risk = config.risk.toString().padEnd(3);
         console.log(`│ ${config.name.padEnd(15)} │ ${apy}%  │ ${risk}%  │ ${deployedStrategies[config.name]} │`);
     }

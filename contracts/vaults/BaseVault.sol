@@ -127,6 +127,11 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
             pointsTracker.updatePoints(receiver, assetsAfterFee / 1e6, "vault_deposit");
         }
 
+        // Activate referral (Critical for tracking active referrals)
+        if (address(referralManager) != address(0)) {
+            try referralManager.markActive(msg.sender) {} catch {}
+        }
+
         // Track deposit time
         depositTimestamp[receiver] = block.timestamp;
 
