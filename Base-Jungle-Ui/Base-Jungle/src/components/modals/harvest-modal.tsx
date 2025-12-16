@@ -140,14 +140,14 @@ export function HarvestModal({
   // Error State
   if (error) {
     return (
-      <ModalContainer onClose={closeModal} title="HARVEST">
+      <ModalContainer onClose={closeModal} title="CLAIM PROFIT">
         <div className="flex flex-col items-center justify-center py-12 space-y-6">
           <div className="w-20 h-20 rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center">
             <AlertTriangle className="w-10 h-10 text-red-500" />
           </div>
-          <h3 className="text-2xl font-bold text-red-400">HARVEST FAILED</h3>
+          <h3 className="text-2xl font-bold text-red-400">CLAIM FAILED</h3>
           <p className="text-blue-300/70 text-center max-w-md">
-            {error.message || "Failed to harvest yield. Please try again."}
+            {error.message || "Failed to claim profit. Please try again."}
           </p>
           <button
             onClick={() => {
@@ -166,7 +166,7 @@ export function HarvestModal({
   // Success State
   if (withdrawalState === "success") {
     return (
-      <ModalContainer onClose={closeModal} title="HARVEST">
+      <ModalContainer onClose={closeModal} title="CLAIM PROFIT">
         <div className="flex flex-col items-center justify-center py-12 space-y-6">
           <div className="w-20 h-20 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center">
             <svg className="w-10 h-10 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -174,11 +174,11 @@ export function HarvestModal({
             </svg>
           </div>
 
-          <h3 className="text-2xl font-bold text-green-400">HARVEST COMPLETE</h3>
+          <h3 className="text-2xl font-bold text-green-400">CLAIM COMPLETE</h3>
 
           <div className="text-center space-y-2">
             <p className="text-blue-300/70">
-              ${estimatedYield.toFixed(2)} yield transferred to your wallet
+              ${estimatedYield.toFixed(2)} profit transferred to your wallet
             </p>
             {hash && (
               <a
@@ -201,11 +201,11 @@ export function HarvestModal({
   // Processing State
   if (withdrawalState === "processing" || isPending || isConfirming) {
     return (
-      <ModalContainer onClose={closeModal} title="HARVEST">
+      <ModalContainer onClose={closeModal} title="CLAIM PROFIT">
         <div className="flex flex-col items-center justify-center py-12 space-y-6">
           <RefreshCw className="w-16 h-16 text-blue-500 animate-spin" />
           <h3 className="text-xl font-bold text-blue-300">
-            {isPending ? "CONFIRM IN WALLET" : "HARVESTING YIELD"}
+            {isPending ? "CONFIRM IN WALLET" : "CLAIMING PROFIT"}
           </h3>
           <p className="text-blue-300/70 text-center max-w-md">
             {isPending
@@ -232,7 +232,7 @@ export function HarvestModal({
   // Loading State
   if (balanceLoading || maturityLoading || sharesLoading) {
     return (
-      <ModalContainer onClose={closeModal} title="HARVEST">
+      <ModalContainer onClose={closeModal} title="CLAIM PROFIT">
         <div className="flex flex-col items-center justify-center py-12 space-y-6">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-blue-300/70">Loading vault data...</p>
@@ -244,7 +244,7 @@ export function HarvestModal({
   // No balance
   if (balance === 0) {
     return (
-      <ModalContainer onClose={closeModal} title="HARVEST">
+      <ModalContainer onClose={closeModal} title="CLAIM PROFIT">
         <div className="flex flex-col items-center justify-center py-12 space-y-6">
           <AlertTriangle className="w-16 h-16 text-yellow-400" />
           <h3 className="text-xl font-bold text-white">NO DEPOSITS FOUND</h3>
@@ -264,18 +264,18 @@ export function HarvestModal({
 
   // UNIFIED HARVEST STATE (Maturity warning removed as requested)
   return (
-    <ModalContainer onClose={closeModal} title="HARVEST YIELD">
+    <ModalContainer onClose={closeModal} title="CLAIM COMPOUNDED PROFIT">
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30 mb-3">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-sm font-medium text-green-400">YIELD AVAILABLE</span>
+            <span className="text-sm font-medium text-green-400">PROFIT AVAILABLE</span>
           </div>
           <h3 className="text-3xl font-bold text-blue-300 mb-1">
             ${estimatedYield.toFixed(2)}
           </h3>
-          <p className="text-blue-300/60">Harvestable Profit</p>
+          <p className="text-blue-300/60">Unrealized Profit</p>
         </div>
 
         {/* Stats */}
@@ -296,7 +296,7 @@ export function HarvestModal({
         {/* Action Info */}
         <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
           <p className="text-xs text-gray-300 text-center">
-            <strong className="text-blue-400">Note:</strong> This checks out your profit (${estimatedYield.toFixed(2)}) while leaving your principal (${estimatedPrincipal.toFixed(2)}) invested to keep growing.
+            <strong className="text-blue-400">Note:</strong> This checks out your profit (${estimatedYield.toFixed(2)}) to your wallet. Your principal (${estimatedPrincipal.toFixed(2)}) stays invested and auto-compounds.
           </p>
         </div>
 
@@ -326,7 +326,7 @@ export function HarvestModal({
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <span className="text-white font-bold">
-                {yieldShares <= 0n ? "NO YIELD TO CLAIM" : (slideProgress < 100 ? "SLIDE TO HARVEST →" : "PROCESSING...")}
+                {yieldShares <= 0n ? "NO PROFIT TO CLAIM" : (slideProgress < 100 ? "SLIDE TO CLAIM →" : "PROCESSING...")}
               </span>
             </div>
           </div>

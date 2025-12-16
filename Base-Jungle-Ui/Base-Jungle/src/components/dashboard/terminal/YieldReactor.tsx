@@ -72,7 +72,7 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Harvestable</p>
+          <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Compounded Yield</p>
           <p className="text-2xl font-bold text-green-400">
             ${harvestableYield.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </p>
@@ -130,14 +130,14 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
 
       {/* Actions */}
       <div className="mt-6 shrink-0 relative z-10 space-y-3">
-        {/* Harvest Button - Compounds with 20% fee */}
+        {/* Claim Profit Button - Withdraws yield to wallet */}
         <Button
           onClick={onHarvest}
           disabled={harvestableYield <= 0}
           className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 transition-all h-12 font-mono tracking-wider text-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <DollarSign className="w-4 h-4 mr-2" />
-          HARVEST & COMPOUND (${harvestableYield.toFixed(2)})
+          CLAIM PROFIT TO WALLET (${harvestableYield.toFixed(2)})
         </Button>
 
         {/* Withdraw Button - Full exit */}
