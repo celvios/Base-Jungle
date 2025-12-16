@@ -124,13 +124,38 @@ const YieldNotifications: React.FC<YieldNotificationsProps> = ({
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 shrink-0">
+      <div
+        className="flex items-center justify-between mb-4 shrink-0 cursor-pointer group"
+        onClick={() => {
+          const logContent = [
+            `BASE JUNGLE TRADING LOGS - ${new Date().toISOString()}`,
+            "============================================",
+            ...logs.map(l => `[${l.timestamp.toISOString()}] ${l.level}: ${l.message}`),
+            "============================================",
+            "ON-CHAIN ACTIVITY:",
+            ...activities.map(a => `[${a.timestamp.toISOString()}] ${a.type.toUpperCase()}: ${a.amount} (${a.txHash})`)
+          ].join('\n');
+
+          const blob = new Blob([logContent], { type: 'text/plain' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `trading-logs-${Date.now()}.txt`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }}
+        title="Click to download logs"
+      >
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Activity className="w-5 h-5 text-green-400" />
+            <Activity className="w-5 h-5 text-green-400 group-hover:text-green-300 transition-colors" />
             <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-400 rounded-full animate-pulse" />
           </div>
-          <h3 className="text-sm font-mono text-green-400 tracking-wider">LIVE_TRADING_LOGS</h3>
+          <h3 className="text-sm font-mono text-green-400 tracking-wider group-hover:underline decoration-green-500/50 underline-offset-4">
+            LIVE_TRADING_LOGS <span className='text-[10px] text-gray-500 no-underline ml-2'>(CLICK_TO_DOWNLOAD)</span>
+          </h3>
         </div>
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />

@@ -1,30 +1,68 @@
-const { ethers } = require("ethers");
+const { ethers } = require("hardhat");
+const fs = require("fs");
 
 async function main() {
-    const POINTS_TRACKER_ADDRESS = "0x3dEDE79F6aD12973e723e67071F17e5C42A93173";
-    const USER_ADDRESS = "0x72377a60870E3d2493F871FA5792a1160518fcc6";
+    const deploymentData = JSON.parse(fs.readFileSync("./deployed-addresses-sepolia.json", "utf8"));
+    const POINTS_TRACKER_ADDRESS = deploymentData.contracts.pointsTracker;
+    const REFERRAL_MANAGER_ADDRESS = deploymentData.contracts.referralManager;
+
+    const [deployer] = await ethers.getSigners();
+    const USER_ADDRESS = deployer.address;
 
     const POINTS_TRACKER_ABI = [
-        "function userPoints(address user) view returns (uint256 points, uint256 lastUpdated)",
-        "function claimDailyPoints() external"
+        "function userPoints(address user) view returns (uint256 points, uint256 lastUpdated, uint256 pendingDailyPoints)",
+        "function claimDailyPoints(uint256 tokenId) external"
     ];
 
-    console.log(`Checking points for ${USER_ADDRESS} on contract ${POINTS_TRACKER_ADDRESS}...`);
+    const REFERRAL_MANAGER_ABI = [
+        "function getUserTierInfo(address user) view returns (uint8 tier, uint256 multiplier, uint256 maxLeverage, uint256 activeReferrals, uint256 totalReferrals)",
+        "function getReferrer(address user) view returns (address)"
+    ];
 
-    // Connect to provider (Hardhat will use the configured network, we'll specify baseSepolia)
-    const provider = new ethers.JsonRpcProvider("https://sepolia.base.org");
-    const contract = new ethers.Contract(POINTS_TRACKER_ADDRESS, POINTS_TRACKER_ABI, provider);
+    console.log(`\n🔍 CHECKING STATUS FOR: ${USER_ADDRESS}`);
+    console.log("═══════════════════════════════════════════════════════\n");
 
+    const pointsContract = await ethers.getContractAt(POINTS_TRACKER_ABI, POINTS_TRACKER_ADDRESS);
+    const referralContract = await ethers.getContractAt(REFERRAL_MANAGER_ABI, REFERRAL_MANAGER_ADDRESS);
+
+    // 1. Check Points
     try {
-        const [points, lastUpdated] = await contract.userPoints(USER_ADDRESS);
-        console.log(`\nResults:`);
-        console.log(`Points (Wei): ${points.toString()}`);
-        console.log(`Points (Formatted): ${ethers.formatUnits(points, 18)}`);
-        console.log(`Last Updated: ${new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
+        const [totalPoints, lastUpdated] = await pointsContract.userPoints(USER_ADDRESS);
+
+        console.log("🏆 POINTS TRACKER");
+        console.log(`   Total Points: ${totalPoints.toString()}`);
+        console.log(`   Last Updated: ${new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
+        console.log(`   Contract: ${POINTS_TRACKER_ADDRESS}`);
     } catch (error) {
-        console.error("Error fetching points:", error);
+        console.error("❌ Error fetching points:", error.message);
     }
+
+    // 2. Check Referrals
+    try {
+        const [tier, multiplier, maxLev, activeRefs, totalRefs] = await referralContract.getUserTierInfo(USER_ADDRESS);
+        const referrer = await referralContract.getReferrer(USER_ADDRESS);
+
+        const tiers = ["Novice", "Scout", "Captain", "Whale"];
+
+        console.log("\n👥 REFERRAL MANAGER");
+        console.log(`   Current Tier: ${tiers[tier]} (${tier})`);
+        console.log(`   Active Referrals: ${activeRefs.toString()}`);
+        console.log(`   Total Referrals: ${totalRefs.toString()}`);
+        console.log(`   Multiplier: ${multiplier.toString()} (${Number(multiplier) / 100}x)`);
+        console.log(`   Referred By: ${referrer === ethers.ZeroAddress ? "None" : referrer}`);
+    } catch (error) {
+        console.error("❌ Error fetching referral info:", error.message);
+    }
+
+    console.log("\n═══════════════════════════════════════════════════════\n");
 }
+
+main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+        console.error(error);
+        process.exit(1);
+    });
 
 main()
     .then(() => process.exit(0))

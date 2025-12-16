@@ -19,7 +19,7 @@ const STRATEGY_CONFIG = [
         type: 0,
         name: "LENDING",
         description: "Moonwell/Aave lending - Earn interest on supplied USDC",
-        apy: 400,      // 4% APY
+        apy: 1250,      // 12.5% APY (Boosted)
         risk: 10,      // 10% risk score
         minTier: 0     // Available to all tiers (Novice+)
     },
@@ -27,7 +27,7 @@ const STRATEGY_CONFIG = [
         type: 1,
         name: "LP_STABLE",
         description: "Stable LP (USDC/DAI) - Low impermanent loss",
-        apy: 1200,     // 12% APY
+        apy: 3500,     // 35% APY (High-Yield Stable)
         risk: 20,      // 20% risk score
         minTier: 1     // Scout+ (5 referrals)
     },
@@ -51,7 +51,7 @@ const STRATEGY_CONFIG = [
         type: 4,
         name: "VAULT_BEEFY",
         description: "Beefy auto-compound vault - Set and forget",
-        apy: 800,      // 8% APY
+        apy: 4500,      // 45% APY (Aggressive Boost)
         risk: 15,      // 15% risk score
         minTier: 0     // Available to all tiers
     },
