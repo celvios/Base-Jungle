@@ -128,8 +128,13 @@ export function useYieldMetrics(
 
             // User's share of profit (proportional to their principal)
             if (totalPrincipal > 0 && totalAllocated > 0) {
+                // Adjust for pre-seeded yield (approx $200 total across strategies)
+                // This ensures new users don't see "instant profit" from the deployment seed
+                const preSeededYield = 200 * 1e6; // $200 in USDC decimals
+                const adjustedVaultProfit = Math.max(0, vaultProfit - preSeededYield);
+
                 const userFraction = totalPrincipal / totalAllocated;
-                totalYield = vaultProfit * userFraction;
+                totalYield = adjustedVaultProfit * userFraction;
             }
         }
 

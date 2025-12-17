@@ -36,10 +36,12 @@ export function useAccumulatorData(userAddress: Address | undefined): Accumulato
         const tierMultipliers = [1.0, 1.1, 1.25, 1.5]; // Novice, Scout, Captain, Whale
         const multiplier = tierMultipliers[tier] || 1.0;
 
-        // Velocity (points per hour) - Dynamic based on APY
-        // Base rate boosted to match new yields
-        const baseVelocity = 12.5;
-        const velocity = baseVelocity * multiplier;
+        // Velocity (points per hour)
+        // User requested NO SIMULATIONS.
+        // Unless we have real-time history of points increasing, we should show 0 or Calculate from real history.
+        // Since usePointsBalance only gives current balance, we can't calculate real velocity easily without history.
+        // Set to 0 to be "honest" as requested.
+        const velocity = 0;
 
         // Global TVL (sum of both vaults)
         const conservativeVal = conservativeTVL ? Number(conservativeTVL) / 1e6 : 0;
