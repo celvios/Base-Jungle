@@ -12,7 +12,8 @@ const POINTS_TRACKER_ABI = [
         name: 'userPoints',
         outputs: [
             { name: 'points', type: 'uint256' },
-            { name: 'lastUpdated', type: 'uint256' }
+            { name: 'lastUpdated', type: 'uint256' },
+            { name: 'pendingDailyPoints', type: 'uint256' }
         ],
         stateMutability: 'view',
         type: 'function',

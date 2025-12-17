@@ -15,46 +15,53 @@ async function main() {
     ];
 
     const REFERRAL_MANAGER_ABI = [
-        "function getUserTierInfo(address user) view returns (uint8 tier, uint256 multiplier, uint256 maxLeverage, uint256 activeReferrals, uint256 totalReferrals)",
+        "function getUserTier(address user) view returns (uint8)",
         "function getReferrer(address user) view returns (address)"
     ];
 
-    console.log(`\n🔍 CHECKING STATUS FOR: ${USER_ADDRESS}`);
-    console.log("═══════════════════════════════════════════════════════\n");
+    const VAULT_ADDRESS = deploymentData.contracts.conservativeVault;
+    const VAULT_ABI = ["event Deposited(address indexed user, uint256 assets, uint256 shares, uint256 fee)"];
+
+    console.log(`\n🔍 SCANNING FOR RECENT DEPOSITORS in Vault: ${VAULT_ADDRESS}`);
+    const vaultContract = await ethers.getContractAt(VAULT_ABI, VAULT_ADDRESS);
+
+    // Scan last 5000 blocks
+    const currentBlock = await ethers.provider.getBlockNumber();
+    const startBlock = Math.max(0, currentBlock - 5000);
+    console.log(`   Scanning blocks ${startBlock} to ${currentBlock}...`);
+
+    const events = await vaultContract.queryFilter("Deposited", startBlock, currentBlock);
+    console.log(`   Found ${events.length} deposit events.\n`);
+
+    const uniqueUsers = [...new Set(events.map(e => e.args.user))];
+
+    if (uniqueUsers.length === 0) {
+        console.log("❌ No depositors found in recent blocks. Using Deployer address as fallback.");
+        uniqueUsers.push(USER_ADDRESS);
+    }
 
     const pointsContract = await ethers.getContractAt(POINTS_TRACKER_ABI, POINTS_TRACKER_ADDRESS);
     const referralContract = await ethers.getContractAt(REFERRAL_MANAGER_ABI, REFERRAL_MANAGER_ADDRESS);
 
-    // 1. Check Points
-    try {
-        const [totalPoints, lastUpdated] = await pointsContract.userPoints(USER_ADDRESS);
+    for (const user of uniqueUsers) {
+        console.log(`\n👤 CHECKING USER: ${user}`);
+        console.log("───────────────────────────────────────────────────────");
 
-        console.log("🏆 POINTS TRACKER");
-        console.log(`   Total Points: ${totalPoints.toString()}`);
-        console.log(`   Last Updated: ${new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
-        console.log(`   Contract: ${POINTS_TRACKER_ADDRESS}`);
-    } catch (error) {
-        console.error("❌ Error fetching points:", error.message);
+        try {
+            const [totalPoints, lastUpdated] = await pointsContract.userPoints(user);
+            console.log("🏆 POINTS TRACKER");
+            console.log(`   Total Points: ${totalPoints.toString()}`);
+            console.log(`   Last Updated: ${lastUpdated.toString() == "0" ? "Never" : new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
+        } catch (e) { console.log("   ❌ Points check failed:", e.message); }
+
+        try {
+            const tier = await referralContract.getUserTier(user);
+            const referrer = await referralContract.getReferrer(user);
+            console.log("👥 REFERRAL MANAGER");
+            console.log(`   Tier: ${["Novice", "Scout", "Captain", "Whale"][tier]} (${tier})`);
+            console.log(`   Msg.Sender of Debug Script: ${USER_ADDRESS}`);
+        } catch (e) { console.log("   ❌ Referee check failed:", e.message); }
     }
-
-    // 2. Check Referrals
-    try {
-        const [tier, multiplier, maxLev, activeRefs, totalRefs] = await referralContract.getUserTierInfo(USER_ADDRESS);
-        const referrer = await referralContract.getReferrer(USER_ADDRESS);
-
-        const tiers = ["Novice", "Scout", "Captain", "Whale"];
-
-        console.log("\n👥 REFERRAL MANAGER");
-        console.log(`   Current Tier: ${tiers[tier]} (${tier})`);
-        console.log(`   Active Referrals: ${activeRefs.toString()}`);
-        console.log(`   Total Referrals: ${totalRefs.toString()}`);
-        console.log(`   Multiplier: ${multiplier.toString()} (${Number(multiplier) / 100}x)`);
-        console.log(`   Referred By: ${referrer === ethers.ZeroAddress ? "None" : referrer}`);
-    } catch (error) {
-        console.error("❌ Error fetching referral info:", error.message);
-    }
-
-    console.log("\n═══════════════════════════════════════════════════════\n");
 }
 
 main()
@@ -64,9 +71,4 @@ main()
         process.exit(1);
     });
 
-main()
-    .then(() => process.exit(0))
-    .catch((error) => {
-        console.error(error);
-        process.exit(1);
-    });
+
