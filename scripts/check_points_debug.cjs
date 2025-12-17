@@ -35,8 +35,17 @@ async function main() {
 
     const uniqueUsers = [...new Set(events.map(e => e.args.user))];
 
+    const logFile = "debug_output.txt";
+    fs.writeFileSync(logFile, `DEBUG REPORT ${new Date().toISOString()}\n\n`);
+
+    // Helper to log to both console and file
+    const log = (msg) => {
+        console.log(msg);
+        fs.appendFileSync(logFile, msg + "\n");
+    };
+
     if (uniqueUsers.length === 0) {
-        console.log("❌ No depositors found in recent blocks. Using Deployer address as fallback.");
+        log("❌ No depositors found in recent blocks. Using Deployer address as fallback.");
         uniqueUsers.push(USER_ADDRESS);
     }
 
@@ -44,23 +53,38 @@ async function main() {
     const referralContract = await ethers.getContractAt(REFERRAL_MANAGER_ABI, REFERRAL_MANAGER_ADDRESS);
 
     for (const user of uniqueUsers) {
-        console.log(`\n👤 CHECKING USER: ${user}`);
-        console.log("───────────────────────────────────────────────────────");
+        log(`\n👤 CHECKING USER: ${user}`);
+        log("───────────────────────────────────────────────────────");
 
         try {
-            const [totalPoints, lastUpdated] = await pointsContract.userPoints(user);
-            console.log("🏆 POINTS TRACKER");
-            console.log(`   Total Points: ${totalPoints.toString()}`);
-            console.log(`   Last Updated: ${lastUpdated.toString() == "0" ? "Never" : new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
-        } catch (e) { console.log("   ❌ Points check failed:", e.message); }
+            // Try Standard ABI (3 returns)
+            const [totalPoints, lastUpdated, pending] = await pointsContract.userPoints(user);
+            log("🏆 POINTS TRACKER (V2 - 3 Returns)");
+            log(`   Total Points: ${totalPoints.toString()}`);
+            log(`   Last Updated: ${lastUpdated.toString() == "0" ? "Never" : new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
+        } catch (e) {
+            log("   ⚠️  V3 ABI Failed (" + e.code + "). Trying V1 ABI...");
+
+            // Try Legacy ABI (2 returns)
+            const LEGACY_ABI = ["function userPoints(address user) view returns (uint256 points, uint256 lastUpdated)"];
+            const legacyContract = await ethers.getContractAt(LEGACY_ABI, POINTS_TRACKER_ADDRESS);
+            try {
+                const [totalPoints, lastUpdated] = await legacyContract.userPoints(user);
+                log("🏆 POINTS TRACKER (V1 - 2 Returns)");
+                log(`   Total Points: ${totalPoints.toString()}`);
+                log(`   Last Updated: ${lastUpdated.toString() == "0" ? "Never" : new Date(Number(lastUpdated) * 1000).toLocaleString()}`);
+            } catch (e2) {
+                log("   ❌ ALL Points checks failed: " + e2.message);
+            }
+        }
 
         try {
             const tier = await referralContract.getUserTier(user);
             const referrer = await referralContract.getReferrer(user);
-            console.log("👥 REFERRAL MANAGER");
-            console.log(`   Tier: ${["Novice", "Scout", "Captain", "Whale"][tier]} (${tier})`);
-            console.log(`   Msg.Sender of Debug Script: ${USER_ADDRESS}`);
-        } catch (e) { console.log("   ❌ Referee check failed:", e.message); }
+            log("👥 REFERRAL MANAGER");
+            log(`   Tier: ${["Novice", "Scout", "Captain", "Whale"][tier]} (${tier})`);
+            log(`   Msg.Sender of Debug Script: ${USER_ADDRESS}`);
+        } catch (e) { log("   ❌ Referee check failed: " + e.message); }
     }
 }
 

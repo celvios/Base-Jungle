@@ -1,0 +1,9 @@
+DEBUG REPORT 2025-12-17T12:59:51.725Z
+
+❌ No depositors found in recent blocks. Using Deployer address as fallback.
+
+👤 CHECKING USER: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+───────────────────────────────────────────────────────
+   ⚠️  V3 ABI Failed (BAD_DATA). Trying V1 ABI...
+   ❌ ALL Points checks failed: could not decode result data (value="0x", info={ "method": "userPoints", "signature": "userPoints(address)" }, code=BAD_DATA, version=6.15.0)
+   ❌ Referee check failed: could not decode result data (value="0x", info={ "method": "getUserTier", "signature": "getUserTier(address)" }, code=BAD_DATA, version=6.15.0)
