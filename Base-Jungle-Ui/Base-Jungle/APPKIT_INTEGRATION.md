@@ -15,6 +15,11 @@
 ✅ Analytics & Event Tracking
 ✅ 15+ Wallet Options (MetaMask, Coinbase, Rainbow, etc.)
 
+### Mobile Strategy (New)
+1. **In-App Browser:** Direct connection via injected provider (e.g. MetaMask Browser)
+2. **Mobile Browser:** Automatic deep link to MetaMask App (`metamask.app.link`)
+3. **Desktop:** Full AppKit Modal (Unified Fallback)
+
 ### Files Modified
 1. `client/src/lib/wagmi.ts` - AppKit configuration
 2. `client/src/contexts/wallet-context.tsx` - Modal integration

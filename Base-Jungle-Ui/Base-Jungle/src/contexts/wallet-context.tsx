@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { useAccount, useDisconnect } from 'wagmi';
+import { useAccount, useDisconnect, useConnect } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -40,15 +40,43 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
     }
   }, [isConnected, address, isAuthenticated, hasAttemptedAuth, isAuthenticating, authenticate]);
 
-  const connect = () => {
+  const { connectAsync, connectors } = useConnect();
+
+  const connect = async () => {
     logMobileConnection('Connect button clicked');
 
-    // Show mobile-specific instructions if needed
-    if (isMobile()) {
-      console.log(getMobileConnectionInstructions());
+    // Step 1: In-App Browser Detection (MetaMask / Trust Wallet Browser)
+    // Check if user is inside a wallet's browser
+    if (typeof window !== 'undefined' && (window as any).ethereum) {
+      const injectedConnector = connectors.find((c) => c.id === 'injected');
+      if (injectedConnector) {
+        try {
+          await connectAsync({ connector: injectedConnector });
+          return;
+        } catch (error) {
+          console.error('Injected connection failed:', error);
+          return;
+        }
+      }
     }
 
-    open(); // Opens the AppKit modal
+    // Step 2: Mobile Device (not in-app browser) -> Deep Link
+    // Redirect to wallet app with our dApp URL
+    if (isMobile()) {
+      const host = window.location.host;
+      const path = window.location.pathname;
+      // Remove protocol if present in host (it usually isn't)
+      const cleanHost = host.replace(/^https?:\/\//, '');
+      const deepLink = `https://metamask.app.link/dapp/${cleanHost}${path}`;
+
+      console.log('Redirecting to deep link:', deepLink);
+      window.location.href = deepLink;
+      return;
+    }
+
+    // Step 3: Desktop -> AppKit Modal (WalletConnect)
+    // Universal fallback for desktop or if other methods fail
+    open();
   };
 
   const disconnect = () => {
