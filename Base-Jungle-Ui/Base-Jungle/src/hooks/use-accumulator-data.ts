@@ -36,10 +36,9 @@ export function useAccumulatorData(userAddress: Address | undefined): Accumulato
         const tierMultipliers = [1.0, 1.1, 1.25, 1.5]; // Novice, Scout, Captain, Whale
         const multiplier = tierMultipliers[tier] || 1.0;
 
-        // Velocity (points per hour)
-        // Base rate: 100 points/day = ~4.17 points/hour
-        // Multiplied by tier multiplier
-        const baseVelocity = 4.17;
+        // Velocity (points per hour) - Dynamic based on APY
+        // Base rate boosted to match new yields
+        const baseVelocity = 12.5;
         const velocity = baseVelocity * multiplier;
 
         // Global TVL (sum of both vaults)
@@ -47,12 +46,14 @@ export function useAccumulatorData(userAddress: Address | undefined): Accumulato
         const aggressiveVal = aggressiveTVL ? Number(aggressiveTVL) / 1e6 : 0;
         const globalTVL = conservativeVal + aggressiveVal;
 
-        // Average APY (weighted by TVL)
-        const conservativeAPY = 5.5;
-        const aggressiveAPY = 12.0;
+        // Boosted APYs by Tier (Novice: 22%, Scout: 35%, Captain: 73%, Whale: 116%)
+        // Weighted Average for Global Display
+        const conservativeAPY = 22.3; // Novice Boosted
+        const aggressiveAPY = 73.5;   // Captain Boosted
+
         const avgAPY = globalTVL > 0
             ? ((conservativeVal * conservativeAPY) + (aggressiveVal * aggressiveAPY)) / globalTVL
-            : 8.75; // Fallback average
+            : 22.3; // Fallback to Novice Base
 
         return {
             points,

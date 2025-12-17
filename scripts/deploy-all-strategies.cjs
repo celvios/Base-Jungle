@@ -35,7 +35,7 @@ const STRATEGY_CONFIG = [
         type: 2,
         name: "LP_VOLATILE",
         description: "Volatile LP (ETH/USDC) - Higher rewards, IL risk",
-        apy: 2500,     // 25% APY
+        apy: 6500,     // 65% APY (Captain Boost)
         risk: 45,      // 45% risk score
         minTier: 2     // Captain+ (20 referrals)
     },
@@ -43,7 +43,7 @@ const STRATEGY_CONFIG = [
         type: 3,
         name: "LEVERAGED_LP",
         description: "Leveraged LP - Borrow to amplify LP position",
-        apy: 4000,     // 40% APY
+        apy: 12500,    // 125% APY (Whale Boost)
         risk: 70,      // 70% risk score
         minTier: 3     // Whale only (100 referrals)
     },
@@ -59,8 +59,16 @@ const STRATEGY_CONFIG = [
         type: 5,
         name: "ARBITRAGE",
         description: "Flash loan arbitrage - Advanced strategy",
-        apy: 1500,     // 15% APY (variable)
+        apy: 8500,     // 85% APY
         risk: 50,      // 50% risk score
+        minTier: 3     // Whale only
+    },
+    {
+        type: 6,
+        name: "GAUGE_FARMING",
+        description: "High-Frequency Flash Loans - Max Yield",
+        apy: 20000,    // 200% APY (Whale Boost for unallocated slot)
+        risk: 90,      // 90% risk score
         minTier: 3     // Whale only
     }
 ];

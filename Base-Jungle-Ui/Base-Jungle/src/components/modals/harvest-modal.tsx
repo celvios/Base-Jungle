@@ -67,7 +67,7 @@ export function HarvestModal({
     estimatedYield = vaultPosition.yield;
   } else if (depositTime && daysStaked > 0) {
     // Time-based estimation using vault APY
-    const vaultAPY = 0.12; // 12% - could be dynamic from use-vault-apy
+    const vaultAPY = 0.223; // 22.3% - Novice Base Rate (Boosted)
     const dailyRate = vaultAPY / 365;
     const totalGrowth = 1 + (daysStaked * dailyRate);
     estimatedPrincipal = balance / totalGrowth;
