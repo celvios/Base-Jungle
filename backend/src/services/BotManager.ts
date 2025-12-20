@@ -1,5 +1,5 @@
 import { AllocationBot } from './AllocationBot.js';
-import { RebalanceKeeper } from '../../scripts/keepers/RebalanceKeeper.js';
+import { RebalanceKeeper } from './RebalanceKeeper.js';
 
 export class BotManager {
     private allocationBot: AllocationBot | null = null;
