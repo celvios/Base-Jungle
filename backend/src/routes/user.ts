@@ -257,6 +257,48 @@ router.get('/user/:address/referrals', async (req, res) => {
     }
 });
 
+// GET /api/user/:address/my-referrals - User's personal referral leaderboard
+router.get('/user/:address/my-referrals', async (req, res) => {
+    try {
+        const { address } = req.params;
+        const normalizedAddress = address.toLowerCase();
+
+        // Query: My Referrals + Their Tier + Their Referrals Count + Their Total Points
+        const query = `
+            SELECT 
+                r.referee as address,
+                COALESCE(u.tier, 0) as tier_enum,
+                COUNT(DISTINCT r2.id) as referrals,
+                COALESCE(SUM(p.amount), 0) as points
+            FROM referrals r
+            LEFT JOIN users u ON r.referee = u.wallet_address
+            LEFT JOIN points p ON r.referee = p.wallet_address
+            LEFT JOIN referrals r2 ON r.referee = r2.referrer AND r2.level = 1
+            WHERE r.referrer = $1 AND r.level = 1
+            GROUP BY r.referee, u.tier
+            ORDER BY points DESC, referrals DESC
+            LIMIT 50
+        `;
+
+        const result = await pool.query(query, [normalizedAddress]);
+
+        const tierNames = ['Novice', 'Scout', 'Captain', 'Whale'];
+
+        const leaderboard = result.rows.map(row => ({
+            rank: 0, // Frontend handles rank
+            address: row.address,
+            referrals: parseInt(row.referrals),
+            points: parseInt(row.points),
+            tier: tierNames[row.tier_enum || 0]
+        }));
+
+        res.json(leaderboard);
+    } catch (error) {
+        console.error('My Referrals error:', error);
+        res.status(500).json({ error: 'Failed to fetch personal referrals' });
+    }
+});
+
 // GET /api/leaderboard - Top users by points (blockchain-based)
 router.get('/leaderboard', async (req, res) => {
     try {

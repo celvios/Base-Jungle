@@ -1,6 +1,7 @@
 import React from 'react';
 import { Trophy } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useAccount } from 'wagmi';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -13,20 +14,23 @@ interface LeaderboardEntry {
 }
 
 const SpecimenLeaderboard: React.FC = () => {
+    const { address, isConnected } = useAccount();
+
     const { data: leaders, isLoading, error } = useQuery({
-        queryKey: ['leaderboard'],
+        queryKey: ['my-referrals', address],
         queryFn: async () => {
-            const response = await fetch(`${API_URL}/leaderboard?limit=5`);
+            if (!address) return [];
+            const response = await fetch(`${API_URL}/user/${address}/my-referrals`);
             if (!response.ok) {
-                // Determine if we should fallback or throw
+                // If endpoint fails or user not found, 404 is possible -> return empty
                 return [];
             }
             return response.json() as Promise<LeaderboardEntry[]>;
         },
+        enabled: !!address, // Only fetch if connected
         refetchInterval: 30000,
     });
 
-    // Fallback to empty array if undefined/error
     const displayLeaders = leaders || [];
 
     return (
@@ -34,15 +38,19 @@ const SpecimenLeaderboard: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                     <Trophy className="w-5 h-5 text-yellow-500" />
-                    <h3 className="text-lg font-bold text-white font-mono tracking-wider">TOP SPECIMENS</h3>
+                    <h3 className="text-lg font-bold text-white font-mono tracking-wider">YOUR SPECIMENS</h3>
                 </div>
                 {isLoading && <div className="text-xs text-blue-500 animate-pulse">Scanning Bio-Signs...</div>}
             </div>
 
             <div className="space-y-2">
-                {!isLoading && displayLeaders.length === 0 ? (
+                {!isConnected ? (
                     <div className="p-4 text-center text-gray-500 font-mono text-sm border border-dashed border-gray-800 rounded-lg">
-                        No specimens detected in sector.
+                        Connect wallet to view your colony.
+                    </div>
+                ) : !isLoading && displayLeaders.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500 font-mono text-sm border border-dashed border-gray-800 rounded-lg">
+                        No active referrals detected.
                     </div>
                 ) : (
                     displayLeaders.map((entry, index) => (
@@ -63,7 +71,7 @@ const SpecimenLeaderboard: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-sm font-bold text-white">{entry.referrals} Refs</div>
+                                <div className="text-sm font-bold text-white">{entry.referrals} Sub-Refs</div>
                                 <div className="text-xs text-blue-400 font-mono">{entry.points} PTS</div>
                             </div>
                         </div>
