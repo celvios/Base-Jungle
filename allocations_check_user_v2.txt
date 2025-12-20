@@ -1,0 +1,46 @@
+[dotenv@17.2.3] injecting env (5) from .env.deployment -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.2.3] injecting env (0) from .env.deployment -- tip: ⚙️  enable debug logging with { debug: true }
+
+💰 MONEY TRACKER: Auditing Your Allocations 💰
+
+👤 User: 0x72377a60870E3d2493F871FA5792a1160518fcc6
+📍 Controller: 0xa1143ac8Af4074d348F3A776781A1924417d14E8
+📊 Current Tier: Whale (50 Active Refs)
+
+🔎 Scanning 7 Strategies...
+
+JSON_OUTPUT_START
+{
+  "address": "0x72377a60870E3d2493F871FA5792a1160518fcc6",
+  "tier": "Whale",
+  "allocations": [
+    {
+      "strategy": "LENDING",
+      "balance": 13636.35,
+      "minTier": "Novice"
+    },
+    {
+      "strategy": "LEVERAGED_LENDING",
+      "balance": 8991,
+      "minTier": "Scout"
+    },
+    {
+      "strategy": "VAULT_BEEFY",
+      "balance": 5844.15,
+      "minTier": "Novice"
+    },
+    {
+      "strategy": "LEVERAGED_LP",
+      "balance": 8991,
+      "minTier": "Whale"
+    },
+    {
+      "strategy": "GAUGE_FARMING",
+      "balance": 11988,
+      "minTier": "Whale"
+    }
+  ],
+  "total": 49450.5,
+  "advice": "Mismatch detected. Funds are in lower-tier strategies. Please deposit or rebalance."
+}
+JSON_OUTPUT_END

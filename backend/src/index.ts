@@ -9,18 +9,23 @@ import { initializeWebSocket, getConnectionCount } from './websocket/server.js';
 import { startBotActivityMonitor } from './websocket/channels/bot-activity.js';
 import { startMarketHealthMonitor, scheduleMarketHealthUpdates } from './websocket/channels/market.js';
 import { cleanupInactiveWatchers } from './websocket/channels/user.js';
+import { BotManager } from './services/BotManager.js';
 import authRoutes from './routes/auth.js';
 import transactionRoutes from './routes/transactions.js';
 import userRoutes from './routes/user.js';
 import migrateRoutes from './routes/migrate.js';
 import adminRoutes from './routes/admin.js';
 import syncRoutes from './routes/sync.js';
+import activitiesRoutes from './routes/activities.js';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize Bot Manager
+const botManager = new BotManager();
 
 // Middleware
 app.use(helmet({
@@ -31,9 +36,6 @@ app.use(helmet({
         }
     }
 }));
-import activitiesRoutes from './routes/activities.js';
-
-// ... imports
 
 app.use(cors({
     origin: [
@@ -56,6 +58,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/sync', syncRoutes);
 
 app.get('/api/status', (req, res) => {
+    const botStatus = botManager.getStatus();
     res.json({
         message: 'Base Jungle Backend API - Complete!',
         features: {
@@ -64,8 +67,10 @@ app.get('/api/status', (req, res) => {
             authentication: true,
             transactions: true,
             userManagement: true,
+            botManager: true
         },
         connections: getConnectionCount(),
+        bots: botStatus
     });
 });
 
@@ -101,6 +106,10 @@ async function startServer() {
         scheduleMarketHealthUpdates();
         cleanupInactiveWatchers();
 
+        // Start 24/7 Bot System
+        await botManager.start();
+        console.log('🤖 Both bots running 24/7');
+
         // Start HTTP server
         httpServer.listen(PORT, () => {
             console.log(`\n🚀 Backend server running on http://localhost:${PORT}`);
@@ -117,12 +126,14 @@ async function startServer() {
 // Graceful shutdown
 process.on('SIGINT', async () => {
     console.log('\n🛑 Shutting down gracefully...');
+    await botManager.stop();
     await closeDatabase();
     process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
     console.log('\n🛑 Shutting down gracefully...');
+    await botManager.stop();
     await closeDatabase();
     process.exit(0);
 });

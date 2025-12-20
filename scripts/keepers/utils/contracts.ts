@@ -1,13 +1,8 @@
 import { ethers } from 'ethers';
 import dotenv from 'dotenv';
+dotenv.config({ path: '.env.deployment' });
 
-dotenv.config();
-
-/**
- * Contract instance utilities
- */
-
-// Contract ABIs (simplified - add full ABIs as needed)
+// Contract ABIs
 const GAUGE_ADAPTER_ABI = [
     'function getPendingRewards(address gauge, address user) external view returns (uint256)',
     'function compound(address gauge) external returns (uint256)',
@@ -31,9 +26,9 @@ export function getProvider(): ethers.JsonRpcProvider {
  * Get keeper wallet
  */
 export function getKeeperWallet(): ethers.Wallet {
-    const privateKey = process.env.KEEPER_PRIVATE_KEY;
+    const privateKey = process.env.KEEPER_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY;
     if (!privateKey) {
-        throw new Error('KEEPER_PRIVATE_KEY not set in environment');
+        throw new Error('KEEPER_PRIVATE_KEY or DEPLOYER_PRIVATE_KEY not set in environment');
     }
 
     const provider = getProvider();

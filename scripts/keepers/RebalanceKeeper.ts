@@ -4,7 +4,18 @@ import { getCurrentGasPrice, isGasPriceAcceptable, getETHPrice } from './utils/g
 import { getKeeperWallet } from './utils/contracts';
 import config from './config/keepers.json';
 
-dotenv.config();
+// Load environment with error handling
+try {
+    dotenv.config();
+} catch (error) {
+    console.warn('⚠️ Failed to load .env file:', error);
+}
+
+// Sanitize address for logging
+function sanitizeAddress(address: string): string {
+    if (!address || typeof address !== 'string') return '[INVALID]';
+    return address.replace(/[\r\n\t]/g, '').slice(0, 42);
+}
 
 /**
  * RebalanceKeeper - Monitor leveraged positions and rebalance when health factor drifts
@@ -20,7 +31,7 @@ const LEVERAGE_MANAGER_ABI = [
 
 interface LeveragedPosition {
     user: string;
-    healthFactor: number;
+    healthFactor: bigint; // Use bigint for precision
     collateralValue: bigint;
     borrowValue: bigint;
     isHealthy: boolean;
@@ -45,8 +56,21 @@ export class RebalanceKeeper {
             wallet
         );
 
-        // In production, fetch from database or blockchain
-        this.trackedUsers = [];
+        // Initialize tracked users from environment or database
+        this.trackedUsers = this.loadTrackedUsers();
+        
+        if (this.trackedUsers.length === 0) {
+            console.warn('⚠️ No users to track. Add users via addUser() method.');
+        }
+    }
+
+    private loadTrackedUsers(): string[] {
+        // Load from environment variable or return empty array
+        const envUsers = process.env.TRACKED_USERS;
+        if (envUsers) {
+            return envUsers.split(',').map(addr => addr.trim()).filter(addr => ethers.isAddress(addr));
+        }
+        return [];
     }
 
     /**
@@ -75,8 +99,11 @@ export class RebalanceKeeper {
 
             console.log(`📊 Monitoring ${positions.length} leveraged positions\n`);
 
-            // Sort by health factor (lowest first = most urgent)
-            positions.sort((a, b) => a.healthFactor - b.healthFactor);
+        positions.sort((a, b) => {
+            const aHF = Number(a.healthFactor) / 10000;
+            const bHF = Number(b.healthFactor) / 10000;
+            return aHF - bHF; // Lowest first = most urgent
+        });
 
             for (const position of positions) {
                 await this.checkAndRebalancePosition(position);
@@ -92,39 +119,46 @@ export class RebalanceKeeper {
      * Get all active leveraged positions
      */
     private async getAllPositions(): Promise<LeveragedPosition[]> {
-        const positions: LeveragedPosition[] = [];
+        if (this.trackedUsers.length === 0) {
+            return [];
+        }
 
-        for (const userAddress of this.trackedUsers) {
+        // Use Promise.all for concurrent blockchain calls
+        const positionPromises = this.trackedUsers.map(async (userAddress) => {
             try {
-                const positionData = await this.leverageManager.positions(userAddress);
+                const [positionData, healthData] = await Promise.all([
+                    this.leverageManager.positions(userAddress),
+                    this.leverageManager.getPositionHealth(userAddress)
+                ]);
 
-                if (!positionData.active) continue;
+                if (!positionData.active) return null;
 
-                const healthData = await this.leverageManager.getPositionHealth(userAddress);
-
-                const healthFactor = Number(healthData.healthFactor) / 10000; // Convert from basis points
-
-                positions.push({
+                return {
                     user: userAddress,
-                    healthFactor,
+                    healthFactor: healthData.healthFactor,
                     collateralValue: healthData.collateralValue,
                     borrowValue: healthData.borrowValue,
                     isHealthy: healthData.isHealthy
-                });
+                };
             } catch (error) {
-                console.error(`Error fetching position for ${userAddress}:`, error);
+                console.error(`Error fetching position for ${sanitizeAddress(userAddress)}:`, error?.message || error);
+                return null;
             }
-        }
+        });
 
-        return positions;
+        const results = await Promise.all(positionPromises);
+        return results.filter((position): position is LeveragedPosition => position !== null);
     }
 
     /**
      * Check and rebalance a specific position if needed
      */
     private async checkAndRebalancePosition(position: LeveragedPosition): Promise<void> {
-        console.log(`\n👤 User: ${position.user.slice(0, 10)}...`);
-        console.log(`   Health Factor: ${position.healthFactor.toFixed(2)}x`);
+        const sanitizedUser = sanitizeAddress(position.user);
+        const healthFactorNum = Number(position.healthFactor) / 10000; // Convert from basis points
+        
+        console.log(`\n👤 User: ${sanitizedUser}`);
+        console.log(`   Health Factor: ${healthFactorNum.toFixed(2)}x`);
         console.log(`   Collateral: ${ethers.formatEther(position.collateralValue)} USDC`);
         console.log(`   Borrowed: ${ethers.formatEther(position.borrowValue)} USDC`);
 
@@ -132,15 +166,15 @@ export class RebalanceKeeper {
         let shouldRebalance = false;
         let urgency = '';
 
-        if (position.healthFactor < this.EMERGENCY_THRESHOLD) {
+        if (healthFactorNum < this.EMERGENCY_THRESHOLD) {
             shouldRebalance = true;
             urgency = '🚨 EMERGENCY';
             console.log(`   ${urgency} - HF < ${this.EMERGENCY_THRESHOLD}`);
-        } else if (position.healthFactor < this.DANGER_THRESHOLD) {
+        } else if (healthFactorNum < this.DANGER_THRESHOLD) {
             shouldRebalance = true;
             urgency = '⚠️  DANGER';
             console.log(`   ${urgency} - HF < ${this.DANGER_THRESHOLD}`);
-        } else if (position.healthFactor > this.INEFFICIENT_THRESHOLD) {
+        } else if (healthFactorNum > this.INEFFICIENT_THRESHOLD) {
             shouldRebalance = true;
             urgency = '💡 INEFFICIENT';
             console.log(`   ${urgency} - HF > ${this.INEFFICIENT_THRESHOLD}`);
@@ -154,13 +188,18 @@ export class RebalanceKeeper {
         try {
             console.log(`   🚀 Executing rebalance...`);
 
+            // Estimate gas dynamically
+            const gasEstimate = await this.leverageManager.rebalance.estimateGas(position.user);
+            const gasLimit = gasEstimate + (gasEstimate * 20n / 100n); // Add 20% buffer
+
             const tx = await this.leverageManager.rebalance(position.user, {
-                gasLimit: 500000 // Conservative estimate
+                gasLimit
             });
 
             console.log(`   📤 Transaction sent: ${tx.hash}`);
 
-            const receipt = await tx.wait(2);
+            const REQUIRED_CONFIRMATIONS = 2;
+            const receipt = await tx.wait(REQUIRED_CONFIRMATIONS);
 
             if (receipt && receipt.status === 1) {
                 console.log(`   ✅ Rebalance successful! Block: ${receipt.blockNumber}`);
@@ -172,8 +211,17 @@ export class RebalanceKeeper {
             } else {
                 console.log('   ❌ Rebalance failed');
             }
-        } catch (error) {
-            console.error(`   ❌ Error rebalancing:`, error);
+        } catch (error: any) {
+            // Enhanced error handling
+            if (error?.code === 'INSUFFICIENT_FUNDS') {
+                console.error(`   ❌ Insufficient funds for gas`);
+            } else if (error?.code === 'UNPREDICTABLE_GAS_LIMIT') {
+                console.error(`   ❌ Transaction would fail - contract revert`);
+            } else if (error?.code === 'NETWORK_ERROR') {
+                console.error(`   ❌ Network error - retrying later`);
+            } else {
+                console.error(`   ❌ Error rebalancing:`, error?.message || error);
+            }
         }
     }
 
@@ -181,8 +229,14 @@ export class RebalanceKeeper {
      * Add user to tracking list
      */
     addUser(userAddress: string): void {
+        // Validate address
+        if (!ethers.isAddress(userAddress)) {
+            throw new Error(`Invalid Ethereum address: ${userAddress}`);
+        }
+        
         if (!this.trackedUsers.includes(userAddress)) {
             this.trackedUsers.push(userAddress);
+            console.log(`➕ Added user to tracking: ${sanitizeAddress(userAddress)}`);
         }
     }
 
