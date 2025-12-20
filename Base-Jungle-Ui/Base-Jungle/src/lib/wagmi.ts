@@ -26,7 +26,8 @@ const metadata = {
     name: 'Base Jungle',
     description: 'DeFi Yield Optimization Protocol on Base',
     url: typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app',
-    icons: [typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : 'https://base-jungle.vercel.app/favicon.png']
+    icons: [typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : 'https://base-jungle.vercel.app/favicon.png'],
+    redirect: 'basejungle://request' // Required for mobile deep linking
 };
 
 // 3. Create modal with mobile wallet deep linking enabled
@@ -51,8 +52,6 @@ export const modal = createAppKit({
         socials: ['google', 'x', 'discord', 'farcaster'],
         onramp: true,
         swaps: true,
-        // Prioritize wallet apps over QR codes on mobile for direct deep linking
-        connectMethodsOrder: ['wallet', 'email', 'social'],
     },
 
     // Theme configuration

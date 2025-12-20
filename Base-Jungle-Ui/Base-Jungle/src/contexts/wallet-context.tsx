@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { useAccount, useDisconnect, useConnect } from 'wagmi';
+import { useAccount, useDisconnect } from 'wagmi';
 import { useAppKit } from '@reown/appkit/react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { config, queryClient } from '@/lib/wagmi';
 import { useSIWE } from '@/hooks/use-siwe';
-import { isMobile, logMobileConnection, getMobileConnectionInstructions } from '@/lib/mobile-wallet';
+import { logMobileConnection } from '@/lib/mobile-wallet';
 
 interface WalletContextType {
   address: string | null;
@@ -40,42 +40,15 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
     }
   }, [isConnected, address, isAuthenticated, hasAttemptedAuth, isAuthenticating, authenticate]);
 
-  const { connectAsync, connectors } = useConnect();
-
   const connect = async () => {
     logMobileConnection('Connect button clicked');
 
-    // Step 1: In-App Browser Detection (MetaMask / Trust Wallet Browser)
-    // Check if user is inside a wallet's browser
-    if (typeof window !== 'undefined' && (window as any).ethereum) {
-      const injectedConnector = connectors.find((c) => c.id === 'injected');
-      if (injectedConnector) {
-        try {
-          await connectAsync({ connector: injectedConnector });
-          return;
-        } catch (error) {
-          console.error('Injected connection failed:', error);
-          return;
-        }
-      }
-    }
-
-    // Step 2: Mobile Device (not in-app browser) -> Deep Link
-    // Redirect to wallet app with our dApp URL
-    if (isMobile()) {
-      const host = window.location.host;
-      const path = window.location.pathname;
-      // Remove protocol if present in host (it usually isn't)
-      const cleanHost = host.replace(/^https?:\/\//, '');
-      const deepLink = `https://metamask.app.link/dapp/${cleanHost}${path}`;
-
-      console.log('Redirecting to deep link:', deepLink);
-      window.location.href = deepLink;
-      return;
-    }
-
-    // Step 3: Desktop -> AppKit Modal (WalletConnect)
-    // Universal fallback for desktop or if other methods fail
+    // Simply open AppKit modal - it handles everything:
+    // - Detects mobile vs desktop automatically
+    // - Shows appropriate wallets for each platform
+    // - Handles deep linking to wallet apps on mobile
+    // - Manages QR codes on desktop
+    // - Supports injected providers (in-app browsers)
     open();
   };
 
