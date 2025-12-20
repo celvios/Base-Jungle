@@ -31,3 +31,4 @@ export function useLeverageMetrics(userAddress: Address | undefined): LeverageMe
             isLoading,
         };
     }, [currentMultiplier, maxMultiplier, isLoading]);
+}
