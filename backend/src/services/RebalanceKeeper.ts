@@ -44,8 +44,8 @@ export class RebalanceKeeper {
 
         this.wallet = new ethers.Wallet(pk, this.provider);
 
-        // Use a default address or from env
-        const leverageManagerAddress = process.env.LEVERAGE_MANAGER_ADDRESS || '0x0000000000000000000000000000000000000000';
+        // Use Strategy Controller as leverage manager (it likely handles leveraged positions)
+        const leverageManagerAddress = process.env.STRATEGY_CONTROLLER_ADDRESS || '0x0000000000000000000000000000000000000000';
         this.leverageManager = new ethers.Contract(
             leverageManagerAddress,
             LEVERAGE_MANAGER_ABI,
