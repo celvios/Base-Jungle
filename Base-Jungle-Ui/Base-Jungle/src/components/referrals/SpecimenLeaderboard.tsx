@@ -1,49 +1,81 @@
 import React from 'react';
-import { Trophy, Medal } from 'lucide-react';
+import { Trophy } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 interface LeaderboardEntry {
     rank: number;
     address: string;
     referrals: number;
-    rewards: number;
+    points: number;
+    tier: string;
 }
 
 const SpecimenLeaderboard: React.FC = () => {
-    // Mock data - would come from API
-    const leaders: LeaderboardEntry[] = [
-        { rank: 1, address: '0x12...45AB', referrals: 142, rewards: 4500 },
-        { rank: 2, address: '0x89...CD23', referrals: 98, rewards: 3200 },
-        { rank: 3, address: '0x44...11FF', referrals: 76, rewards: 2100 },
-        { rank: 4, address: '0xAB...9900', referrals: 45, rewards: 1200 },
-        { rank: 5, address: '0xCC...2211', referrals: 32, rewards: 800 },
-    ];
+    const { data: leaders, isLoading, error } = useQuery({
+        queryKey: ['leaderboard'],
+        queryFn: async () => {
+            const response = await fetch(`${API_URL}/leaderboard?limit=5`);
+            if (!response.ok) {
+                // Determine if we should fallback or throw
+                return [];
+            }
+            return response.json() as Promise<LeaderboardEntry[]>;
+        },
+        refetchInterval: 30000,
+    });
+
+    // Fallback to empty array if undefined/error
+    const displayLeaders = leaders || [];
 
     return (
         <div className="bg-[#0a0a0a]/80 backdrop-blur-md border border-gray-800 rounded-2xl p-6 w-full max-w-md">
-            <div className="flex items-center gap-2 mb-6">
-                <Trophy className="w-5 h-5 text-yellow-500" />
-                <h3 className="text-lg font-bold text-white font-mono tracking-wider">TOP SPECIMENS</h3>
+            <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    <h3 className="text-lg font-bold text-white font-mono tracking-wider">TOP SPECIMENS</h3>
+                </div>
+                {isLoading && <div className="text-xs text-blue-500 animate-pulse">Scanning Bio-Signs...</div>}
             </div>
 
             <div className="space-y-2">
-                {leaders.map((entry) => (
-                    <div key={entry.rank} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-transparent hover:border-blue-500/30">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-6 h-6 flex items-center justify-center rounded font-mono text-xs font-bold ${entry.rank === 1 ? 'bg-yellow-500/20 text-yellow-500' :
-                                    entry.rank === 2 ? 'bg-gray-400/20 text-gray-400' :
-                                        entry.rank === 3 ? 'bg-orange-500/20 text-orange-500' :
-                                            'bg-gray-800 text-gray-500'
-                                }`}>
-                                {entry.rank}
-                            </div>
-                            <span className="text-sm font-mono text-gray-300">{entry.address}</span>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-sm font-bold text-white">{entry.referrals} Refs</div>
-                            <div className="text-xs text-blue-400 font-mono">{entry.rewards} PTS</div>
-                        </div>
+                {!isLoading && displayLeaders.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500 font-mono text-sm border border-dashed border-gray-800 rounded-lg">
+                        No specimens detected in sector.
                     </div>
-                ))}
+                ) : (
+                    displayLeaders.map((entry, index) => (
+                        <div key={entry.address} className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors border border-transparent hover:border-blue-500/30">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-6 h-6 flex items-center justify-center rounded font-mono text-xs font-bold ${index === 0 ? 'bg-yellow-500/20 text-yellow-500' :
+                                    index === 1 ? 'bg-gray-400/20 text-gray-400' :
+                                        index === 2 ? 'bg-orange-500/20 text-orange-500' :
+                                            'bg-gray-800 text-gray-500'
+                                    }`}>
+                                    {index + 1}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-mono text-gray-300">
+                                        {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
+                                    </span>
+                                    {entry.tier && <span className="text-[10px] text-gray-500 uppercase">{entry.tier}</span>}
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-sm font-bold text-white">{entry.referrals} Refs</div>
+                                <div className="text-xs text-blue-400 font-mono">{entry.points} PTS</div>
+                            </div>
+                        </div>
+                    ))
+                )}
+
+                {isLoading && (
+                    // Skeleton Loading
+                    Array(5).fill(0).map((_, i) => (
+                        <div key={i} className="h-12 w-full bg-white/5 animate-pulse rounded-lg"></div>
+                    ))
+                )}
             </div>
         </div>
     );
