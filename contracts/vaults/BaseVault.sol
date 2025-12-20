@@ -122,9 +122,9 @@ abstract contract BaseVault is ERC20, AccessControl, Pausable, ReentrancyGuard {
         asset.safeTransfer(address(strategyController), assetsAfterFee);
         strategyController.allocate(receiver, assetsAfterFee);
 
-        // Award points
+        // Award points (convert from USDC 6 decimals to 18 decimals)
         if (address(pointsTracker) != address(0)) {
-            pointsTracker.updatePoints(receiver, assetsAfterFee / 1e6, "vault_deposit");
+            pointsTracker.updatePoints(receiver, assetsAfterFee * 1e12, "vault_deposit");
         }
 
         // Activate referral (Critical for tracking active referrals)
