@@ -24,7 +24,7 @@ services:
         fromGroup: basejungle-secrets
       - key: REBALANCE_KEEPER_INTERVAL
         value: 120000
-      - key: TRACKED_USERS
+      - key: LEVERAGE_MANAGER_ADDRESS
         fromGroup: basejungle-secrets
 
 databases:

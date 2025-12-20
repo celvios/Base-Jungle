@@ -106,9 +106,9 @@ async function startServer() {
         scheduleMarketHealthUpdates();
         cleanupInactiveWatchers();
 
-        // Start Auto Allocation Bot
+        // Start 24/7 Bot System
         await botManager.start();
-        console.log('🤖 Auto allocation on tier upgrade active');
+        console.log('🤖 Both bots running 24/7');
 
         // Start HTTP server
         httpServer.listen(PORT, () => {
