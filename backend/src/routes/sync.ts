@@ -19,6 +19,7 @@ const POINTS_TRACKER_ABI = [
 
 const RPC_URL = process.env.RPC_URL || process.env.BASE_SEPOLIA_RPC;
 const POINTS_TRACKER_ADDRESS = process.env.POINTS_TRACKER_ADDRESS;
+const REFERRAL_MANAGER_ADDRESS = process.env.REFERRAL_MANAGER_ADDRESS || '0xc8A84e0BF9a4C213564e858A89c8f14738aD0f15'; // Fallback to last known deployment
 
 // Generate a simple referral code from address
 function generateReferralCode(address: string): string {
@@ -38,26 +39,47 @@ router.post('/trigger', async (req, res) => {
             return res.status(400).json({ error: 'Invalid wallet address' });
         }
 
-        if (!POINTS_TRACKER_ADDRESS) {
-            return res.status(500).json({
-                error: 'Server configuration error',
-                message: 'POINTS_TRACKER_ADDRESS not configured'
-            });
+        const provider = new ethers.JsonRpcProvider(RPC_URL);
+
+        // 1. Sync Points
+        let points = 0;
+        if (POINTS_TRACKER_ADDRESS) {
+            const pointsContract = new ethers.Contract(
+                POINTS_TRACKER_ADDRESS,
+                POINTS_TRACKER_ABI,
+                provider
+            );
+            console.log(`🔄 Fetching points for ${address}...`);
+            const pointsData = await pointsContract.userPoints(address);
+            points = Number(pointsData[0]) / 1e18;
+            console.log(`✅ Fetched ${points} points`);
         }
 
-        const provider = new ethers.JsonRpcProvider(RPC_URL);
-        const pointsContract = new ethers.Contract(
-            POINTS_TRACKER_ADDRESS,
-            POINTS_TRACKER_ABI,
-            provider
-        );
+        // 2. Sync Referrals
+        let referralCount = 0;
+        const newReferrals: string[] = [];
 
-        console.log(`🔄 Fetching points for ${address}...`);
+        if (REFERRAL_MANAGER_ADDRESS) {
+            console.log(`🔄 Fetching referrals for ${address}...`);
+            const refContract = new ethers.Contract(
+                REFERRAL_MANAGER_ADDRESS,
+                ["event ReferralRegistered(address indexed user, address indexed referrer)"],
+                provider
+            );
 
-        const pointsData = await pointsContract.userPoints(address);
-        const points = Number(pointsData[0]) / 1e18; // Convert from wei
+            // Filter: ReferralRegistered(null, address) -> Find users referred BY this address
+            const filter = refContract.filters.ReferralRegistered(null, address);
+            const events = await refContract.queryFilter(filter);
 
-        console.log(`✅ Fetched ${points} points for ${address}`);
+            console.log(`🔍 Found ${events.length} referral events on-chain`);
+
+            for (const event of events) {
+                if ('args' in event) {
+                    newReferrals.push(event.args[0]); // The user who was referred
+                }
+            }
+            referralCount = newReferrals.length;
+        }
 
         // Save to database
         console.log(`💾 Saving to database...`);
@@ -66,20 +88,19 @@ router.post('/trigger', async (req, res) => {
         try {
             await client.query('BEGIN');
 
-            // Ensure user exists
             const normalizedAddress = address.toLowerCase();
+
+            // 1. Update/Insert Target User
             const referralCode = generateReferralCode(normalizedAddress);
             await client.query(`
-            INSERT INTO users (wallet_address, referral_code, tier)
-            VALUES ($1, $2, 0)
-            ON CONFLICT (referral_code) 
-            DO UPDATE SET wallet_address = EXCLUDED.wallet_address, last_active_at = NOW()
-        `, [normalizedAddress, referralCode]);
+                INSERT INTO users (wallet_address, referral_code, tier)
+                VALUES ($1, $2, 0)
+                ON CONFLICT (referral_code) 
+                DO UPDATE SET wallet_address = EXCLUDED.wallet_address, last_active_at = NOW()
+            `, [normalizedAddress, referralCode]);
 
-            // Clear existing points for this user to avoid duplicates
+            // 2. Update Points
             await client.query('DELETE FROM points WHERE wallet_address = $1', [normalizedAddress]);
-
-            // Insert new points record
             if (points > 0) {
                 await client.query(`
                     INSERT INTO points (wallet_address, amount, source, metadata)
@@ -87,8 +108,29 @@ router.post('/trigger', async (req, res) => {
                 `, [normalizedAddress, Math.floor(points), JSON.stringify({ synced_at: new Date().toISOString() })]);
             }
 
+            // 3. Insert Referrals
+            for (const referee of newReferrals) {
+                const normReferee = referee.toLowerCase();
+                const refereeCode = generateReferralCode(normReferee);
+
+                // Ensure referee exists in Users
+                await client.query(`
+                    INSERT INTO users (wallet_address, referral_code, tier)
+                    VALUES ($1, $2, 0)
+                    ON CONFLICT (wallet_address) DO NOTHING
+                    ON CONFLICT (referral_code) DO NOTHING
+                `, [normReferee, refereeCode]);
+
+                // Insert Referral Record
+                await client.query(`
+                    INSERT INTO referrals (referrer, referee, level, is_active)
+                    VALUES ($1, $2, 1, true)
+                    ON CONFLICT (referrer, referee) DO NOTHING
+                `, [normalizedAddress, normReferee]);
+            }
+
             await client.query('COMMIT');
-            console.log(`✅ Saved ${Math.floor(points)} points to database for ${address}`);
+            console.log(`✅ Synced: ${Math.floor(points)} points, ${referralCount} referrals`);
 
         } catch (dbError) {
             await client.query('ROLLBACK');
@@ -102,15 +144,15 @@ router.post('/trigger', async (req, res) => {
             success: true,
             address,
             points: Math.floor(points),
-            message: `Successfully synced ${Math.floor(points)} points`
+            referralsSynced: referralCount,
+            message: `Synced ${Math.floor(points)} points and ${referralCount} referrals`
         });
 
     } catch (error: any) {
-        console.error('❌ Error fetching points:', error);
-
+        console.error('❌ Error fetching data:', error);
         res.status(500).json({
             success: false,
-            error: error.message || 'Failed to fetch points',
+            error: error.message || 'Failed to sync data',
         });
     }
 });
