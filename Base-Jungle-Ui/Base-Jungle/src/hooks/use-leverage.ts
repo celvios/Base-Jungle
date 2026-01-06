@@ -1,54 +1,77 @@
 import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
 import { type Address } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
+import { useUserTier } from './use-referrals';
 
-// LeverageController ABI
-const LEVERAGE_CONTROLLER_ABI = [
+
+// LeverageManager ABI (matching deployed contract)
+const LEVERAGE_MANAGER_ABI = [
     {
         inputs: [{ name: 'user', type: 'address' }],
-        name: 'isLeverageUnlocked',
-        outputs: [{ name: '', type: 'bool' }],
+        name: 'positions',
+        outputs: [
+            { name: 'user', type: 'address' },
+            { name: 'initialDeposit', type: 'uint256' },
+            { name: 'totalDeposited', type: 'uint256' },
+            { name: 'totalBorrowed', type: 'uint256' },
+            { name: 'currentLeverage', type: 'uint256' },
+            { name: 'timestamp', type: 'uint256' },
+            { name: 'active', type: 'bool' },
+        ],
         stateMutability: 'view',
         type: 'function',
     },
     {
-        inputs: [{ name: 'multiplier', type: 'uint8' }],
-        name: 'activateLeverage',
+        inputs: [{ name: 'tier', type: 'uint8' }],
+        name: 'tierLeverage',
+        outputs: [{ name: '', type: 'uint256' }],
+        stateMutability: 'view',
+        type: 'function',
+    },
+    {
+        inputs: [{ name: 'depositAmount', type: 'uint256' }],
+        name: 'openPosition',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
     },
     {
         inputs: [],
-        name: 'deactivateLeverage',
+        name: 'closePosition',
         outputs: [],
         stateMutability: 'nonpayable',
         type: 'function',
     },
     {
         inputs: [{ name: 'user', type: 'address' }],
-        name: 'getCurrentLeverage',
-        outputs: [{ name: '', type: 'uint8' }],
+        name: 'getHealthFactor',
+        outputs: [{ name: '', type: 'uint256' }],
         stateMutability: 'view',
         type: 'function',
     },
     {
         inputs: [{ name: 'user', type: 'address' }],
-        name: 'getMaxLeverage',
-        outputs: [{ name: '', type: 'uint8' }],
+        name: 'getPositionHealth',
+        outputs: [
+            { name: 'healthFactor', type: 'uint256' },
+            { name: 'collateralValue', type: 'uint256' },
+            { name: 'borrowValue', type: 'uint256' },
+            { name: 'availableToBorrow', type: 'uint256' },
+            { name: 'isHealthy', type: 'bool' },
+        ],
         stateMutability: 'view',
         type: 'function',
     },
 ] as const;
 
-const LEVERAGE_CONTROLLER_ADDRESS = import.meta.env.VITE_LEVERAGE_CONTROLLER_ADDRESS as Address;
+const LEVERAGE_MANAGER_ADDRESS = import.meta.env.VITE_LEVERAGE_CONTROLLER_ADDRESS as Address;
 
-// Hook: Check if leverage is unlocked
-export function useLeverageUnlocked(userAddress: Address | undefined) {
+// Hook: Get user's position
+export function useUserPosition(userAddress: Address | undefined) {
     return useReadContract({
-        address: LEVERAGE_CONTROLLER_ADDRESS,
-        abi: LEVERAGE_CONTROLLER_ABI,
-        functionName: 'isLeverageUnlocked',
+        address: LEVERAGE_MANAGER_ADDRESS,
+        abi: LEVERAGE_MANAGER_ABI,
+        functionName: 'positions',
         args: userAddress ? [userAddress] : undefined,
         query: {
             enabled: !!userAddress,
@@ -56,12 +79,25 @@ export function useLeverageUnlocked(userAddress: Address | undefined) {
     });
 }
 
-// Hook: Get current leverage multiplier
-export function useCurrentLeverage(userAddress: Address | undefined) {
+// Hook: Get tier leverage limit
+export function useTierLeverage(tier: number | undefined) {
     return useReadContract({
-        address: LEVERAGE_CONTROLLER_ADDRESS,
-        abi: LEVERAGE_CONTROLLER_ABI,
-        functionName: 'getCurrentLeverage',
+        address: LEVERAGE_MANAGER_ADDRESS,
+        abi: LEVERAGE_MANAGER_ABI,
+        functionName: 'tierLeverage',
+        args: tier !== undefined ? [tier] : undefined,
+        query: {
+            enabled: tier !== undefined,
+        },
+    });
+}
+
+// Hook: Get position health
+export function usePositionHealth(userAddress: Address | undefined) {
+    return useReadContract({
+        address: LEVERAGE_MANAGER_ADDRESS,
+        abi: LEVERAGE_MANAGER_ABI,
+        functionName: 'getPositionHealth',
         args: userAddress ? [userAddress] : undefined,
         query: {
             enabled: !!userAddress,
@@ -69,47 +105,30 @@ export function useCurrentLeverage(userAddress: Address | undefined) {
     });
 }
 
-// Hook: Get max allowed leverage (based on tier)
-export function useMaxLeverage(userAddress: Address | undefined) {
-    return useReadContract({
-        address: LEVERAGE_CONTROLLER_ADDRESS,
-        abi: LEVERAGE_CONTROLLER_ABI,
-        functionName: 'getMaxLeverage',
-        args: userAddress ? [userAddress] : undefined,
-        query: {
-            enabled: !!userAddress,
-        },
-    });
-}
-
-// Hook: Activate leverage
-export function useActivateLeverage() {
+// Hook: Open leveraged position
+export function useOpenPosition() {
     const queryClient = useQueryClient();
     const { writeContract, data: hash, isPending, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
         hash,
         onSuccess() {
-            queryClient.invalidateQueries({ queryKey: ['currentLeverage'] });
+            queryClient.invalidateQueries({ queryKey: ['positions'] });
+            queryClient.invalidateQueries({ queryKey: ['positionHealth'] });
             queryClient.invalidateQueries({ queryKey: ['user'] });
         },
     });
 
-    const activate = (multiplier: number) => {
-        // Multiplier must be 2, 3, or 5
-        if (![2, 3, 5].includes(multiplier)) {
-            throw new Error('Invalid leverage multiplier. Must be 2, 3, or 5.');
-        }
-
+    const openPosition = (depositAmount: bigint) => {
         writeContract({
-            address: LEVERAGE_CONTROLLER_ADDRESS,
-            abi: LEVERAGE_CONTROLLER_ABI,
-            functionName: 'activateLeverage',
-            args: [multiplier],
+            address: LEVERAGE_MANAGER_ADDRESS,
+            abi: LEVERAGE_MANAGER_ABI,
+            functionName: 'openPosition',
+            args: [depositAmount],
         });
     };
 
     return {
-        activate,
+        openPosition,
         isPending,
         isConfirming,
         isSuccess,
@@ -118,28 +137,29 @@ export function useActivateLeverage() {
     };
 }
 
-// Hook: Deactivate leverage
-export function useDeactivateLeverage() {
+// Hook: Close leveraged position
+export function useClosePosition() {
     const queryClient = useQueryClient();
     const { writeContract, data: hash, isPending, error } = useWriteContract();
     const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
         hash,
         onSuccess() {
-            queryClient.invalidateQueries({ queryKey: ['currentLeverage'] });
+            queryClient.invalidateQueries({ queryKey: ['positions'] });
+            queryClient.invalidateQueries({ queryKey: ['positionHealth'] });
             queryClient.invalidateQueries({ queryKey: ['user'] });
         },
     });
 
-    const deactivate = () => {
+    const closePosition = () => {
         writeContract({
-            address: LEVERAGE_CONTROLLER_ADDRESS,
-            abi: LEVERAGE_CONTROLLER_ABI,
-            functionName: 'deactivateLeverage',
+            address: LEVERAGE_MANAGER_ADDRESS,
+            abi: LEVERAGE_MANAGER_ABI,
+            functionName: 'closePosition',
         });
     };
 
     return {
-        deactivate,
+        closePosition,
         isPending,
         isConfirming,
         isSuccess,
@@ -150,20 +170,56 @@ export function useDeactivateLeverage() {
 
 // Combined hook for leverage management
 export function useLeverageManager(userAddress: Address | undefined) {
-    const { data: isUnlocked, isLoading: isLoadingUnlocked } = useLeverageUnlocked(userAddress);
-    const { data: currentMultiplier, isLoading: isLoadingCurrent } = useCurrentLeverage(userAddress);
-    const { data: maxMultiplier, isLoading: isLoadingMax } = useMaxLeverage(userAddress);
-    const { activate, isPending: isActivating } = useActivateLeverage();
-    const { deactivate, isPending: isDeactivating } = useDeactivateLeverage();
+    // Automatically fetch user tier
+    const { data: userTier } = useUserTier(userAddress);
+
+    const { data: position, isLoading: isLoadingPosition } = useUserPosition(userAddress);
+    const { data: tierLeverageLimit, isLoading: isLoadingTier } = useTierLeverage(userTier);
+    const { data: health, isLoading: isLoadingHealth } = usePositionHealth(userAddress);
+    const { openPosition, isPending: isOpening } = useOpenPosition();
+    const { closePosition, isPending: isClosing } = useClosePosition();
+
+    // Convert basis points to multiplier (10000 = 1x, 20000 = 2x, etc.)
+    const maxMultiplier = tierLeverageLimit ? Number(tierLeverageLimit) / 10000 : 1;
+    const currentMultiplier = position?.currentLeverage ? Number(position.currentLeverage) / 10000 : 1;
+    const isActive = position?.active || false;
+
+    // Leverage is unlocked if tier allows more than 1x (i.e., not Novice tier)
+    const isUnlocked = maxMultiplier > 1;
 
     return {
-        isUnlocked: isUnlocked || false,
-        currentMultiplier: currentMultiplier || 1,
-        maxMultiplier: maxMultiplier || 1,
-        isActive: currentMultiplier !== undefined && currentMultiplier > 1,
-        activate,
-        deactivate,
-        isLoading: isLoadingUnlocked || isLoadingCurrent || isLoadingMax,
-        isPending: isActivating || isDeactivating,
+        // Position data
+        position: position ? {
+            user: position.user,
+            initialDeposit: position.initialDeposit,
+            totalDeposited: position.totalDeposited,
+            totalBorrowed: position.totalBorrowed,
+            currentLeverage: position.currentLeverage,
+            timestamp: position.timestamp,
+            active: position.active,
+        } : null,
+
+        // Health data
+        health: health ? {
+            healthFactor: health.healthFactor,
+            collateralValue: health.collateralValue,
+            borrowValue: health.borrowValue,
+            availableToBorrow: health.availableToBorrow,
+            isHealthy: health.isHealthy,
+        } : null,
+
+        // Computed values
+        isUnlocked,
+        currentMultiplier,
+        maxMultiplier,
+        isActive,
+
+        // Actions
+        openPosition,
+        closePosition,
+
+        // Loading states
+        isLoading: isLoadingPosition || isLoadingTier || isLoadingHealth,
+        isPending: isOpening || isClosing,
     };
 }
