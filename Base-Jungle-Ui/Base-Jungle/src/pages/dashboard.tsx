@@ -331,7 +331,7 @@ export default function Dashboard() {
             <PressureGauge
               currentLeverage={currentLeverage}
               maxLeverage={maxLeverage}
-              tierLimit={3.0}
+              tierLimit={maxLeverage}  // Use actual tier limit from contract, not hardcoded
               tierName={currentTier}
               nextTierName={nextTierName || "MAX"}
               nextTierRequirement={isMaxTier ? "None" : `${nextTierReferrals} Active Refs`}
