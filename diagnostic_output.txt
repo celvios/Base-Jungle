@@ -1,0 +1,56 @@
+﻿[dotenv@17.2.3] injecting env (5) from .env.deployment -- tip: ΓÜÖ∩╕Å  load multiple .env files with { path: ['.env.local', '.env'] }
+
+≡ƒöì AGGRESSIVE VAULT DIAGNOSTIC REPORT ≡ƒöì
+
+============================================================
+
+≡ƒæñ User Address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+≡ƒôì Aggressive Vault: 0x2a504A88A4B4010000D10b96c1C0E999C7A5f345
+≡ƒôì Strategy Controller: 0xa1143ac8Af4074d348F3A776781A1924417d14E8
+
+============================================================
+
+
+≡ƒôè SECTION 1: USER TIER STATUS
+------------------------------------------------------------
+Γ¥î Error getting tier: could not decode result data (value="0x", info={ "method": "getUserTier", "signature": "getUserTier(address)" }, code=BAD_DATA, version=6.15.0)
+
+
+≡ƒÆ░ SECTION 2: AGGRESSIVE VAULT BALANCE
+------------------------------------------------------------
+Γ¥î Error getting vault balance: could not decode result data (value="0x", info={ "method": "balanceOf", "signature": "balanceOf(address)" }, code=BAD_DATA, version=6.15.0)
+
+
+≡ƒÄ» SECTION 3: STRATEGY ALLOCATIONS
+------------------------------------------------------------
+Γ¥î Error checking strategies: could not decode result data (value="0x", info={ "method": "strategyCount", "signature": "strategyCount()" }, code=BAD_DATA, version=6.15.0)
+
+
+≡ƒöÉ SECTION 4: VAULT ROLES & PERMISSIONS
+------------------------------------------------------------
+Γ¥î Error checking roles: could not decode result data (value="0x", info={ "method": "VAULT_ROLE", "signature": "VAULT_ROLE()" }, code=BAD_DATA, version=6.15.0)
+
+
+ΓÜí SECTION 5: LEVERAGE MANAGER STATUS
+------------------------------------------------------------
+   Γ¥î LEVERAGE CONTROLLER NOT DEPLOYED!
+   ≡ƒÆí This is why the leverage toggle doesn't work!
+
+
+ΓÜÖ∩╕Å  SECTION 6: TIER ALLOCATION CONFIGURATION
+------------------------------------------------------------
+   ΓÜá∩╕Å  Error checking tier allocations: strategyController.getTierAllocations is not a function
+
+
+============================================================
+≡ƒôï DIAGNOSTIC SUMMARY
+============================================================
+
+Potential Issues Found:
+1. Check if you have shares in Aggressive Vault
+2. Check if funds are allocated to strategies
+3. Check if Aggressive Vault has VAULT_ROLE
+4. Check if Leverage Controller is deployed
+5. Check if Whale tier has allocation configs
+
+

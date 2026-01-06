@@ -69,7 +69,8 @@ contract StrategyController is AccessControl, ReentrancyGuard {
     uint256 public constant MAX_STRATEGIES = 10;
 
     // Rebalance thresholds
-    uint256 public rebalanceThreshold = 500; // 5% deviation triggers rebalance
+    uint256 public constant REBALANCE_THRESHOLD = 500; // 5% drift
+    uint256 public rebalanceThreshold = 500; // Deprecated, use REBALANCE_THRESHOLD
 
     event StrategyAdded(uint256 indexed strategyId, StrategyType strategyType, address adapter);
     event StrategyRemoved(uint256 indexed strategyId);
@@ -182,37 +183,66 @@ contract StrategyController is AccessControl, ReentrancyGuard {
 
     /**
      * @notice Rebalance user's allocations if drift exceeds threshold.
+     * @dev Only rebalances strategies that have drifted beyond threshold (gas efficient)
      */
     function rebalance(address user) external onlyRole(KEEPER_ROLE) nonReentrant {
+        // Check if rebalance is needed
+        if (!needsRebalance(user)) return;
+
         // Get total value first
         uint256 totalValue = getTotalValue(user);
-        
         if (totalValue == 0) return;
 
-        // Withdraw all
-        for (uint256 i = 0; i < strategyCount; i++) {
-            uint256 allocated = userAllocations[user][i];
-            if (allocated > 0) {
-                _withdrawFromStrategy(user, i, allocated);
-            }
-        }
-
-        // Re-allocate according to current tier
+        // Get user tier and target allocations
         ReferralManager.Tier tier = referralManager.getUserTier(user);
         AllocationConfig[] memory configs = tierAllocations[tier];
 
+        // Calculate target allocations
+        uint256[] memory targetAllocations = new uint256[](strategyCount);
         for (uint256 i = 0; i < configs.length; i++) {
             uint256 strategyId = _findStrategyByType(configs[i].strategyType, tier);
+            if (strategyId < strategyCount) {
+                targetAllocations[strategyId] = (totalValue * configs[i].percentage) / BASIS_POINTS;
+            }
+        }
+
+        // Rebalance only drifted strategies
+        for (uint256 i = 0; i < strategyCount; i++) {
+            if (!strategies[i].isActive) continue;
+
+            uint256 currentAllocation = userAllocations[user][i];
+            uint256 targetAllocation = targetAllocations[i];
+
+            if (currentAllocation == 0 && targetAllocation == 0) continue;
+
+            // Calculate drift
+            uint256 drift = _calculateDrift(currentAllocation, targetAllocation);
             
-            if (strategyId < strategyCount && strategies[strategyId].isActive) {
-                uint256 amount = (totalValue * configs[i].percentage) / BASIS_POINTS;
-                if (amount > 0) {
-                    _allocateToStrategy(user, strategyId, amount);
+            if (drift > REBALANCE_THRESHOLD) {
+                // Withdraw if over-allocated
+                if (currentAllocation > targetAllocation) {
+                    uint256 excessAmount = currentAllocation - targetAllocation;
+                    try this._withdrawFromStrategyExternal(user, i, excessAmount) {
+                        // Success
+                    } catch {
+                        // Strategy withdrawal failed, continue to next
+                        continue;
+                    }
+                }
+                // Allocate if under-allocated
+                else if (targetAllocation > currentAllocation) {
+                    uint256 shortfall = targetAllocation - currentAllocation;
+                    try this._allocateToStrategyExternal(user, i, shortfall) {
+                        // Success
+                    } catch {
+                        // Strategy allocation failed, continue to next
+                        continue;
+                    }
                 }
             }
         }
 
-        emit Rebalanced(user, totalValue);
+        emit Rebalanced(user, getTotalValue(user));
     }
 
     /**
@@ -330,5 +360,93 @@ contract StrategyController is AccessControl, ReentrancyGuard {
         tierAllocations[ReferralManager.Tier.Whale].push(AllocationConfig(StrategyType.LEVERAGED_LP, 3000)); // 30%
         tierAllocations[ReferralManager.Tier.Whale].push(AllocationConfig(StrategyType.GAUGE_FARMING, 4000)); // 40%
         tierAllocations[ReferralManager.Tier.Whale].push(AllocationConfig(StrategyType.LEVERAGED_LENDING, 3000)); // 30%
+    }
+
+    /**
+     * @notice Check if user needs rebalancing based on drift threshold
+     * @param user User address
+     * @return True if any allocation has drifted beyond threshold
+     */
+    function needsRebalance(address user) public view returns (bool) {
+        uint256 totalValue = getTotalValue(user);
+        if (totalValue == 0) return false;
+
+        ReferralManager.Tier tier = referralManager.getUserTier(user);
+        AllocationConfig[] memory configs = tierAllocations[tier];
+
+        for (uint256 i = 0; i < configs.length; i++) {
+            uint256 strategyId = _findStrategyByType(configs[i].strategyType, tier);
+            if (strategyId >= strategyCount) continue;
+
+            uint256 targetAllocation = (totalValue * configs[i].percentage) / BASIS_POINTS;
+            uint256 currentAllocation = userAllocations[user][strategyId];
+
+            uint256 drift = _calculateDrift(currentAllocation, targetAllocation);
+            if (drift > REBALANCE_THRESHOLD) return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @notice Withdraw funds from strategies for debt repayment (LeverageManager integration)
+     * @param user User address
+     * @param amount Amount to withdraw
+     * @return withdrawn Actual amount withdrawn
+     */
+    function withdrawForRepayment(address user, uint256 amount) external onlyRole(KEEPER_ROLE) nonReentrant returns (uint256 withdrawn) {
+        require(amount > 0, "Amount zero");
+
+        uint256 remaining = amount;
+
+        // Withdraw from most liquid strategies first
+        for (uint256 i = 0; i < strategyCount && remaining > 0; i++) {
+            if (!strategies[i].isActive) continue;
+
+            uint256 allocated = userAllocations[user][i];
+            if (allocated == 0) continue;
+
+            uint256 toWithdraw = remaining > allocated ? allocated : remaining;
+
+            try this._withdrawFromStrategyExternal(user, i, toWithdraw) returns (uint256 withdrawnAmount) {
+                withdrawn += withdrawnAmount;
+                remaining -= withdrawnAmount;
+            } catch {
+                // Strategy withdrawal failed, try next one
+                continue;
+            }
+        }
+
+        require(withdrawn >= amount, "Insufficient liquidity");
+    }
+
+    /**
+     * @notice Calculate drift percentage between current and target allocation
+     * @param current Current allocation
+     * @param target Target allocation
+     * @return Drift in basis points
+     */
+    function _calculateDrift(uint256 current, uint256 target) internal pure returns (uint256) {
+        if (target == 0 && current == 0) return 0;
+        if (target == 0) return BASIS_POINTS; // 100% drift
+
+        uint256 diff = current > target ? current - target : target - current;
+        return (diff * BASIS_POINTS) / target;
+    }
+
+    /**
+     * @notice External wrapper for _allocateToStrategy (for try/catch)
+     */
+    function _allocateToStrategyExternal(address user, uint256 strategyId, uint256 amount) external {
+        require(msg.sender == address(this), "Internal only");
+        _allocateToStrategy(user, strategyId, amount);
+    }
+
+    /**
+     * @notice External wrapper for _withdrawFromStrategy (for try/catch)
+     */
+    function _withdrawFromStrategyExternal(address user, uint256 strategyId, uint256 amount) external returns (uint256) {
+        require(msg.sender == address(this), "Internal only");
+        return _withdrawFromStrategy(user, strategyId, amount);
     }
 }

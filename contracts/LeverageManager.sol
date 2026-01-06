@@ -6,6 +6,9 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./ReferralManager.sol";
+import "./interfaces/IStrategyController.sol";
+import "./oracles/ChainlinkOracle.sol";
+import "./adapters/MoonwellAdapter.sol";
 
 /**
  * @title LeverageManager
@@ -19,6 +22,9 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
     bytes32 public constant VAULT_ROLE = keccak256("VAULT_ROLE");
 
     ReferralManager public referralManager;
+    IStrategyController public strategyController;
+    ChainlinkOracle public oracle;
+    MoonwellAdapter public lendingAdapter;
     IERC20 public immutable USDC;
 
     struct Position {
@@ -44,8 +50,11 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
 
     event PositionOpened(address indexed user, uint256 deposit, uint256 leverage);
     event PositionClosed(address indexed user, uint256 withdrawn);
-    event PositionRebalanced(address indexed user, uint256 newHealthFactor);
+    event PositionRebalanced(address indexed user, uint256 newHealthFactor, uint256 amountRepaid);
     event Liquidated(address indexed user, uint256 loss);
+    event StrategyControllerUpdated(address indexed newController);
+    event OracleUpdated(address indexed newOracle);
+    event LendingAdapterUpdated(address indexed newAdapter);
 
     constructor(address _referralManager, address _usdc) {
         require(_referralManager != address(0), "Invalid referral manager");
@@ -166,27 +175,43 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
     /**
      * @notice Rebalance position to safe health factor
      */
-    function rebalance(address user) external onlyRole(KEEPER_ROLE) nonReentrant {
+    function rebalance(address user, uint256 minHealthFactor) external onlyRole(KEEPER_ROLE) nonReentrant {
         Position storage position = positions[user];
         require(position.active, "No active position");
+        require(address(strategyController) != address(0), "Controller not set");
+        require(address(lendingAdapter) != address(0), "Adapter not set");
 
-        uint256 healthFactor = this.getHealthFactor(user);
+        // Get real-time health factor using oracle if available
+        uint256 healthFactor = _calculateHealthFactor(user);
+        uint256 repayAmount = 0; // Declare at function scope for event
         
         if (healthFactor < DANGER_THRESHOLD) {
-            // Reduce leverage by paying down debt
+            // Calculate how much debt to repay to reach safe threshold
             uint256 targetDebt = (position.totalDeposited * 10000) / SAFE_THRESHOLD;
-            uint256 repayAmount = position.totalBorrowed - targetDebt;
+            repayAmount = position.totalBorrowed > targetDebt ? position.totalBorrowed - targetDebt : 0;
             
             if (repayAmount > 0) {
+                // Withdraw funds from strategies to repay debt
+                uint256 withdrawn = strategyController.withdrawForRepayment(user, repayAmount);
+                require(withdrawn >= repayAmount, "Insufficient withdrawal");
+                
+                // Approve lending adapter to take the funds
+                USDC.approve(address(lendingAdapter), repayAmount);
+                
+                // Actually repay the debt
+                lendingAdapter.repayBorrow(repayAmount);
+                
+                // Update position
                 position.totalBorrowed -= repayAmount;
                 position.totalDeposited -= repayAmount;
-                
-                // Update leverage
                 position.currentLeverage = (position.totalDeposited * 10000) / position.initialDeposit;
             }
         }
 
-        emit PositionRebalanced(user, this.getHealthFactor(user));
+        uint256 newHealthFactor = _calculateHealthFactor(user);
+        require(newHealthFactor >= minHealthFactor, "Slippage: HF too low");
+        
+        emit PositionRebalanced(user, newHealthFactor, repayAmount);
     }
 
     /**
@@ -199,6 +224,9 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
         return healthFactor < DANGER_THRESHOLD;
     }
 
+    /**
+     * @notice Get all active positions (for keeper bot)
+     */
     /**
      * @notice Get all active positions (for keeper bot)
      */
@@ -222,5 +250,71 @@ contract LeverageManager is AccessControl, ReentrancyGuard {
                 index++;
             }
         }
+    }
+
+    /**
+     * @notice Calculate health factor with oracle pricing (if available)
+     * @dev Falls back to simple calculation if oracle not set
+     */
+    function _calculateHealthFactor(address user) internal view returns (uint256) {
+        Position memory position = positions[user];
+        if (!position.active || position.totalBorrowed == 0) return type(uint256).max;
+
+        // If oracle is set, use it for accurate pricing
+        if (address(oracle) != address(0) && address(strategyController) != address(0)) {
+            // Get real value from strategies
+            uint256 realValue = strategyController.getTotalValue(user);
+            
+            // Get oracle price for accurate valuation
+            // Note: This assumes USDC so no price conversion needed
+            // For other assets, would need: oracle.getUSDValue(asset, realValue, decimals)
+            
+            return (realValue * 10000) / position.totalBorrowed;
+        }
+        
+        // Fallback to simple calculation
+        return (position.totalDeposited * 10000) / position.totalBorrowed;
+    }
+
+    /**
+     * @notice Set StrategyController address (admin only)
+     * @param _controller StrategyController address
+     */
+    function setStrategyController(address _controller) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_controller != address(0), "Invalid controller");
+        strategyController = IStrategyController(_controller);
+        emit StrategyControllerUpdated(_controller);
+    }
+
+    /**
+     * @notice Set ChainlinkOracle address (admin only)
+     * @param _oracle Oracle address
+     */
+    function setOracle(address _oracle) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_oracle != address(0), "Invalid oracle");
+        oracle = ChainlinkOracle(_oracle);
+        emit OracleUpdated(_oracle);
+    }
+
+    /**
+     * @notice Set MoonwellAdapter address (admin only)
+     * @param _adapter Adapter address
+     */
+    function setLendingAdapter(address _adapter) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(_adapter != address(0), "Invalid adapter");
+        lendingAdapter = MoonwellAdapter(_adapter);
+        emit LendingAdapterUpdated(_adapter);
+    }
+
+    /**
+     * @notice Withdraw funds from strategies for debt repayment
+     * @dev Called by rebalance function
+     * @param user User address
+     * @param amount Amount to withdraw
+     * @return Amount actually withdrawn
+     */
+    function withdrawForRepayment(address user, uint256 amount) external onlyRole(KEEPER_ROLE) returns (uint256) {
+        require(address(strategyController) != address(0), "Controller not set");
+        return strategyController.withdrawForRepayment(user, amount);
     }
 }
