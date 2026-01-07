@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, Smartphone, QrCode, Mail } from 'lucide-react';
 import { isMobile } from '@/lib/mobile-wallet';
+import { useWallet } from '@/contexts/wallet-context';
 
 export function MobileWalletGuide() {
+    const { connectToMetaMask } = useWallet();
     const [showGuide, setShowGuide] = useState(false);
     const [hasEthereum, setHasEthereum] = useState(false);
 
@@ -52,19 +54,19 @@ export function MobileWalletGuide() {
                                 </p>
                             </div>
 
-                            {/* Option 2: In-App Browser */}
-                            <div className="bg-black/20 rounded p-3 space-y-1">
+                            {/* Option 2: MetaMask Deep Link (NEW) */}
+                            <button
+                                onClick={connectToMetaMask}
+                                className="w-full bg-[#F6851B]/10 hover:bg-[#F6851B]/20 border border-[#F6851B]/50 rounded p-3 space-y-1 text-left transition-colors"
+                            >
                                 <div className="flex items-center gap-2">
-                                    <Smartphone className="w-4 h-4 text-green-400" />
-                                    <span className="text-xs font-medium text-green-400">Alternative</span>
+                                    <Smartphone className="w-4 h-4 text-[#F6851B]" />
+                                    <span className="text-xs font-medium text-[#F6851B]">Open in MetaMask App</span>
                                 </div>
                                 <p className="text-xs text-white/90">
-                                    Open this site in <strong>MetaMask's browser</strong>
+                                    Deep link directly to the MetaMask mobile app
                                 </p>
-                                <p className="text-xs text-white/60">
-                                    MetaMask app → Browser tab → Enter URL
-                                </p>
-                            </div>
+                            </button>
 
                             {/* Option 3: Email */}
                             <div className="bg-black/20 rounded p-3 space-y-1">

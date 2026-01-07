@@ -11,6 +11,7 @@ interface WalletContextType {
   address: string | null;
   isConnected: boolean;
   connect: () => void;
+  connectToMetaMask: () => void;
   disconnect: () => void;
   // Auth state
   isAuthenticated: boolean;
@@ -52,6 +53,22 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
     open();
   };
 
+  const connectToMetaMask = () => {
+    logMobileConnection('MetaMask Deep Link clicked');
+
+    // Get current URL without protocol (required for deep link)
+    const host = window.location.host;
+    const path = window.location.pathname;
+    const search = window.location.search;
+
+    // Construct Deep Link
+    // Format: https://metamask.app.link/dapp/domain.com/path
+    const deepLink = `https://metamask.app.link/dapp/${host}${path}${search}`;
+
+    // Redirect
+    window.location.href = deepLink;
+  };
+
   const disconnect = () => {
     logout();
     wagmiDisconnect();
@@ -64,6 +81,7 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
         address: address || null,
         isConnected,
         connect,
+        connectToMetaMask,
         disconnect,
         isAuthenticated,
         isAuthenticating,
