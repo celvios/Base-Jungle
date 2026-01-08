@@ -1,0 +1,55 @@
+# Vercel Environment Variables - Copy & Paste
+
+## Add These to Vercel Dashboard
+
+**Go to:** https://vercel.com/dashboard → Your Project → Settings → Environment Variables
+
+**Environment:** Production (and Preview if testing)
+
+---
+
+### Required Variables
+
+```
+KEEPER_PRIVATE_KEY
+f2b6de06750aa9d10c25a7274f5a418c1185c2c0d24563dd6dd3a241cbe44ef8
+
+CRON_SECRET
+84f31bd2f3a70b2b5088489c45b21671678f
+
+BASE_SEPOLIA_RPC
+https://sepolia.base.org
+
+VITE_CONSERVATIVE_VAULT_ADDRESS
+0x80d31cD5196F443291814e3c355Bd8f8245582bd
+
+VITE_AGGRESSIVE_VAULT_ADDRESS
+0x2C46a76883ff3acAc3ed7479c259f81eCe15E7a8
+```
+
+---
+
+## Next: Deploy
+
+After adding env vars:
+
+```bash
+cd Base-Jungle-Ui/Base-Jungle
+git add .
+git commit -m "feat: Add real-time yield display + Vercel cron harvester"
+git push
+```
+
+Vercel will auto-deploy and start hourly cron!
+
+---
+
+## Important Notes
+
+⚠️ **Keeper Wallet Must Have:**
+- `KEEPER_ROLE` on both vaults
+- At least 0.01 ETH for gas
+
+✅ **Wallet Address:** `0x72377a60870E3d2493F871FA5792a1160518fcc6`
+
+🔒 **Security:** Never commit `.env.deployment` to git!
