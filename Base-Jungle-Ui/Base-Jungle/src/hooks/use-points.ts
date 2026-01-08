@@ -3,7 +3,7 @@ import { parseUnits, formatUnits, type Address } from 'viem';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
 
 // PointsTracker ABI
 const POINTS_TRACKER_ABI = [
@@ -116,6 +116,8 @@ export function useClaimDailyPoints() {
     };
 }
 
+import { API_ENDPOINTS } from '@/config/api';
+
 // Hook: Get points history from API
 export function usePointsHistory(userAddress: Address | undefined) {
     const token = localStorage.getItem('auth_token');
@@ -123,7 +125,7 @@ export function usePointsHistory(userAddress: Address | undefined) {
     return useQuery({
         queryKey: ['pointsHistory', userAddress],
         queryFn: async () => {
-            const response = await fetch(`${API_URL}/user/${userAddress}/points`, {
+            const response = await fetch(API_ENDPOINTS.points(userAddress || ''), {
                 headers: {
                     ...(token && { 'Authorization': `Bearer ${token}` }),
                 },
@@ -159,9 +161,9 @@ export function usePointsManager(userAddress: Address | undefined) {
     const { claim, isPending: isClaiming } = useClaimDailyPoints();
 
     return {
-        totalPoints: contractPoints?.[0] || 0n,
-        lastClaimTimestamp: contractPoints?.[1] || 0n,
-        pendingDailyPoints: contractPoints?.[2] || 0n,
+        totalPoints: contractPoints?.[0] || BigInt(0),
+        lastClaimTimestamp: contractPoints?.[1] || BigInt(0),
+        pendingDailyPoints: contractPoints?.[2] || BigInt(0),
         dailyPointRate: historyData?.dailyPointRate || 0,
         rank: historyData?.rank || 'Novice',
         history: historyData?.pointsHistory || [],

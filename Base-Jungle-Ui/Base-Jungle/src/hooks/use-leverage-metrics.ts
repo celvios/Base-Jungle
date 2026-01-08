@@ -26,7 +26,7 @@ export function useLeverageMetrics(userAddress: Address | undefined): LeverageMe
         return {
             healthFactor,
             liquidationPrice,
-            maxLeverage: maxMultiplier || 5,
+            maxLeverage: maxMultiplier || 5, // Max 5x leverage for Whales
             currentLeverage: leverage,
             isLoading,
         };

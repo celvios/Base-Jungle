@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { type Address } from 'viem';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 export interface VaultPosition {
     initialDeposit: number;
@@ -34,7 +33,7 @@ export function useVaultPosition(
             const valueNum = Number(currentValue) / 1e6;
 
             const response = await fetch(
-                `${API_URL}/vault/${vaultAddress}/user/${userAddress}/position?currentShares=${sharesNum}&currentValue=${valueNum}`
+                `${API_ENDPOINTS.vaultPosition(vaultAddress, userAddress)}?currentShares=${sharesNum}&currentValue=${valueNum}`
             );
 
             if (!response.ok) {
@@ -64,7 +63,7 @@ export function useTrackDeposit() {
             timestamp: number;
             txHash: string;
         }) => {
-            const response = await fetch(`${API_URL}/vault/track-deposit`, {
+            const response = await fetch(API_ENDPOINTS.trackDeposit, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +101,7 @@ export function useTrackWithdrawal() {
             wasMature: boolean;
             penalty: number;
         }) => {
-            const response = await fetch(`${API_URL}/vault/track-withdrawal`, {
+            const response = await fetch(API_ENDPOINTS.trackWithdrawal, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useWallet } from '@/contexts/wallet-context';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface UserData {
     address: string;
@@ -35,7 +34,7 @@ export function useUserData() {
     return useQuery({
         queryKey: ['user', address],
         queryFn: async () => {
-            const response = await fetch(`${API_URL}/graphql`, {
+            const response = await fetch(API_ENDPOINTS.graphql, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -75,7 +74,7 @@ export function useVaultBalances() {
     return useQuery({
         queryKey: ['vaultBalances', address],
         queryFn: async () => {
-            const response = await fetch(`${API_URL}/graphql`, {
+            const response = await fetch(API_ENDPOINTS.graphql, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -109,7 +108,7 @@ export function useLeaderboard(limit = 50, offset = 0) {
     return useQuery({
         queryKey: ['leaderboard', limit, offset],
         queryFn: async () => {
-            const response = await fetch(`${API_URL}/graphql`, {
+            const response = await fetch(API_ENDPOINTS.graphql, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -144,7 +143,7 @@ export function useSystemHealth() {
     return useQuery({
         queryKey: ['systemHealth'],
         queryFn: async () => {
-            const response = await fetch(`${API_URL}/graphql`, {
+            const response = await fetch(API_ENDPOINTS.graphql, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

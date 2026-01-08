@@ -11,6 +11,7 @@ import { useUserRank } from "@/hooks/use-leaderboard";
 import { type Address } from "viem";
 import { useReadContract } from "wagmi";
 import { SkeletonCard, Skeleton } from "@/components/ui/skeleton";
+import { useUserPendingYield } from "@/hooks/use-pending-yield";
 
 // Terminal Components
 import TerminalLayout from "@/components/dashboard/terminal/TerminalLayout";
@@ -115,6 +116,9 @@ export default function Dashboard() {
     import.meta.env.VITE_AGGRESSIVE_VAULT_ADDRESS as Address,
     address as Address
   );
+
+  // ✅ Pending Yield (Real-time, updates every 60s)
+  const { pendingYieldUSDC } = useUserPendingYield(address as Address);
 
   // ✅ Real Leverage Metrics
   const {
@@ -292,6 +296,7 @@ export default function Dashboard() {
               principal={principal}
               totalYield={totalYield}
               harvestableYield={harvestableYield}
+              pendingYield={pendingYieldUSDC}
               dailyPnL={dailyPnL}
               data={chartData}
               onHarvest={() => {

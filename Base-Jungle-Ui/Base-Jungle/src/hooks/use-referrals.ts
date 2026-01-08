@@ -2,7 +2,7 @@ import { useReadContract } from 'wagmi';
 import { type Address } from 'viem';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 
 // ReferralManager ABI (Corrected)
 const REFERRAL_MANAGER_ABI = [
@@ -97,7 +97,7 @@ export function useDirectReferrals(userAddress: Address | undefined) {
 
 // Hook: Get pending bonus (Points are auto-accrued, so always 0)
 export function usePendingBonus(userAddress: Address | undefined) {
-    return { data: 0n, isLoading: false };
+    return { data: BigInt(0), isLoading: false };
 }
 
 // Hook: Claim referral bonus (No-op, points are auto-accrued)
@@ -141,9 +141,9 @@ export function useReferralManager(userAddress: Address | undefined) {
     const tierNames = ['Novice', 'Scout', 'Captain', 'Whale'];
 
     return {
-        directReferrals: tierInfo ? BigInt(tierInfo[4]) : 0n,
-        indirectReferrals: refInfo ? BigInt(refInfo[2]) : 0n,
-        pendingBonus: 0n,
+        directReferrals: tierInfo ? BigInt(tierInfo[4]) : BigInt(0),
+        indirectReferrals: refInfo ? BigInt(refInfo[2]) : BigInt(0),
+        pendingBonus: BigInt(0),
         tier: tierInfo ? tierNames[Number(tierInfo[0])] : 'Novice',
         referralCode: referralCode,
         referralLink: referralLink,
@@ -156,7 +156,7 @@ export function useReferralManager(userAddress: Address | undefined) {
 // Legacy exports if needed
 export function useReferralCounts(userAddress: Address | undefined) {
     // Map to new hooks if strictly needed, or just return basic
-    return { data: [0n, 0n] as const, isLoading: false };
+    return { data: [BigInt(0), BigInt(0)] as const, isLoading: false };
 }
 export function useUserTier(userAddress: Address | undefined) {
     // Implementation mapped to useUserTierInfo...

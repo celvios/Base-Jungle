@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useAccount, useSignMessage } from 'wagmi';
 import { SiweMessage } from 'siwe';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface AuthState {
     isAuthenticated: boolean;
@@ -32,7 +31,7 @@ export function useSIWE() {
 
         try {
             // 1. Get nonce from backend
-            const nonceRes = await fetch(`${API_URL}/api/auth/nonce?address=${address}`, {
+            const nonceRes = await fetch(API_ENDPOINTS.getNonce(address), {
                 credentials: 'include',
             });
             const nonceData = await nonceRes.json();
@@ -55,7 +54,7 @@ export function useSIWE() {
             const signature = await signMessageAsync({ message: preparedMessage });
 
             // 4. Verify signature with backend
-            const verifyRes = await fetch(`${API_URL}/api/auth/verify`, {
+            const verifyRes = await fetch(API_ENDPOINTS.verify, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: preparedMessage, signature, address }),
@@ -99,7 +98,7 @@ export function useSIWE() {
         });
 
         // Call backend logout
-        fetch(`${API_URL}/api/auth/logout`, {
+        fetch(API_ENDPOINTS.logout, {
             method: 'POST',
             credentials: 'include',
         }).catch(console.error);

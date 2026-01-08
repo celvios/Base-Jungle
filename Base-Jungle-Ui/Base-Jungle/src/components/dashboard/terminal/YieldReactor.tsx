@@ -18,6 +18,7 @@ interface YieldReactorProps {
   principal: number;
   totalYield: number;
   harvestableYield: number;
+  pendingYield?: number; // Real-time pending yield from strategies
   dailyPnL: number;
   data: Array<{ time: string; value: number }>;
   activities?: ActivityEvent[];
@@ -30,6 +31,7 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
   principal,
   totalYield,
   harvestableYield,
+  pendingYield = 0,
   dailyPnL,
   data,
   activities = [],
@@ -58,7 +60,7 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-6 mb-6 shrink-0 relative z-10">
+      <div className="grid grid-cols-4 gap-4 mb-6 shrink-0 relative z-10">
         <div className="space-y-1">
           <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">TOTAL BALANCE (TVL)</p>
           <p className="text-2xl font-bold text-white">
@@ -69,6 +71,15 @@ const YieldReactor: React.FC<YieldReactorProps> = ({
           <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">Lifetime Yield</p>
           <p className="text-2xl font-bold text-blue-400 glow-text-blue">
             +${totalYield.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          </p>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider flex items-center gap-1">
+            PENDING YIELD
+            <Activity className="w-3 h-3 text-yellow-400 animate-pulse" />
+          </p>
+          <p className="text-2xl font-bold text-yellow-400">
+            ${(pendingYield || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </p>
         </div>
         <div className="space-y-1">

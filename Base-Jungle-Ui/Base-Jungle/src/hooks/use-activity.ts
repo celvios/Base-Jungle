@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 export interface Activity {
     id: number;
@@ -22,7 +21,7 @@ export function useRecentActivities(limit: number = 50) {
     return useQuery<{ activities: Activity[]; count: number }>({
         queryKey: ['activities', limit],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/api/activities?limit=${limit}`);
+            const res = await fetch(`${API_ENDPOINTS.activities}?limit=${limit}`);
             if (!res.ok) throw new Error('Failed to fetch activities');
             const data = await res.json();
             return data;
@@ -41,7 +40,7 @@ export function useUserActivities(address: string | undefined, limit: number = 2
         queryFn: async () => {
             if (!address) return { activities: [], count: 0 };
 
-            const res = await fetch(`${API_URL}/api/activities/user/${address}?limit=${limit}`);
+            const res = await fetch(`${API_ENDPOINTS.activities}/user/${address}?limit=${limit}`);
             if (!res.ok) throw new Error('Failed to fetch user activities');
             const data = await res.json();
             return data;
@@ -64,7 +63,7 @@ export function useActivityStats() {
     }>({
         queryKey: ['activity-stats'],
         queryFn: async () => {
-            const res = await fetch(`${API_URL}/api/activities/stats`);
+            const res = await fetch(`${API_ENDPOINTS.activities}/stats`);
             if (!res.ok) throw new Error('Failed to fetch activity stats');
             const data = await res.json();
             return data;

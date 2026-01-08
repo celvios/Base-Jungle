@@ -2,8 +2,7 @@ import React from 'react';
 import { Trophy } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useAccount } from 'wagmi';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 interface LeaderboardEntry {
     rank: number;
@@ -20,7 +19,7 @@ const SpecimenLeaderboard: React.FC = () => {
         queryKey: ['my-referrals', address],
         queryFn: async () => {
             if (!address) return [];
-            const response = await fetch(`${API_URL}/user/${address}/my-referrals`);
+            const response = await fetch(API_ENDPOINTS.myReferrals(address));
             if (!response.ok) {
                 // If endpoint fails or user not found, 404 is possible -> return empty
                 return [];

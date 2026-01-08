@@ -1,9 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { useAccount, useDisconnect } from 'wagmi';
-import { useAppKit } from '@reown/appkit/react';
+import { useAccount, useDisconnect, useConnect } from 'wagmi';
 import { WagmiProvider } from 'wagmi';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { config, queryClient } from '@/lib/wagmi';
+import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { config } from '@/lib/wagmi';
 import { useSIWE } from '@/hooks/use-siwe';
 import { logMobileConnection } from '@/lib/mobile-wallet';
 
@@ -21,10 +20,13 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
+// Create QueryClient instance
+const queryClient = new QueryClient();
+
 function WalletProviderInner({ children }: { children: ReactNode }) {
   const { address, isConnected } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();
-  const { open } = useAppKit();
+  const { connect: wagmiConnect, connectors } = useConnect();
   const { isAuthenticated, isAuthenticating, authenticate, logout } = useSIWE();
   const [hasAttemptedAuth, setHasAttemptedAuth] = useState(false);
 
@@ -44,13 +46,15 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
   const connect = async () => {
     logMobileConnection('Connect button clicked');
 
-    // Simply open AppKit modal - it handles everything:
-    // - Detects mobile vs desktop automatically
-    // - Shows appropriate wallets for each platform
-    // - Handles deep linking to wallet apps on mobile
-    // - Manages QR codes on desktop
-    // - Supports injected providers (in-app browsers)
-    open();
+    // Find MetaMask connector (injected)
+    const metaMaskConnector = connectors.find(c => c.id === 'injected' || c.name === 'MetaMask');
+
+    if (metaMaskConnector) {
+      wagmiConnect({ connector: metaMaskConnector });
+    } else {
+      // Fallback to first available connector
+      wagmiConnect({ connector: connectors[0] });
+    }
   };
 
   const connectToMetaMask = () => {
@@ -72,7 +76,6 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
   const disconnect = () => {
     logout();
     wagmiDisconnect();
-    setHasAttemptedAuth(false);
   };
 
   return (

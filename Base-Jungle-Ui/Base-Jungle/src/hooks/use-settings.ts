@@ -2,8 +2,7 @@ import { useWriteContract, useWaitForTransactionReceipt, useReadContract } from 
 import { type Address } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMutation } from '@tanstack/react-query';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { API_ENDPOINTS } from '@/config/api';
 
 // StrategyController ABI
 const STRATEGY_CONTROLLER_ABI = [
@@ -84,7 +83,7 @@ export function useUpdateSettingsBackend() {
             riskLevel?: string;
             leverageMultiplier?: number;
         }) => {
-            const response = await fetch(`${API_URL}/settings`, {
+            const response = await fetch(API_ENDPOINTS.settings, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

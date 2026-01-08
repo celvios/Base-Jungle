@@ -1,77 +1,31 @@
-import { createAppKit } from '@reown/appkit/react';
-import { WagmiProvider } from 'wagmi';
-import { base, baseSepolia } from '@reown/appkit/networks';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import { http, createConfig } from 'wagmi';
+import { baseSepolia } from 'wagmi/chains';
+import { injected, walletConnect } from 'wagmi/connectors';
 
-// 1. Get projectId from environment variable
-const projectId = import.meta.env.VITE_REOWN_PROJECT_ID;
+// Optional: WalletConnect as fallback (can be removed entirely)
+const projectId = import.meta.env.VITE_REOWN_PROJECT_ID || 'demo-project-id';
 
-if (!projectId) {
-    throw new Error('VITE_REOWN_PROJECT_ID is not set in environment variables');
-}
-
-// 2. Set up Wagmi adapter with mobile support (WalletConnect is built-in)
-export const wagmiAdapter = new WagmiAdapter({
-    networks: [baseSepolia],
-    projectId,
-    ssr: false,
-});
-
-// Get wagmi config to add injected connector
-export const config = wagmiAdapter.wagmiConfig;
-
-// Define metadata dynamically to ensure deep links work on mobile (any domain)
-const metadata = {
-    name: 'Base Jungle',
-    description: 'DeFi Yield Optimization Protocol on Base',
-    url: typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app',
-    icons: [typeof window !== 'undefined' ? `${window.location.origin}/favicon.png` : 'https://base-jungle.vercel.app/favicon.png'],
-    redirect: 'basejungle://request' // Required for mobile deep linking
-};
-
-// 3. Create modal with mobile wallet deep linking enabled
-export const modal = createAppKit({
-    adapters: [wagmiAdapter],
-    networks: [baseSepolia],
-    projectId,
-    metadata,
-
-    // Feature mobile-friendly wallets first
-    featuredWalletIds: [
-        'c57ca95b47569778a828d19178114f4db188b89b763c899ba0be274e97267d96', // MetaMask
-        '4622a2b2d6af1c9844944291e5e7351a6aa24cd7b23099efac1b2fd875da31a0', // Trust Wallet
-        '1ae92b26df02f0abca6304df07debccd18262fdf5fe82daa81593582dac9a369', // Rainbow
-        'fd20dc426fb37566d803205b19bbc1d4096b248ac04548e3cfb6b3a38bd033aa', // Coinbase Wallet
+export const config = createConfig({
+    chains: [baseSepolia],
+    connectors: [
+        // Primary: MetaMask via injected connector
+        injected({
+            target: 'metaMask',
+        }),
+        // Optional fallback: WalletConnect for other wallets
+        // Remove this if you want MetaMask-only
+        walletConnect({
+            projectId,
+            metadata: {
+                name: 'Base Jungle',
+                description: 'DeFi Yield Optimization Protocol on Base',
+                url: typeof window !== 'undefined' ? window.location.origin : 'https://base-jungle.vercel.app',
+                icons: ['https://base-jungle.vercel.app/favicon.png'],
+            },
+            showQrModal: true,
+        }),
     ],
-
-    // Enable features
-    features: {
-        analytics: true,
-        email: true,
-        socials: ['google', 'x', 'discord', 'farcaster'],
-        onramp: true,
-        swaps: true,
+    transports: {
+        [baseSepolia.id]: http(),
     },
-
-    // Theme configuration
-    themeMode: 'dark',
-    themeVariables: {
-        '--w3m-accent': '#10b981',
-    },
-
-    // Show all wallets on mobile to enable direct wallet app opening
-    // When user taps a wallet logo, it will attempt to deep link to that app
-    allWallets: 'SHOW',
-
-    // Enable Coinbase Smart Wallet with all options (EOA + Smart Wallet)
-    coinbasePreference: 'all',
 });
-
-export const queryClient = new QueryClient();
-
-declare module 'wagmi' {
-    interface Register {
-        config: typeof config;
-    }
-}
