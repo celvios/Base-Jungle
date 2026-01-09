@@ -326,7 +326,19 @@ router.get('/user/:walletAddress/balance-history', async (req, res) => {
         }
 
         res.json(result.rows);
-    } catch (error) {
+    } catch (error: any) {
+        console.error('Balance history error:', error);
+        res.status(500).json({ error: 'Failed to fetch balance history' });
+    }
+});
+
+// Bot activity endpoint
+router.get('/bot/activity', async (req, res) => {
+    try {
+        const { userAddress, limit = 50 } = req.query;
+        let query = 'SELECT * FROM bot_activity';
+        const params: any[] = [];
+
         if (userAddress) {
             query += ' WHERE user_address = $1';
             params.push(userAddress);
@@ -338,7 +350,7 @@ router.get('/user/:walletAddress/balance-history', async (req, res) => {
         const result = await pool.query(query, params);
 
         res.json(result.rows);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Bot activity error:', error);
         res.status(500).json({ error: 'Failed to fetch bot activity' });
     }
