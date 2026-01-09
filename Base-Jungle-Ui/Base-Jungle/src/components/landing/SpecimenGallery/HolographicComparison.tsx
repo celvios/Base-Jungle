@@ -6,12 +6,12 @@ import { NoviceAsset, ScoutAsset, CaptainAsset, WhaleAsset } from './GalleryAsse
 import { Button } from '@/components/ui/button';
 import { Check, ArrowRight, Wallet } from 'lucide-react';
 import { useAccount } from 'wagmi';
-import { useAppKit } from '@reown/appkit/react';
+import { useWallet } from '@/contexts/wallet-context';
 import DepositModal from './DepositModal';
 
 const HolographicComparison: React.FC = () => {
     const { isConnected } = useAccount();
-    const { open } = useAppKit();
+    const { connect } = useWallet();
     const [selectedTier, setSelectedTier] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -84,7 +84,7 @@ const HolographicComparison: React.FC = () => {
 
     const handleTarget = (tier: any) => {
         if (!isConnected) {
-            open();
+            connect();
         } else {
             setSelectedTier(tier);
             setIsModalOpen(true);

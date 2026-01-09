@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAccount } from 'wagmi';
-import { useAppKit } from '@reown/appkit/react';
+import { useWallet } from '@/contexts/wallet-context';
 
 interface SelectionOverlayProps {
     activeTier: any;
@@ -12,11 +12,11 @@ interface SelectionOverlayProps {
 
 const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ activeTier, onClose }) => {
     const { isConnected } = useAccount();
-    const { open } = useAppKit();
+    const { connect } = useWallet();
 
     const handleAction = () => {
         if (!isConnected) {
-            open();
+            connect();
         } else {
             // TODO: Open actual Deposit Modal or trigger transaction
             console.log(`Opening deposit modal for ${activeTier.name} with amount ${activeTier.price}`);
@@ -73,8 +73,8 @@ const SelectionOverlay: React.FC<SelectionOverlayProps> = ({ activeTier, onClose
                                 <Button
                                     onClick={handleAction}
                                     className={`w-full h-14 font-mono uppercase tracking-widest text-lg shadow-[0_0_20px_rgba(0,82,255,0.4)] transition-all ${isConnected
-                                            ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                                            : 'bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-900/20'
+                                        ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                                        : 'bg-transparent border border-blue-500 text-blue-400 hover:bg-blue-900/20'
                                         }`}
                                 >
                                     {isConnected ? (

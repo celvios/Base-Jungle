@@ -5,7 +5,7 @@ import { NoviceAsset, ScoutAsset, CaptainAsset, WhaleAsset } from './GalleryAsse
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Wallet } from 'lucide-react';
 import { useAccount } from 'wagmi';
-import { useAppKit } from '@reown/appkit/react';
+import { useWallet } from '@/contexts/wallet-context';
 import * as THREE from 'three';
 
 // Gyroscope-controlled Asset Wrapper
@@ -38,7 +38,7 @@ const MobileGallery: React.FC = () => {
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollRef = useRef<HTMLDivElement>(null);
     const { isConnected } = useAccount();
-    const { open } = useAppKit();
+    const { connect } = useWallet();
 
     const tiers = [
         { id: 1, name: 'Novice', price: '$100+', multiplier: '1.0x', leverage: 'None', Asset: NoviceAsset },
@@ -61,7 +61,7 @@ const MobileGallery: React.FC = () => {
 
     const handleTarget = () => {
         if (!isConnected) {
-            open();
+            connect();
         } else {
             alert(`Ready to deposit ${activeTier.price} for ${activeTier.name} tier!`);
         }
@@ -124,8 +124,8 @@ const MobileGallery: React.FC = () => {
                 <Button
                     onClick={handleTarget}
                     className={`w-full h-14 font-mono uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(0,82,255,0.4)] ${isConnected
-                            ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                            : 'bg-transparent border border-blue-500 text-blue-400'
+                        ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                        : 'bg-transparent border border-blue-500 text-blue-400'
                         }`}
                 >
                     {isConnected ? (

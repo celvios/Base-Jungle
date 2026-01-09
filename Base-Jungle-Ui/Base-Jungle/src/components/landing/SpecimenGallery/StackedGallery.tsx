@@ -6,12 +6,12 @@ import { NoviceAsset, ScoutAsset, CaptainAsset, WhaleAsset } from './GalleryAsse
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Wallet, ChevronDown } from 'lucide-react';
 import { useAccount } from 'wagmi';
-import { useAppKit } from '@reown/appkit/react';
+import { useWallet } from '@/contexts/wallet-context';
 
 const StackedGallery: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const { isConnected } = useAccount();
-    const { open } = useAppKit();
+    const { connect } = useWallet();
 
     const tiers = [
         { id: 1, name: 'Novice', price: '$100+', multiplier: '1.0x', leverage: '1.5x', Asset: NoviceAsset, color: 'text-blue-400' },
@@ -22,7 +22,7 @@ const StackedGallery: React.FC = () => {
 
     const handleTarget = (tier: any) => {
         if (!isConnected) {
-            open();
+            connect();
         } else {
             alert(`Ready to deposit ${tier.price} for ${tier.name} tier!`);
         }
