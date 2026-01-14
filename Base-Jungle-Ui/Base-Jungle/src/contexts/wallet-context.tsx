@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 import { useAccount, useDisconnect, useConnect, useReconnect } from 'wagmi';
 import { WagmiProvider } from 'wagmi';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { config } from '@/lib/wagmi';
+import { config, appkit } from '@/lib/appkit';
 import { queryClient } from '@/lib/queryClient';
 import { useSIWE } from '@/hooks/use-siwe';
 import { logMobileConnection } from '@/lib/mobile-wallet';
@@ -79,11 +79,8 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
   };
 
   const connectToReown = () => {
-    logMobileConnection('Reown WalletConnect clicked');
-    const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
-    if (walletConnectConnector) {
-      wagmiConnect({ connector: walletConnectConnector });
-    }
+    logMobileConnection('Reown AppKit clicked');
+    appkit.open();
   };
 
   const disconnect = () => {

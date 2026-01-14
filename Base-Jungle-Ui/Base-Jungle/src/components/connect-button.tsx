@@ -2,7 +2,7 @@ import { useWallet } from '@/contexts/wallet-context';
 import { isMobile } from '@/lib/mobile-wallet';
 
 export function ConnectButton() {
-    const { isConnected, address, connect, connectToMetaMask, disconnect } = useWallet();
+    const { isConnected, address, connectToReown, connectToMetaMask, disconnect } = useWallet();
 
     if (isConnected && address) {
         return (
@@ -33,13 +33,13 @@ export function ConnectButton() {
         );
     }
 
-    // On desktop, show standard connect button
+    // On desktop, show AppKit connect button (includes all wallets + WalletConnect QR)
     return (
         <button
-            onClick={connect}
+            onClick={connectToReown}
             className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white rounded-lg font-semibold transition-all"
         >
-            Connect MetaMask
+            Connect Wallet
         </button>
     );
 }
