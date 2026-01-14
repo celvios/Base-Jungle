@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { useAccount, useDisconnect, useConnect } from 'wagmi';
+import { useAccount, useDisconnect, useConnect, useReconnect } from 'wagmi';
 import { WagmiProvider } from 'wagmi';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { config } from '@/lib/wagmi';
+import { queryClient } from '@/lib/queryClient';
 import { useSIWE } from '@/hooks/use-siwe';
 import { logMobileConnection } from '@/lib/mobile-wallet';
 
@@ -11,6 +12,7 @@ interface WalletContextType {
   isConnected: boolean;
   connect: () => void;
   connectToMetaMask: () => void;
+  connectToReown: () => void;
   disconnect: () => void;
   // Auth state
   isAuthenticated: boolean;
@@ -20,15 +22,18 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
-// Create QueryClient instance
-const queryClient = new QueryClient();
-
 function WalletProviderInner({ children }: { children: ReactNode }) {
   const { address, isConnected } = useAccount();
   const { disconnect: wagmiDisconnect } = useDisconnect();
   const { connect: wagmiConnect, connectors } = useConnect();
+  const { reconnect } = useReconnect();
   const { isAuthenticated, isAuthenticating, authenticate, logout } = useSIWE();
   const [hasAttemptedAuth, setHasAttemptedAuth] = useState(false);
+
+  // Reconnect on mount
+  useEffect(() => {
+    reconnect();
+  }, [reconnect]);
 
   // Auto-authenticate when wallet connects
   useEffect(() => {
@@ -73,6 +78,14 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
     window.location.href = deepLink;
   };
 
+  const connectToReown = () => {
+    logMobileConnection('Reown WalletConnect clicked');
+    const walletConnectConnector = connectors.find(c => c.id === 'walletConnect');
+    if (walletConnectConnector) {
+      wagmiConnect({ connector: walletConnectConnector });
+    }
+  };
+
   const disconnect = () => {
     logout();
     wagmiDisconnect();
@@ -85,6 +98,7 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
         isConnected,
         connect,
         connectToMetaMask,
+        connectToReown,
         disconnect,
         isAuthenticated,
         isAuthenticating,
@@ -98,7 +112,7 @@ function WalletProviderInner({ children }: { children: ReactNode }) {
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={config} reconnectOnMount={true}>
       <QueryClientProvider client={queryClient}>
         <WalletProviderInner>
           {children}
