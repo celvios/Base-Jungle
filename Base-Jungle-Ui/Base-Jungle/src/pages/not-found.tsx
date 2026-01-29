@@ -1,7 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { useEffect } from "react";
 
 export default function NotFound() {
+  useEffect(() => {
+    // Debug alert as requested by user
+    alert(`404 Error: Page Not Found\nCurrent Path: ${window.location.pathname}\n\nThis means the React app LOADED but the router could not find a matching route.`);
+  }, []);
+
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <Card className="w-full max-w-md mx-4">
