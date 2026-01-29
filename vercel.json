@@ -9,14 +9,14 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "https://your-render-backend.onrender.com/api/$1"
+      "source": "/api/(.*)",
+      "destination": "https://your-render-backend.onrender.com/api/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/Base-Jungle-Ui/Base-Jungle/$1"
+      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
