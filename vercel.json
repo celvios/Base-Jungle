@@ -1,21 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "Base-Jungle-Ui/Base-Jungle/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
+  "outputDirectory": "Base-Jungle-Ui/Base-Jungle/dist",
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "https://your-render-backend.onrender.com/api/$1"
     },
     {
-      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],

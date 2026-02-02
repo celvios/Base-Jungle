@@ -5,6 +5,9 @@
     "@types/three": "^0.181.0",
     "three": "^0.181.2"
   },
+  "scripts": {
+    "build": "cd Base-Jungle-Ui/Base-Jungle && npm install && npm run build"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "@openzeppelin/contracts": "^5.0.0",
