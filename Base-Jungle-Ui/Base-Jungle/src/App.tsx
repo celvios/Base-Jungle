@@ -1,4 +1,5 @@
-import { Switch, Route, useLocation, Link } from "wouter";
+import { Switch, Route, useLocation, Link, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -31,7 +32,7 @@ import NotificationBell from "@/components/dashboard/NotificationBell";
 import { useYieldEvents } from "@/hooks/use-yield-events";
 import { useWallet } from "@/contexts/wallet-context";
 
-function Router() {
+function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={LandingPage} />
@@ -109,7 +110,7 @@ function AppContent() {
 
   if (!isDashboardRoute) {
     // Marketing pages - no sidebar
-    return <Router />;
+    return <AppRouter />;
   }
 
   // Dashboard pages - with sidebar on desktop, bottom nav on mobile
@@ -133,7 +134,7 @@ function AppContent() {
           </div>
         </header>
         <main className="flex-1 overflow-auto pb-16 md:pb-0">
-          <Router />
+          <AppRouter />
         </main>
       </div >
       {/* Mobile bottom navigation */}
@@ -149,21 +150,24 @@ function App() {
   };
 
   return (
-    <ThemeProvider>
-      <WalletProvider>
-        <ModalProvider>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <SidebarProvider style={style as React.CSSProperties}>
-                <ModalRenderer />
-                <Toaster />
-                <AppContent />
-              </SidebarProvider>
-            </TooltipProvider>
-          </QueryClientProvider>
-        </ModalProvider>
-      </WalletProvider>
-    </ThemeProvider>
+    // Use Hash Routing logic
+    <WouterRouter hook={useHashLocation}>
+      <ThemeProvider>
+        <WalletProvider>
+          <ModalProvider>
+            <QueryClientProvider client={queryClient}>
+              <TooltipProvider>
+                <SidebarProvider style={style as React.CSSProperties}>
+                  <ModalRenderer />
+                  <Toaster />
+                  <AppContent />
+                </SidebarProvider>
+              </TooltipProvider>
+            </QueryClientProvider>
+          </ModalProvider>
+        </WalletProvider>
+      </ThemeProvider>
+    </WouterRouter>
   );
 }
 
