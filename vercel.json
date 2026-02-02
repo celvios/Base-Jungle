@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "cd Base-Jungle-Ui/Base-Jungle && npm install && npm run build",
   "outputDirectory": "Base-Jungle-Ui/Base-Jungle/dist",
   "rewrites": [
     {
